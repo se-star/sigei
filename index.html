@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SIGEI v14.0 — Sistema de Gestión Educativa Institucional</title>
+<title>SIGEI v15.0 — Sistema de Gestión Educativa Institucional</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -696,6 +696,20 @@
     font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   }
 
+
+  /* ── USUARIOS ────────────────────────────────── */
+  #page-usuarios .card-panel { border-left-color: #2563EB; }
+  .rol-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;
+  }
+  .rol-administrador { background: #EFF6FF; color: #1D4ED8; }
+  .rol-coordinador   { background: #FEF3C7; color: #92400E; }
+  .rol-docente       { background: #F0FDF4; color: #15803D; }
+  body.dark-mode .rol-administrador { background:#162645; color:#60A5FA; }
+  body.dark-mode .rol-coordinador   { background:#1c1507; color:#FCD34D; }
+  body.dark-mode .rol-docente       { background:#052e16; color:#4ADE80; }
+
 </style>
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -722,7 +736,7 @@
       <div class="user-avatar" id="user-avatar-initials">?</div>
       <div class="sidebar-user-info">
         <div class="name" id="user-email-display"></div>
-        <div class="role">Administrador</div>
+        <div class="role" id="sidebar-role">Administrador</div>
       </div>
     </div>
     <button onclick="logoutUser()">
@@ -763,6 +777,11 @@
       <i class="bi bi-clock-history"></i><span>Actividad</span>
     </a>
 
+    <div class="nav-section">Administración</div>
+    <a href="#" onclick="navigate('usuarios')" data-page="usuarios">
+      <i class="bi bi-people-fill"></i><span>Usuarios</span>
+    </a>
+
     <div class="nav-section">Infraestructura</div>
     <a href="#" onclick="navigate('aulas')" data-page="aulas">
       <i class="bi bi-door-open-fill"></i><span>Aulas</span>
@@ -771,7 +790,7 @@
       <i class="bi bi-building-fill"></i><span>Sedes</span>
     </a>
   </nav>
-  <div class="version">v14.0 · Firebase</div>
+  <div class="version">v15.0 · Firebase</div>
 </div>
 
 <!-- ══════════════════════════════════════
@@ -1271,6 +1290,69 @@
       </div>
     </div>
 
+
+    <!-- ── USUARIOS ─────────────────────────── -->
+    <div id="page-usuarios" class="d-none">
+      <!-- Stats -->
+      <div class="row g-3 mb-3">
+        <div class="col-md-3">
+          <div class="stat-card">
+            <div class="icon" style="background:#EFF6FF;color:#2563EB"><i class="bi bi-people-fill"></i></div>
+            <div class="info"><h2 id="usr-cnt-total">0</h2><p>Usuarios totales</p></div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stat-card">
+            <div class="icon" style="background:#DCFCE7;color:#15803D"><i class="bi bi-shield-fill-check"></i></div>
+            <div class="info"><h2 id="usr-cnt-admin">0</h2><p>Administradores</p></div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stat-card">
+            <div class="icon" style="background:#FEF3C7;color:#B45309"><i class="bi bi-person-badge-fill"></i></div>
+            <div class="info"><h2 id="usr-cnt-coord">0</h2><p>Coordinadores</p></div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stat-card">
+            <div class="icon" style="background:#EDE9FE;color:#7C3AED"><i class="bi bi-person-fill"></i></div>
+            <div class="info"><h2 id="usr-cnt-doc">0</h2><p>Docentes</p></div>
+          </div>
+        </div>
+      </div>
+      <div class="card-panel">
+        <div class="panel-header">
+          <h6><i class="bi bi-people-fill me-2"></i>Usuarios del Sistema</h6>
+          <div class="d-flex gap-2 align-items-center">
+            <select class="form-select form-select-sm" id="filtro-usr-rol" onchange="renderUsuarios()" style="width:160px">
+              <option value="">Todos los roles</option>
+              <option>Administrador</option>
+              <option>Coordinador</option>
+              <option>Docente</option>
+            </select>
+            <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="abrirUsuario()">
+              <i class="bi bi-plus-lg me-1"></i>Nuevo usuario
+            </button>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Correo</th>
+                <th>Rol</th>
+                <th>Estado</th>
+                <th>Creado</th>
+                <th style="width:120px">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-usuarios"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
   </div><!-- /content -->
 </div><!-- /main -->
 
@@ -1339,6 +1421,69 @@
       <div class="modal-footer">
         <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
         <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="guardarReunion()">
+          <i class="bi bi-save me-1"></i>Guardar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Modal Usuario -->
+<div class="modal fade" id="modalUsuario" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal-usr-title">Nuevo Usuario</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="usr-id">
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label">Nombre completo *</label>
+            <input type="text" class="form-control" id="usr-nombre" placeholder="Ej: Juan García">
+          </div>
+          <div class="col-12">
+            <label class="form-label">Correo electrónico *</label>
+            <input type="email" class="form-control" id="usr-email" placeholder="correo@institución.edu">
+            <div class="form-text" id="usr-email-hint">Se usará para iniciar sesión en el SIGEI.</div>
+          </div>
+          <div class="col-12" id="usr-pass-wrap">
+            <label class="form-label">Contraseña *</label>
+            <div class="input-group">
+              <input type="password" class="form-control" id="usr-pass" placeholder="Mínimo 6 caracteres">
+              <button class="btn btn-outline-secondary" type="button" onclick="togglePassVis()">
+                <i class="bi bi-eye-fill" id="pass-eye-icon"></i>
+              </button>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Rol *</label>
+            <select class="form-select" id="usr-rol">
+              <option value="">Seleccione</option>
+              <option value="Administrador">Administrador</option>
+              <option value="Coordinador">Coordinador</option>
+              <option value="Docente">Docente</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Estado</label>
+            <select class="form-select" id="usr-estado">
+              <option value="Activo">Activo</option>
+              <option value="Inactivo">Inactivo</option>
+            </select>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Notas</label>
+            <textarea class="form-control" id="usr-notas" rows="2" placeholder="Observaciones opcionales..."></textarea>
+          </div>
+        </div>
+        <div id="usr-modal-error" class="alert alert-danger mt-3 d-none" style="font-size:13px"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="guardarUsuario()" id="usr-save-btn">
           <i class="bi bi-save me-1"></i>Guardar
         </button>
       </div>
@@ -1986,7 +2131,7 @@ const DB = {
 
   // Load all collections from Firestore into memory
   loadAll: async function() {
-    const COLS = ['docentes','secciones','horarios','aulas','sedes','permisos','asignaciones','cronograma','grados','reuniones','actividad'];
+    const COLS = ['docentes','secciones','horarios','aulas','sedes','permisos','asignaciones','cronograma','grados','reuniones','actividad','usuarios'];
     const snaps = await Promise.all(COLS.map(k => _fs.collection('sigei').doc(k).get()));
     snaps.forEach((snap, i) => {
       _cache[COLS[i]] = snap.exists ? (snap.data().items || []) : [];
@@ -2050,6 +2195,7 @@ function navigate(page) {
     cronograma:   renderCronograma,
     reuniones:    renderReuniones,
     actividad:    renderActividad,
+    usuarios:     renderUsuarios,
     aulas:        renderAulas,
     sedes:        renderSedes,
     permisos:     renderPermisos,
@@ -4147,6 +4293,208 @@ function limpiarActividad() {
   toast('Historial borrado.');
 }
 
+
+// ════════════════════════════════════════════════
+//  GESTIÓN DE USUARIOS
+// ════════════════════════════════════════════════
+function renderUsuarios() {
+  var filtroRol = (document.getElementById('filtro-usr-rol')||{}).value || '';
+  var users = (DB.get('usuarios') || []).slice();
+  if (filtroRol) users = users.filter(function(u){ return u.rol === filtroRol; });
+
+  // Stats
+  var all = DB.get('usuarios') || [];
+  var set = function(id,v){ var el=document.getElementById(id); if(el) el.textContent=v; };
+  set('usr-cnt-total', all.length);
+  set('usr-cnt-admin', all.filter(function(u){return u.rol==='Administrador';}).length);
+  set('usr-cnt-coord', all.filter(function(u){return u.rol==='Coordinador';}).length);
+  set('usr-cnt-doc',   all.filter(function(u){return u.rol==='Docente';}).length);
+
+  var tb = document.getElementById('tabla-usuarios');
+  if (!tb) return;
+  if (!users.length) { tb.innerHTML = emptyRow(6, 'No hay usuarios registrados. Crea el primero.'); return; }
+
+  var rolBadge = function(rol) {
+    var cls = rol === 'Administrador' ? 'rol-administrador' : rol === 'Coordinador' ? 'rol-coordinador' : 'rol-docente';
+    var ico = rol === 'Administrador' ? 'bi-shield-fill-check' : rol === 'Coordinador' ? 'bi-person-badge-fill' : 'bi-person-fill';
+    return '<span class="rol-badge '+cls+'"><i class="bi '+ico+'"></i>'+rol+'</span>';
+  };
+
+  // Get current user to mark it
+  var currentEmail = (firebase.auth().currentUser||{}).email || '';
+
+  tb.innerHTML = users.map(function(u) {
+    var isCurrent = u.email === currentEmail;
+    var creado = u.creado ? new Date(u.creado).toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'}) : '—';
+    return '<tr>'
+      + '<td><strong>'+u.nombre+'</strong>'+(isCurrent?' <span class="badge text-bg-primary" style="font-size:10px">Tú</span>':'')+'</td>'
+      + '<td style="font-size:12px;color:var(--slate-500)">'+u.email+'</td>'
+      + '<td>'+rolBadge(u.rol)+'</td>'
+      + '<td>'+badgeEstado(u.estado||'Activo')+'</td>'
+      + '<td style="font-size:12px;color:var(--slate-500)">'+creado+'</td>'
+      + '<td>'
+      + '<button class="btn btn-sm btn-outline-primary me-1" onclick="abrirUsuario('+u.id+')" title="Editar"><i class="bi bi-pencil-fill"></i></button>'
+      + (!isCurrent ? '<button class="btn btn-sm btn-outline-danger" onclick="eliminarUsuario('+u.id+')" title="Eliminar"><i class="bi bi-trash-fill"></i></button>' : '')
+      + '</td></tr>';
+  }).join('');
+}
+
+function abrirUsuario(id) {
+  document.getElementById('modal-usr-title').textContent = id ? 'Editar Usuario' : 'Nuevo Usuario';
+  ['id','nombre','email','pass','notas'].forEach(function(c){
+    var el = document.getElementById('usr-'+c); if(el) el.value='';
+  });
+  document.getElementById('usr-rol').value = '';
+  document.getElementById('usr-estado').value = 'Activo';
+  document.getElementById('usr-modal-error').classList.add('d-none');
+
+  var passWrap = document.getElementById('usr-pass-wrap');
+  var emailHint = document.getElementById('usr-email-hint');
+
+  if (id) {
+    var u = (DB.get('usuarios')||[]).find(function(x){ return x.id===id; });
+    if (!u) return;
+    document.getElementById('usr-id').value     = u.id;
+    document.getElementById('usr-nombre').value  = u.nombre||'';
+    document.getElementById('usr-email').value   = u.email||'';
+    document.getElementById('usr-rol').value     = u.rol||'';
+    document.getElementById('usr-estado').value  = u.estado||'Activo';
+    document.getElementById('usr-notas').value   = u.notas||'';
+    if (passWrap) passWrap.style.display = 'none'; // no change password on edit
+    if (emailHint) emailHint.textContent = 'El correo no se puede cambiar una vez creado.';
+    document.getElementById('usr-email').readOnly = true;
+  } else {
+    if (passWrap) passWrap.style.display = '';
+    if (emailHint) emailHint.textContent = 'Se usará para iniciar sesión en el SIGEI.';
+    document.getElementById('usr-email').readOnly = false;
+  }
+  new bootstrap.Modal(document.getElementById('modalUsuario')).show();
+}
+
+function togglePassVis() {
+  var inp = document.getElementById('usr-pass');
+  var ico = document.getElementById('pass-eye-icon');
+  if (inp.type === 'password') { inp.type='text';     ico.className='bi bi-eye-slash-fill'; }
+  else                         { inp.type='password'; ico.className='bi bi-eye-fill'; }
+}
+
+function guardarUsuario() {
+  var nombre  = document.getElementById('usr-nombre').value.trim();
+  var email   = document.getElementById('usr-email').value.trim();
+  var rol     = document.getElementById('usr-rol').value;
+  var estado  = document.getElementById('usr-estado').value;
+  var notas   = document.getElementById('usr-notas').value.trim();
+  var idEdit  = document.getElementById('usr-id').value;
+  var errEl   = document.getElementById('usr-modal-error');
+  var saveBtn = document.getElementById('usr-save-btn');
+
+  if (!nombre) { showUsrError('Ingrese el nombre completo.'); return; }
+  if (!email)  { showUsrError('Ingrese un correo válido.'); return; }
+  if (!rol)    { showUsrError('Seleccione un rol.'); return; }
+
+  errEl.classList.add('d-none');
+  saveBtn.disabled = true;
+  saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Guardando...';
+
+  var usuarios = DB.get('usuarios') || [];
+
+  if (!idEdit) {
+    // CREATE — Firebase Auth + Firestore record
+    var pass = document.getElementById('usr-pass').value;
+    if (!pass || pass.length < 6) { showUsrError('La contraseña debe tener al menos 6 caracteres.'); resetUsrBtn(); return; }
+
+    // Use secondary app or createUserWithEmailAndPassword on current app
+    // We use a secondary Firebase app instance to avoid logging out current user
+    var secondaryApp;
+    try {
+      secondaryApp = firebase.app('secondary');
+    } catch(e) {
+      secondaryApp = firebase.initializeApp(firebase.app().options, 'secondary');
+    }
+    secondaryApp.auth().createUserWithEmailAndPassword(email, pass)
+      .then(function(cred) {
+        var newUser = {
+          id:       DB.nextId('usuarios'),
+          uid:      cred.user.uid,
+          nombre:   nombre,
+          email:    email,
+          rol:      rol,
+          estado:   estado,
+          notas:    notas,
+          creado:   new Date().toISOString()
+        };
+        usuarios.push(newUser);
+        DB.set('usuarios', usuarios);
+        secondaryApp.auth().signOut();
+        bootstrap.Modal.getInstance(document.getElementById('modalUsuario')).hide();
+        renderUsuarios();
+        toast('Usuario creado exitosamente.');
+        resetUsrBtn();
+      })
+      .catch(function(err) {
+        var msg = err.code === 'auth/email-already-in-use' ? 'Este correo ya está registrado.'
+                : err.code === 'auth/invalid-email'       ? 'Correo electrónico inválido.'
+                : err.code === 'auth/weak-password'       ? 'Contraseña demasiado débil.'
+                : err.message;
+        showUsrError(msg);
+        resetUsrBtn();
+      });
+  } else {
+    // EDIT — only update Firestore record (no password change here)
+    var idx = usuarios.findIndex(function(u){ return u.id == idEdit; });
+    if (idx !== -1) {
+      usuarios[idx].nombre  = nombre;
+      usuarios[idx].rol     = rol;
+      usuarios[idx].estado  = estado;
+      usuarios[idx].notas   = notas;
+    }
+    DB.set('usuarios', usuarios);
+    // Update sidebar role if editing current user
+    var currentEmail = (firebase.auth().currentUser||{}).email||'';
+    if (email === currentEmail) {
+      var roleEl = document.getElementById('sidebar-role');
+      if (roleEl) roleEl.textContent = rol;
+    }
+    bootstrap.Modal.getInstance(document.getElementById('modalUsuario')).hide();
+    renderUsuarios();
+    toast('Usuario actualizado.');
+    resetUsrBtn();
+  }
+}
+
+function showUsrError(msg) {
+  var el = document.getElementById('usr-modal-error');
+  if (el) { el.textContent = msg; el.classList.remove('d-none'); }
+}
+function resetUsrBtn() {
+  var btn = document.getElementById('usr-save-btn');
+  if (btn) { btn.disabled=false; btn.innerHTML='<i class="bi bi-save me-1"></i>Guardar'; }
+}
+
+function eliminarUsuario(id) {
+  if (!confirmar('¿Eliminar este usuario? Solo se elimina del registro, la cuenta de Firebase sigue activa.')) return;
+  var usuarios = (DB.get('usuarios')||[]).filter(function(u){ return u.id!==id; });
+  DB.set('usuarios', usuarios);
+  renderUsuarios();
+  toast('Usuario eliminado del registro.');
+}
+
+// ── On login: load current user's role from usuarios collection ─────────────
+function cargarRolUsuario() {
+  var email = (firebase.auth().currentUser||{}).email || '';
+  var usuarios = DB.get('usuarios') || [];
+  var yo = usuarios.find(function(u){ return u.email === email; });
+  var roleEl = document.getElementById('sidebar-role');
+  if (roleEl && yo) roleEl.textContent = yo.rol || 'Administrador';
+  // Seed current user if not in list
+  if (!yo && email) {
+    var newEntry = { id: DB.nextId('usuarios'), nombre: email.split('@')[0],
+      email: email, rol: 'Administrador', estado: 'Activo', creado: new Date().toISOString() };
+    usuarios.push(newEntry);
+    DB.set('usuarios', usuarios);
+  }
+}
+
 function exportarDatos() {
   const data = {};
   ['docentes','secciones','grados','horarios','aulas','sedes','permisos'].forEach(k => { data[k] = DB.get(k); });
@@ -4375,7 +4723,7 @@ _auth.onAuthStateChanged(async function(user) {
         const now = new Date();
         dateEl.textContent = now.toLocaleDateString('es-CO', { weekday:'short', day:'numeric', month:'short', year:'numeric' });
       }
-      applyDarkPref(); Object.keys(_cache).forEach(function(c){ _cache['_prev_'+c]=(_cache[c]||[]).slice(); }); renderDashboard(); navigate('dashboard'); _appLoaded = true;
+      applyDarkPref(); cargarRolUsuario(); Object.keys(_cache).forEach(function(c){ _cache['_prev_'+c]=(_cache[c]||[]).slice(); }); renderDashboard(); navigate('dashboard'); _appLoaded = true;
     }
   } else {
     // Not logged in — just show the overlay (no reload)
