@@ -4084,7 +4084,7 @@ const COL_ICONS = {
 };
 
 function _logActividad(colName, newData) {
-  if (!_cache || !firebase.auth().currentUser) return;
+  try { if (!firebase.auth().currentUser) return; } catch(e) { return; }
   const user = firebase.auth().currentUser;
   const log  = _cache['actividad'] || [];
   const prev = _cache['_prev_' + colName] || [];
@@ -4370,7 +4370,7 @@ _auth.onAuthStateChanged(async function(user) {
     if (!_appLoaded) {
       applyDarkModePreference();
       // Init prev-snapshots for activity log
-      COLS.forEach(c => { if (_cache[c]) _cache['_prev_' + c] = (_cache[c]||[]).slice(); });
+      Object.keys(_cache).forEach(c => { _cache['_prev_' + c] = (_cache[c]||[]).slice(); });
       // Set topbar date
       const dateEl = document.getElementById('topbar-date');
       if (dateEl) {
