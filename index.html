@@ -1226,7 +1226,18 @@
         </div>
         <div class="table-responsive">
           <table>
-            <thead><tr><th>Docente</th><th>Tipo</th><th>Desde</th><th>Hasta</th><th>Días</th><th>Motivo</th><th>Estado</th><th style="width:110px">Acciones</th></tr></thead>
+            <thead><tr>
+                <th>Fecha Novedad</th>
+                <th>Docente</th>
+                <th>Tipo de Novedad</th>
+                <th>Grados Afectados</th>
+                <th style="width:70px">Horas</th>
+                <th>Doc. Reemplazo</th>
+                <th>Estado</th>
+                <th>Autorizado Por</th>
+                <th>Radicado</th>
+                <th style="width:110px">Acciones</th>
+              </tr></thead>
             <tbody id="tabla-permisos"></tbody>
           </table>
         </div>
@@ -2028,49 +2039,90 @@
 
 <!-- Modal Permiso -->
 <div class="modal fade" id="modalPermiso" tabindex="-1">
-  <div class="modal-dialog modal-lg">
+  <div class="modal-dialog modal-xl">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="modal-perm-title">Nuevo Permiso</h5>
+        <h5 class="modal-title" id="modal-perm-title">Nuevo Permiso / Novedad</h5>
         <button class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
         <input type="hidden" id="perm-id">
         <div class="row g-3">
-          <div class="col-md-6">
-            <label class="form-label">Docente *</label>
+
+          <!-- Fila 1: Fecha novedad + Docente con novedad + Tipo de novedad -->
+          <div class="col-md-3">
+            <label class="form-label">Fecha Novedad *</label>
+            <input type="date" class="form-control" id="perm-fecha-novedad">
+          </div>
+          <div class="col-md-5">
+            <label class="form-label">Docente con Novedad *</label>
             <select class="form-select" id="perm-docente"></select>
           </div>
-          <div class="col-md-6">
-            <label class="form-label">Tipo de permiso *</label>
+          <div class="col-md-4">
+            <label class="form-label">Tipo de Novedad *</label>
             <select class="form-select" id="perm-tipo">
-              <option>Vacaciones</option>
+              <option value="">Seleccione...</option>
+              <option>Incapacidad médica</option>
               <option>Permiso médico</option>
               <option>Permiso personal</option>
               <option>Licencia de maternidad/paternidad</option>
               <option>Licencia sindical</option>
               <option>Comisión de servicio</option>
+              <option>Calamidad doméstica</option>
+              <option>Vacaciones</option>
               <option>Otro</option>
             </select>
           </div>
-          <div class="col-md-4">
-            <label class="form-label">Fecha inicio *</label>
-            <input type="date" class="form-control" id="perm-inicio">
+
+          <!-- Fila 2: Grados afectados + Horas afectadas -->
+          <div class="col-md-8">
+            <label class="form-label">Grado(s) Afectado(s)</label>
+            <select class="form-select" id="perm-grados" multiple style="height:90px">
+            </select>
+            <div class="form-text">Mantén Ctrl para seleccionar varios grados.</div>
           </div>
           <div class="col-md-4">
-            <label class="form-label">Fecha fin *</label>
-            <input type="date" class="form-control" id="perm-fin">
+            <label class="form-label">Horas Afectadas</label>
+            <input type="number" class="form-control" id="perm-horas" min="1" max="40" placeholder="Ej: 4">
           </div>
-          <div class="col-md-4">
-            <label class="form-label">Estado</label>
-            <select class="form-select" id="perm-estado">
-              <option>Pendiente</option><option>Aprobado</option><option>Rechazado</option>
+
+          <!-- Fila 3: Docente reemplazo + Fecha reemplazo -->
+          <div class="col-md-6">
+            <label class="form-label">Docente Reemplazo</label>
+            <select class="form-select" id="perm-reemplazo">
+              <option value="">— Sin reemplazo asignado —</option>
             </select>
           </div>
-          <div class="col-12">
-            <label class="form-label">Motivo / Observaciones</label>
-            <textarea class="form-control" id="perm-motivo" rows="3"></textarea>
+          <div class="col-md-3">
+            <label class="form-label">Fecha Reemplazo</label>
+            <input type="date" class="form-control" id="perm-fecha-reemplazo">
           </div>
+          <div class="col-md-3">
+            <label class="form-label">Estado Resolución</label>
+            <select class="form-select" id="perm-estado">
+              <option value="Pendiente">Pendiente</option>
+              <option value="Aprobado">Aprobado</option>
+              <option value="Rechazado">Rechazado</option>
+              <option value="En trámite">En trámite</option>
+            </select>
+          </div>
+
+          <!-- Fila 4: Autorizado por + Radicado -->
+          <div class="col-md-6">
+            <label class="form-label">Autorizado por</label>
+            <input type="text" class="form-control" id="perm-autorizado" placeholder="Nombre del directivo o coordinador">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Radicado / N° Documento</label>
+            <input type="text" class="form-control" id="perm-radicado" placeholder="Ej: RAD-2024-001">
+          </div>
+
+          <!-- Observaciones -->
+          <div class="col-12">
+            <label class="form-label">Observaciones</label>
+            <textarea class="form-control" id="perm-motivo" rows="2" placeholder="Detalles adicionales..."></textarea>
+          </div>
+
         </div>
       </div>
       <div class="modal-footer">
@@ -4066,66 +4118,115 @@ function renderPermisos() {
 
   const tb = document.getElementById('tabla-permisos');
   tb.innerHTML = perms.length ? perms.map(p => {
-    const d1 = p.fecha_inicio ? new Date(p.fecha_inicio) : null;
-    const d2 = p.fecha_fin    ? new Date(p.fecha_fin)    : null;
-    const dias = (d1 && d2) ? Math.ceil((d2-d1)/(86400000))+1 : '\u2014';
-    const btnAprobar = '<button class="btn btn-xs btn-success btn-sm me-1" onclick="cambiarEstadoPermiso(' + p.id + ',\'Aprobado\')" title="Aprobar"><i class="bi bi-check-lg"></i></button>';
-    const btnRechazar = '<button class="btn btn-xs btn-danger btn-sm me-1" onclick="cambiarEstadoPermiso(' + p.id + ',\'Rechazado\')" title="Rechazar"><i class="bi bi-x-lg"></i></button>';
+    // Grados afectados label
+    const secs = DB.get('secciones');
+    const grados = DB.get('grados');
+    const gradosStr = (p.grados_afectados||[]).map(sid => {
+      const sec = secs.find(s=>s.id==sid);
+      if (!sec) return '';
+      const g = grados.find(x=>x.id==sec.grado_id);
+      return (g?g.nombre+' ':'')+sec.nombre;
+    }).filter(Boolean).join(', ') || '—';
+
+    const reemplNom = p.docente_reemplazo_id ? nombreDocente(p.docente_reemplazo_id) : '—';
+    const btnAprobar  = '<button class="btn btn-xs btn-success btn-sm me-1" onclick="cambiarEstadoPermiso('+p.id+',\'Aprobado\')" title="Aprobar"><i class="bi bi-check-lg"></i></button>';
+    const btnRechazar = '<button class="btn btn-xs btn-danger btn-sm me-1" onclick="cambiarEstadoPermiso('+p.id+',\'Rechazado\')" title="Rechazar"><i class="bi bi-x-lg"></i></button>';
     return '<tr>'
+      + '<td style="white-space:nowrap">' + fmt(p.fecha_novedad||p.fecha_inicio) + '</td>'
       + '<td><strong>' + nombreDocente(p.docente_id) + '</strong></td>'
-      + '<td>' + p.tipo + '</td>'
-      + '<td>' + fmt(p.fecha_inicio) + '</td>'
-      + '<td>' + fmt(p.fecha_fin) + '</td>'
-      + '<td>' + dias + '</td>'
-      + '<td>' + (p.motivo||'\u2014') + '</td>'
+      + '<td><span style="font-size:11px;background:var(--blue-50);color:var(--blue-600);padding:2px 8px;border-radius:20px">' + (p.tipo||'—') + '</span></td>'
+      + '<td style="font-size:12px">' + gradosStr + '</td>'
+      + '<td style="text-align:center">' + (p.horas_afectadas||'—') + '</td>'
+      + '<td style="font-size:12px">' + reemplNom + (p.fecha_reemplazo ? '<br><small style="color:var(--slate-400)">'+fmt(p.fecha_reemplazo)+'</small>' : '') + '</td>'
       + '<td>' + badgeEstado(p.estado) + '</td>'
+      + '<td style="font-size:12px">' + (p.autorizado_por||'—') + '</td>'
+      + '<td style="font-size:12px">' + (p.radicado ? '<span class="badge text-bg-secondary">'+p.radicado+'</span>' : '—') + '</td>'
       + '<td>'
       + (p.estado==='Pendiente' ? btnAprobar + btnRechazar : '')
-      + '<button class="btn btn-sm btn-outline-primary me-1" onclick="abrirPermiso(' + p.id + ')"><i class="bi bi-pencil-fill"></i></button>'
-      + '<button class="btn btn-sm btn-outline-danger" onclick="eliminarPermiso(' + p.id + ')"><i class="bi bi-trash-fill"></i></button>'
+      + '<button class="btn btn-sm btn-outline-primary me-1" onclick="abrirPermiso('+p.id+')" title="Editar"><i class="bi bi-pencil-fill"></i></button>'
+      + '<button class="btn btn-sm btn-outline-danger" onclick="eliminarPermiso('+p.id+')" title="Eliminar"><i class="bi bi-trash-fill"></i></button>'
       + '</td></tr>';
-  }).join('') : emptyRow(8, 'No hay permisos registrados');
+  }).join('') : emptyRow(10, 'No hay novedades registradas');
 }
 
 function abrirPermiso(id) {
   id = id || null;
-  document.getElementById('modal-perm-title').textContent = id ? 'Editar Permiso' : 'Nuevo Permiso';
-  const dSel = document.getElementById('perm-docente');
-  dSel.innerHTML = DB.get('docentes').map(d => '<option value="' + d.id + '">' + d.p_nombre + ' ' + d.p_apellido + '</option>').join('');
-  ['perm-id','perm-inicio','perm-fin','perm-motivo'].forEach(x => { document.getElementById(x).value = ''; });
+  document.getElementById('modal-perm-title').textContent = id ? 'Editar Novedad' : 'Nueva Novedad / Permiso';
+
+  // Populate docente dropdowns
+  const docOpts = DB.get('docentes').filter(d=>d.estado==='Activo')
+    .map(d => '<option value="'+d.id+'">'+d.p_nombre+' '+d.p_apellido+'</option>').join('');
+  document.getElementById('perm-docente').innerHTML  = '<option value="">Seleccione docente...</option>' + docOpts;
+  document.getElementById('perm-reemplazo').innerHTML = '<option value="">— Sin reemplazo asignado —</option>' + docOpts;
+
+  // Populate grados
+  const gradSel = document.getElementById('perm-grados');
+  const secs = DB.get('secciones');
+  gradSel.innerHTML = secs.map(s => {
+    const g = DB.get('grados').find(x=>x.id==s.grado_id);
+    const label = (g?g.nombre+' ':'')+s.nombre;
+    return '<option value="'+s.id+'">'+label+'</option>';
+  }).join('');
+
+  // Reset fields
+  ['perm-id','perm-fecha-novedad','perm-horas','perm-fecha-reemplazo','perm-autorizado','perm-radicado','perm-motivo']
+    .forEach(x => { const el=document.getElementById(x); if(el) el.value=''; });
   document.getElementById('perm-estado').value = 'Pendiente';
+  Array.from(gradSel.options).forEach(o=>o.selected=false);
+
   if (id) {
     const p = DB.get('permisos').find(x => x.id == id);
     if (!p) return;
-    document.getElementById('perm-id').value      = p.id;
-    document.getElementById('perm-docente').value = p.docente_id;
-    document.getElementById('perm-tipo').value    = p.tipo;
-    document.getElementById('perm-inicio').value  = p.fecha_inicio||'';
-    document.getElementById('perm-fin').value     = p.fecha_fin||'';
-    document.getElementById('perm-estado').value  = p.estado||'Pendiente';
-    document.getElementById('perm-motivo').value  = p.motivo||'';
+    const sv = (id,v) => { const el=document.getElementById(id); if(el&&v!=null) el.value=v; };
+    sv('perm-id',            p.id);
+    sv('perm-fecha-novedad', p.fecha_novedad||p.fecha_inicio||'');
+    sv('perm-docente',       p.docente_id);
+    sv('perm-tipo',          p.tipo||'');
+    sv('perm-horas',         p.horas_afectadas||'');
+    sv('perm-reemplazo',     p.docente_reemplazo_id||'');
+    sv('perm-fecha-reemplazo', p.fecha_reemplazo||'');
+    sv('perm-estado',        p.estado||'Pendiente');
+    sv('perm-autorizado',    p.autorizado_por||'');
+    sv('perm-radicado',      p.radicado||'');
+    sv('perm-motivo',        p.motivo||p.observaciones||'');
+    // Restore grados selection
+    const gAfect = p.grados_afectados || [];
+    Array.from(gradSel.options).forEach(o => { o.selected = gAfect.includes(parseInt(o.value)); });
   }
   new bootstrap.Modal(document.getElementById('modalPermiso')).show();
 }
 
 function guardarPermiso() {
-  const doc_id = document.getElementById('perm-docente').value;
-  const tipo   = document.getElementById('perm-tipo').value;
-  const inicio = document.getElementById('perm-inicio').value;
-  const fin    = document.getElementById('perm-fin').value;
-  if (!doc_id || !tipo || !inicio || !fin) { toast('Docente, tipo y fechas son obligatorios.', false); return; }
-  if (inicio > fin) { toast('La fecha de inicio no puede ser posterior a la fecha fin.', false); return; }
+  const doc_id       = document.getElementById('perm-docente').value;
+  const tipo         = document.getElementById('perm-tipo').value;
+  const fechaNovedad = document.getElementById('perm-fecha-novedad').value;
+  if (!doc_id)       { toast('Seleccione el docente con novedad.', false); return; }
+  if (!tipo)         { toast('Seleccione el tipo de novedad.', false);     return; }
+  if (!fechaNovedad) { toast('Ingrese la fecha de la novedad.', false);    return; }
+
+  // Grados afectados
+  const gradSel      = document.getElementById('perm-grados');
+  const gradosAfect  = Array.from(gradSel.selectedOptions).map(o => parseInt(o.value));
+
   const perms  = DB.get('permisos');
   const idEdit = document.getElementById('perm-id').value;
-  const data   = {
-    docente_id:   parseInt(doc_id),
-    tipo, fecha_inicio: inicio, fecha_fin: fin,
-    estado:       document.getElementById('perm-estado').value,
-    motivo:       document.getElementById('perm-motivo').value.trim(),
-    fecha_registro: new Date().toISOString().slice(0,10),
+  const reempId = document.getElementById('perm-reemplazo').value;
+  const data = {
+    docente_id:           parseInt(doc_id),
+    fecha_novedad:        fechaNovedad,
+    tipo:                 tipo,
+    grados_afectados:     gradosAfect,
+    horas_afectadas:      parseInt(document.getElementById('perm-horas').value)||0,
+    docente_reemplazo_id: reempId ? parseInt(reempId) : null,
+    fecha_reemplazo:      document.getElementById('perm-fecha-reemplazo').value,
+    estado:               document.getElementById('perm-estado').value,
+    autorizado_por:       document.getElementById('perm-autorizado').value.trim(),
+    radicado:             document.getElementById('perm-radicado').value.trim(),
+    motivo:               document.getElementById('perm-motivo').value.trim(),
+    fecha_registro:       new Date().toISOString().slice(0,10),
   };
-  if (!idEdit) { perms.push({ id: DB.nextId('permisos'), ...data }); toast('Permiso registrado.'); }
-  else { const idx = perms.findIndex(p => p.id == idEdit); Object.assign(perms[idx], data); toast('Permiso actualizado.'); }
+  if (!idEdit) { perms.push({ id: DB.nextId('permisos'), ...data }); toast('Novedad registrada.'); }
+  else { const idx = perms.findIndex(p => p.id == idEdit); Object.assign(perms[idx], data); toast('Novedad actualizada.'); }
   DB.set('permisos', perms);
   bootstrap.Modal.getInstance(document.getElementById('modalPermiso')).hide();
   renderPermisos();
