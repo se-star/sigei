@@ -1715,6 +1715,62 @@
 </div>
 
 <!-- Offcanvas Detalle Docente -->
+
+<!-- Offcanvas Sección / Grupo -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasSeccion" style="width:420px">
+  <div class="offcanvas-header border-bottom" style="background:var(--blue-600)">
+    <div class="d-flex align-items-center gap-3">
+      <div style="width:44px;height:44px;background:rgba(255,255,255,.2);border-radius:12px;
+                  display:flex;align-items:center;justify-content:center;font-size:20px;color:#fff">
+        <i class="bi bi-mortarboard-fill"></i>
+      </div>
+      <div>
+        <h6 class="offcanvas-title text-white mb-0" id="sec-det-nombre">—</h6>
+        <span id="sec-det-grado" style="color:rgba(255,255,255,.75);font-size:12px">—</span>
+      </div>
+    </div>
+    <button class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+  </div>
+  <div class="offcanvas-body p-0" style="overflow-y:auto">
+
+    <!-- Info general -->
+    <div style="padding:16px 20px;border-bottom:1px solid var(--slate-200)">
+      <p class="text-muted fw-bold mb-2" style="font-size:10px;text-transform:uppercase;letter-spacing:.06em">Información General</p>
+      <div class="row g-2">
+        <div class="col-6">
+          <div style="font-size:11px;color:var(--slate-400)">Turno</div>
+          <div style="font-size:13px;font-weight:600" id="sec-det-turno">—</div>
+        </div>
+        <div class="col-6">
+          <div style="font-size:11px;color:var(--slate-400)">Capacidad</div>
+          <div style="font-size:13px;font-weight:600" id="sec-det-cap">—</div>
+        </div>
+        <div class="col-6 mt-2">
+          <div style="font-size:11px;color:var(--slate-400)">Director de grupo</div>
+          <div style="font-size:13px;font-weight:600" id="sec-det-director">—</div>
+        </div>
+        <div class="col-6 mt-2">
+          <div style="font-size:11px;color:var(--slate-400)">Aula</div>
+          <div style="font-size:13px;font-weight:600" id="sec-det-aula">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Docentes asignados -->
+    <div style="padding:16px 20px;border-bottom:1px solid var(--slate-200)">
+      <p class="text-muted fw-bold mb-2" style="font-size:10px;text-transform:uppercase;letter-spacing:.06em">Docentes Asignados</p>
+      <div id="sec-det-docentes"></div>
+    </div>
+
+    <!-- Horario -->
+    <div style="padding:16px 20px">
+      <p class="text-muted fw-bold mb-2" style="font-size:10px;text-transform:uppercase;letter-spacing:.06em">Horario</p>
+      <div id="sec-det-horario"></div>
+    </div>
+
+  </div>
+</div>
+
 <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasDocente" style="width:380px">
   <div class="offcanvas-header border-bottom" style="background:var(--slate-900)">
     <div class="d-flex align-items-center gap-3">
@@ -2497,6 +2553,95 @@ function guardarDocente() {
   renderDocentes();
 }
 
+
+
+// ════════════════════════════════════════════════
+//  VER SECCIÓN / GRUPO (offcanvas detalle)
+// ════════════════════════════════════════════════
+function verSeccion(secId) {
+  var sec = DB.get('secciones').find(function(s){ return s.id == secId; });
+  if (!sec) return;
+
+  var grado = DB.get('grados').find(function(g){ return g.id == sec.grado_id; });
+  var gradoNom = grado ? grado.nombre : '—';
+
+  document.getElementById('sec-det-nombre').textContent  = sec.nombre || '—';
+  document.getElementById('sec-det-grado').textContent   = gradoNom;
+  document.getElementById('sec-det-turno').textContent   = sec.turno || '—';
+  document.getElementById('sec-det-cap').textContent     = (sec.capacidad || '—') + ' estudiantes';
+
+  // Director
+  var dirEl = document.getElementById('sec-det-director');
+  if (sec.docente_id) {
+    var dir = DB.get('docentes').find(function(d){ return d.id == sec.docente_id; });
+    dirEl.textContent = dir ? dir.p_nombre + ' ' + dir.p_apellido : '—';
+  } else { dirEl.textContent = 'No asignado'; }
+
+  // Aula
+  var aulaEl = document.getElementById('sec-det-aula');
+  if (sec.aula_id) {
+    var aula = DB.get('aulas').find(function(a){ return a.id == sec.aula_id; });
+    aulaEl.textContent = aula ? aula.nombre : '—';
+  } else { aulaEl.textContent = '—'; }
+
+  // Docentes asignados a esta sección (via asignaciones.cursos)
+  var asigs = DB.get('asignaciones').filter(function(a) {
+    return (a.cursos||[]).some(function(c){ return c.seccion_id == secId; });
+  });
+  var docEl = document.getElementById('sec-det-docentes');
+  if (!asigs.length) {
+    docEl.innerHTML = '<p style="font-size:12px;color:var(--slate-400)">Sin docentes asignados</p>';
+  } else {
+    docEl.innerHTML = asigs.map(function(a) {
+      var doc = DB.get('docentes').find(function(d){ return d.id == a.docente_id; });
+      var docNom = doc ? doc.p_nombre + ' ' + doc.p_apellido : 'Docente #' + a.docente_id;
+      var horas = (a.cursos||[]).filter(function(c){ return c.seccion_id == secId; })
+        .reduce(function(sum,c){ return sum + (c.dias||[]).reduce(function(s2,dd){
+          var ini=timeToMins(dd.hora_inicio||'00:00'), fin=timeToMins(dd.hora_fin||'00:00');
+          return s2+(fin>ini?(fin-ini)/60:0);
+        }, 0); }, 0);
+      return '<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--slate-100)">'
+        + '<div style="width:32px;height:32px;border-radius:8px;background:var(--blue-50);color:var(--blue-600);'
+        + 'display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0">'
+        + ((doc?doc.p_nombre[0]:'?')+(doc?doc.p_apellido[0]:'?')).toUpperCase() + '</div>'
+        + '<div><strong style="font-size:13px">' + docNom + '</strong>'
+        + '<div style="font-size:11px;color:var(--slate-400)">' + (a.materia||'—') + ' · ' + horas.toFixed(1) + ' h/sem</div></div>'
+        + '</div>';
+    }).join('');
+  }
+
+  // Horario de la sección
+  var DIAS = ['Lunes','Martes','Miércoles','Jueves','Viernes'];
+  var horarios = DB.get('horarios').filter(function(h){ return h.seccion_id == secId; });
+  var horEl = document.getElementById('sec-det-horario');
+  if (!horarios.length) {
+    horEl.innerHTML = '<p style="font-size:12px;color:var(--slate-400)">Sin horario registrado</p>';
+  } else {
+    var byDia = {};
+    DIAS.forEach(function(d){ byDia[d] = []; });
+    horarios.forEach(function(h){ if(byDia[h.dia]) byDia[h.dia].push(h); });
+    DIAS.forEach(function(d){ byDia[d].sort(function(a,b){ return a.hora_inicio.localeCompare(b.hora_inicio); }); });
+
+    horEl.innerHTML = DIAS.filter(function(d){ return byDia[d].length; }).map(function(dia) {
+      return '<div style="margin-bottom:10px">'
+        + '<div style="font-size:11px;font-weight:700;color:var(--blue-600);margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em">' + dia + '</div>'
+        + byDia[dia].map(function(h) {
+            var doc = DB.get('docentes').find(function(d){ return d.id == h.docente_id; });
+            var docNom = doc ? doc.p_nombre+' '+doc.p_apellido : '';
+            return '<div style="display:flex;justify-content:space-between;align-items:center;'
+              + 'padding:5px 10px;background:var(--slate-50);border-radius:8px;margin-bottom:3px;font-size:12px">'
+              + '<div><strong>' + (h.materia||'—') + '</strong>'
+              + (docNom ? '<span style="color:var(--slate-500);margin-left:6px">· '+docNom+'</span>' : '')
+              + '</div>'
+              + '<div style="color:var(--slate-400);white-space:nowrap">' + (h.hora_inicio||'') + ' – ' + (h.hora_fin||'') + '</div>'
+              + '</div>';
+          }).join('')
+        + '</div>';
+    }).join('');
+  }
+
+  bootstrap.Offcanvas.getOrCreateInstance(document.getElementById('offcanvasSeccion')).show();
+}
 
 function verDocente(id) {
   const d = DB.get('docentes').find(x => x.id === id);
@@ -4149,16 +4294,22 @@ function buscarGlobal(q) {
   DB.get('docentes').forEach(function(d) {
     var n = ((d.p_nombre||'') + ' ' + (d.p_apellido||'')).toLowerCase();
     if (n.includes(q) || (d.cedula||'').toLowerCase().includes(q) || (d.area||'').toLowerCase().includes(q)) {
-      res.push({ g:'Docentes', ico:'bi-person-badge-fill', bg:'#EFF6FF', col:'#2563EB',
-        t: d.p_nombre+' '+d.p_apellido, s:(d.area||'')+(d.estado?' · '+d.estado:''),
-        fn: function(){ navigate('docentes'); } });
+      (function(did){
+        res.push({ g:'Docentes', ico:'bi-person-badge-fill', bg:'#EFF6FF', col:'#2563EB',
+          t: d.p_nombre+' '+d.p_apellido, s:(d.area||'')+(d.estado?' · '+d.estado:''),
+          fn: function(){ verDocente(did); } });
+      })(d.id);
     }
   });
   DB.get('secciones').forEach(function(s) {
-    if ((s.nombre||'').toLowerCase().includes(q) || (s.grado||'').toLowerCase().includes(q)) {
-      res.push({ g:'Grupos', ico:'bi-mortarboard-fill', bg:'#DCFCE7', col:'#15803D',
-        t: s.nombre||s.grado, s:'Grado: '+(s.grado||'—')+' · '+(s.jornada||''),
-        fn: function(){ navigate('grados'); } });
+    var gradoObj = DB.get('grados').find(function(g){ return g.id == s.grado_id; });
+    var gradoNom = gradoObj ? gradoObj.nombre : (s.grado||'');
+    if ((s.nombre||'').toLowerCase().includes(q) || gradoNom.toLowerCase().includes(q)) {
+      (function(sid, snom, sgrado, sturno){
+        res.push({ g:'Grupos', ico:'bi-mortarboard-fill', bg:'#DCFCE7', col:'#15803D',
+          t: snom, s:'Grado: '+sgrado+(sturno?' · '+sturno:''),
+          fn: function(){ verSeccion(sid); } });
+      })(s.id, s.nombre||(gradoNom||'Grupo'), gradoNom, s.turno||'');
     }
   });
   DB.get('cronograma').forEach(function(e) {
