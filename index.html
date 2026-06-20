@@ -1818,6 +1818,13 @@
       <p class="text-muted fw-bold mb-2" style="font-size:10px;text-transform:uppercase;letter-spacing:.06em">Asignación Académica</p>
       <div id="det-asignaciones"><p class="text-muted" style="font-size:12px">Sin asignaciones</p></div>
     </div>
+    <!-- Historial de novedades -->
+    <div style="padding:16px 20px;border-top:1px solid var(--slate-200)">
+      <p class="text-muted fw-bold mb-2" style="font-size:10px;text-transform:uppercase;letter-spacing:.06em">
+        Historial de Novedades / Permisos
+      </p>
+      <div id="det-novedades"><p class="text-muted" style="font-size:12px">Sin novedades registradas</p></div>
+    </div>
     <div class="border-top p-3 d-flex gap-2">
       <button class="btn btn-sm text-white flex-fill" style="background:var(--blue-600)" id="det-btn-editar"><i class="bi bi-pencil-fill me-1"></i>Editar</button>
       <button class="btn btn-sm btn-outline-danger" id="det-btn-eliminar"><i class="bi bi-trash-fill"></i></button>
@@ -2056,7 +2063,7 @@
           </div>
           <div class="col-md-5">
             <label class="form-label">Docente con Novedad *</label>
-            <select class="form-select" id="perm-docente"></select>
+            <select class="form-select" id="perm-docente" onchange="autoFillPermisoFromDocente()"></select>
           </div>
           <div class="col-md-4">
             <label class="form-label">Tipo de Novedad *</label>
@@ -2110,7 +2117,12 @@
           <!-- Fila 4: Autorizado por + Radicado -->
           <div class="col-md-6">
             <label class="form-label">Autorizado por</label>
-            <input type="text" class="form-control" id="perm-autorizado" placeholder="Nombre del directivo o coordinador">
+            <select class="form-select" id="perm-autorizado">
+              <option value="">— Seleccione —</option>
+              <option value="Rectoría">Rectoría</option>
+              <option value="Coordinador Académico">Coordinador Académico</option>
+              <option value="Coordinador de Convivencia">Coordinador de Convivencia</option>
+            </select>
           </div>
           <div class="col-md-6">
             <label class="form-label">Radicado / N° Documento</label>
@@ -2745,6 +2757,40 @@ function verDocente(id) {
     if(oc) oc.hide();
     setTimeout(function(){ eliminarDocente(id); }, 300);
   };
+
+  // Historial de novedades
+  var novEl = document.getElementById('det-novedades');
+  if (novEl) {
+    var novedades = DB.get('permisos').filter(function(p){ return p.docente_id == id; })
+      .sort(function(a,b){ return (b.fecha_novedad||b.fecha_inicio||'').localeCompare(a.fecha_novedad||a.fecha_inicio||''); });
+    if (!novedades.length) {
+      novEl.innerHTML = '<p style="font-size:12px;color:var(--slate-400)">Sin novedades registradas</p>';
+    } else {
+      var estadoCol = { 'Aprobado':'#10B981','Rechazado':'#EF4444','Pendiente':'#F59E0B','En trámite':'#3B82F6' };
+      novEl.innerHTML = novedades.map(function(p) {
+        var sc = estadoCol[p.estado]||'#64748B';
+        var grados = DB.get('secciones');
+        var gradosG = DB.get('grados');
+        var gradosStr = (p.grados_afectados||[]).map(function(sid){
+          var sec=grados.find(function(s){return s.id==sid;});
+          var g=sec?gradosG.find(function(x){return x.id==sec.grado_id;}):null;
+          return sec?(g?g.nombre+' ':'')+sec.nombre:'';
+        }).filter(Boolean).join(', ')||'—';
+        return '<div style="border-left:3px solid '+sc+';padding:6px 10px;margin-bottom:6px;background:var(--slate-50);border-radius:0 8px 8px 0">'
+          + '<div style="display:flex;justify-content:space-between;align-items:center">'
+          + '<strong style="font-size:12px">'+(p.tipo||'Novedad')+'</strong>'
+          + '<span style="font-size:10px;font-weight:700;color:'+sc+'">'+p.estado+'</span></div>'
+          + '<div style="font-size:11px;color:var(--slate-500);margin-top:2px">'
+          + (p.fecha_novedad||p.fecha_inicio||'—')
+          + (p.horas_afectadas?' · '+p.horas_afectadas+' h':'')
+          + (gradosStr!=='—'?' · '+gradosStr:'')
+          + '</div>'
+          + (p.radicado?'<div style="font-size:10px;color:var(--slate-400);margin-top:2px">Rad: '+p.radicado+'</div>':'')
+          + '</div>';
+      }).join('');
+    }
+  }
+
   var ocEl = document.getElementById('offcanvasDocente');
   var oc = bootstrap.Offcanvas.getOrCreateInstance(ocEl);
   oc.show();
@@ -4194,6 +4240,74 @@ function abrirPermiso(id) {
     Array.from(gradSel.options).forEach(o => { o.selected = gAfect.includes(parseInt(o.value)); });
   }
   new bootstrap.Modal(document.getElementById('modalPermiso')).show();
+}
+
+
+// ════════════════════════════════════════════════
+//  PERMISOS — AUTO-FILL & REEMPLAZO DISPONIBLE
+// ════════════════════════════════════════════════
+function autoFillPermisoFromDocente() {
+  var docId = parseInt(document.getElementById('perm-docente').value);
+  if (!docId) return;
+
+  var asigs   = DB.get('asignaciones').filter(function(a){ return a.docente_id == docId; });
+  var secs    = DB.get('secciones');
+  var grados  = DB.get('grados');
+
+  // Collect unique seccion IDs from all asignaciones
+  var secIds = [];
+  asigs.forEach(function(a){
+    (a.cursos||[]).forEach(function(c){
+      if (c.seccion_id && !secIds.includes(c.seccion_id)) secIds.push(c.seccion_id);
+    });
+  });
+
+  // Pre-select in grados multiselect
+  var gradSel = document.getElementById('perm-grados');
+  Array.from(gradSel.options).forEach(function(o){
+    o.selected = secIds.includes(parseInt(o.value));
+  });
+
+  // Calculate total weekly hours for this docente
+  var totalHoras = 0;
+  asigs.forEach(function(a){
+    (a.cursos||[]).forEach(function(c){
+      (c.dias||[]).forEach(function(dd){
+        var ini = timeToMins(dd.hora_inicio||'00:00');
+        var fin = timeToMins(dd.hora_fin||'00:00');
+        if (fin > ini) totalHoras += (fin - ini) / 60;
+      });
+    });
+  });
+  var horasEl = document.getElementById('perm-horas');
+  if (horasEl) horasEl.value = totalHoras > 0 ? Math.round(totalHoras) : '';
+
+  // Filter reemplazo: show all ACTIVE docentes except the one with novedad
+  // Also exclude docentes who already have a conflict (simplified: just exclude same docente)
+  var docentes = DB.get('docentes').filter(function(d){ return d.estado==='Activo' && d.id != docId; });
+  var rSel = document.getElementById('perm-reemplazo');
+  rSel.innerHTML = '<option value="">— Sin reemplazo asignado —</option>'
+    + docentes.map(function(d){
+        var hLibres = calcHorasLibresDocente(d.id);
+        var label = d.p_nombre+' '+d.p_apellido
+          + (hLibres !== null ? ' ('+hLibres.toFixed(1)+' h libres/sem)' : '');
+        return '<option value="'+d.id+'">'+label+'</option>';
+      }).join('');
+}
+
+function calcHorasLibresDocente(docId) {
+  var JORNADA_MAX = 40; // horas semanales máximas
+  var asigs = DB.get('asignaciones').filter(function(a){ return a.docente_id == docId; });
+  if (!asigs.length) return JORNADA_MAX;
+  var ocupadas = asigs.reduce(function(sum, a){
+    return sum + (a.cursos||[]).reduce(function(s2,c){
+      return s2 + (c.dias||[]).reduce(function(s3,dd){
+        var ini=timeToMins(dd.hora_inicio||'00:00'), fin=timeToMins(dd.hora_fin||'00:00');
+        return s3 + (fin>ini?(fin-ini)/60:0);
+      },0);
+    },0);
+  },0);
+  return Math.max(0, JORNADA_MAX - ocupadas);
 }
 
 function guardarPermiso() {
