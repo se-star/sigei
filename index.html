@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SIGEI v13.0 — Sistema de Gestión Educativa Institucional</title>
+<title>SIGEI v14.0 — Sistema de Gestión Educativa Institucional</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 <style>
@@ -481,6 +481,163 @@
     body { background:#fff; }
   }
 
+
+  /* ══ TOPBAR SEARCH ══════════════════════════════════════════════════ */
+  .topbar-search-wrap {
+    position: relative;
+    flex: 1;
+    max-width: 380px;
+    margin: 0 16px;
+  }
+  .topbar-search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--slate-400);
+    font-size: 13px;
+    pointer-events: none;
+  }
+  .topbar-search-input {
+    width: 100%;
+    height: 34px;
+    padding: 0 12px 0 30px;
+    border: 1.5px solid var(--slate-200);
+    border-radius: 20px;
+    font-size: 13px;
+    background: var(--slate-50);
+    color: var(--slate-700);
+    outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .topbar-search-input:focus {
+    border-color: var(--blue-600);
+    box-shadow: 0 0 0 3px rgba(37,99,235,.1);
+    background: var(--white);
+  }
+  .search-dropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    background: var(--white);
+    border: 1px solid var(--slate-200);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    z-index: 1060;
+    max-height: 360px;
+    overflow-y: auto;
+  }
+  .search-result-group { padding: 6px 0; }
+  .search-result-group-title {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--slate-400);
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+  }
+  .search-result-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: background .1s;
+  }
+  .search-result-item:hover, .search-result-item.active {
+    background: var(--blue-50);
+  }
+  .search-result-item .sri-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .search-result-item .sri-text strong { font-size: 13px; font-weight: 600; }
+  .search-result-item .sri-text small  { font-size: 11px; color: var(--slate-500); display: block; }
+  .search-empty { text-align: center; padding: 20px; color: var(--slate-400); font-size: 13px; }
+
+  /* ══ DARK MODE TOGGLE BTN ═══════════════════════════════════════════ */
+  .topbar-icon-btn {
+    background: none;
+    border: 1.5px solid var(--slate-200);
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--slate-500);
+    font-size: 14px;
+    transition: background .15s, color .15s;
+  }
+  .topbar-icon-btn:hover { background: var(--slate-100); color: var(--blue-600); }
+
+  /* ══ DARK MODE ═══════════════════════════════════════════════════════ */
+  body.dark-mode {
+    --slate-900: #F8FAFC;
+    --slate-800: #F1F5F9;
+    --slate-700: #CBD5E1;
+    --slate-500: #94A3B8;
+    --slate-400: #64748B;
+    --slate-200: #334155;
+    --slate-100: #1E293B;
+    --slate-50:  #0F172A;
+    --white:     #1A2332;
+    --blue-50:   #1e3a5f;
+    --blue-100:  #1e3a5f;
+    background: #0D1B2A;
+  }
+  body.dark-mode #sidebar        { background: #111927; border-color: #1E293B; }
+  body.dark-mode .topbar         { background: #111927; border-color: #1E293B; }
+  body.dark-mode .card-panel     { background: #1A2332; }
+  body.dark-mode .stat-card      { background: #1A2332; }
+  body.dark-mode .chart-card     { background: #1A2332; }
+  body.dark-mode table thead     { background: #111927; }
+  body.dark-mode table tbody tr:hover { background: #1E293B; }
+  body.dark-mode .topbar-search-input { background: #1E293B; color: #CBD5E1; border-color: #334155; }
+  body.dark-mode .search-dropdown     { background: #1A2332; border-color: #334155; }
+  body.dark-mode .form-control,
+  body.dark-mode .form-select   { background: #1E293B; color: #CBD5E1; border-color: #334155; }
+  body.dark-mode #dark-icon::before { content: "\F497"; } /* sun icon override */
+  body.dark-mode #dark-icon { font-size: 15px; }
+  body.dark-mode .modal-content  { background: #1A2332; color: #CBD5E1; }
+  body.dark-mode .modal-header   { border-color: #334155; }
+  body.dark-mode .modal-footer   { border-color: #334155; }
+  body.dark-mode .offcanvas       { background: #1A2332; color: #CBD5E1; }
+  body.dark-mode .login-card      { background: #1A2332; }
+  body.dark-mode .badge { filter: brightness(.85); }
+
+  /* ══ ACTIVITY LOG ════════════════════════════════════════════════════ */
+  #page-actividad .card-panel { border-left-color: #6366F1; }
+  .act-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--slate-100);
+  }
+  .act-item:last-child { border-bottom: none; }
+  .act-dot {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .act-body strong { font-size: 13px; font-weight: 600; display: block; }
+  .act-body small  { font-size: 11px; color: var(--slate-400); }
+
 </style>
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -544,6 +701,9 @@
     <a href="#" onclick="navigate('reuniones')" data-page="reuniones">
       <i class="bi bi-people-fill"></i><span>Reuniones</span>
     </a>
+    <a href="#" onclick="navigate('actividad')" data-page="actividad">
+      <i class="bi bi-clock-history"></i><span>Actividad</span>
+    </a>
 
     <div class="nav-section">Infraestructura</div>
     <a href="#" onclick="navigate('aulas')" data-page="aulas">
@@ -553,7 +713,7 @@
       <i class="bi bi-building-fill"></i><span>Sedes</span>
     </a>
   </nav>
-  <div class="version">v13.0 · Firebase</div>
+  <div class="version">v14.0 · Firebase</div>
 </div>
 
 <!-- ══════════════════════════════════════
@@ -568,7 +728,23 @@
       <div class="page-icon" id="topbar-icon"><i class="bi bi-grid-1x2-fill"></i></div>
       <h5 id="page-title">Dashboard</h5>
     </div>
+    <!-- ── BÚSQUEDA GLOBAL ── -->
+    <div class="topbar-search-wrap" id="topbar-search-wrap">
+      <i class="bi bi-search topbar-search-icon"></i>
+      <input type="text" id="global-search-input"
+        class="topbar-search-input"
+        placeholder="Buscar docentes, eventos, grupos…"
+        autocomplete="off"
+        oninput="buscarGlobal(this.value)"
+        onkeydown="buscarGlobalKey(event)"
+        onfocus="if(this.value.length>1) document.getElementById('search-dropdown').classList.remove('d-none')"
+        onblur="setTimeout(()=>document.getElementById('search-dropdown').classList.add('d-none'),200)">
+      <div id="search-dropdown" class="search-dropdown d-none"></div>
+    </div>
     <div class="d-flex align-items-center gap-2">
+      <button class="topbar-icon-btn" id="dark-toggle" onclick="toggleDarkMode()" title="Modo oscuro/claro">
+        <i class="bi bi-moon-fill" id="dark-icon"></i>
+      </button>
       <span id="topbar-date" style="font-size:12px;color:var(--slate-400)"></span>
     </div>
   </div>
@@ -1010,6 +1186,32 @@
             <tbody id="tabla-reuniones"></tbody>
           </table>
         </div>
+      </div>
+    </div>
+
+
+    <!-- ── ACTIVIDAD ──────────────────────── -->
+    <div id="page-actividad" class="d-none">
+      <div class="card-panel">
+        <div class="panel-header">
+          <h6><i class="bi bi-clock-history me-2"></i>Log de Actividad</h6>
+          <div class="d-flex gap-2 align-items-center">
+            <select class="form-select form-select-sm" id="filtro-act-col" onchange="renderActividad()" style="width:170px">
+              <option value="">Todos los módulos</option>
+              <option value="docentes">Docentes</option>
+              <option value="asignaciones">Asignaciones</option>
+              <option value="permisos">Permisos</option>
+              <option value="horarios">Horarios</option>
+              <option value="cronograma">Cronograma</option>
+              <option value="secciones">Secciones</option>
+              <option value="reuniones">Reuniones</option>
+            </select>
+            <button class="btn btn-sm btn-outline-danger" onclick="limpiarActividad()" title="Borrar historial">
+              <i class="bi bi-trash-fill me-1"></i>Limpiar
+            </button>
+          </div>
+        </div>
+        <div id="act-list" style="max-height:70vh;overflow-y:auto;padding:4px 0"></div>
       </div>
     </div>
 
@@ -1719,6 +1921,7 @@ const DB = {
     _cache[key] = data;
     _fs.collection('sigei').doc(key).set({ items: data })
       .catch(err => console.error('Firestore write error [' + key + ']:', err));
+    if (key !== 'actividad') _logActividad(key, data);
   },
   nextId(key) {
     const items = _cache[key] || [];
@@ -1727,7 +1930,7 @@ const DB = {
 
   // Load all collections from Firestore into memory
   loadAll: async function() {
-    const COLS = ['docentes','secciones','horarios','aulas','sedes','permisos','asignaciones','cronograma','grados','reuniones'];
+    const COLS = ['docentes','secciones','horarios','aulas','sedes','permisos','asignaciones','cronograma','grados','reuniones','actividad'];
     const snaps = await Promise.all(COLS.map(k => _fs.collection('sigei').doc(k).get()));
     snaps.forEach((snap, i) => {
       _cache[COLS[i]] = snap.exists ? (snap.data().items || []) : [];
@@ -1790,6 +1993,7 @@ function navigate(page) {
     horarios:     renderHorarios,
     cronograma:   renderCronograma,
     reuniones:    renderReuniones,
+    actividad:    renderActividad,
     aulas:        renderAulas,
     sedes:        renderSedes,
     permisos:     renderPermisos,
@@ -3708,6 +3912,240 @@ function imprimirHorario() {
   window.print();
 }
 
+
+// ══════════════════════════════════════════════
+//  DARK MODE
+// ══════════════════════════════════════════════
+function toggleDarkMode() {
+  const isDark = document.body.classList.toggle('dark-mode');
+  localStorage.setItem('sigei-dark', isDark ? '1' : '0');
+  const icon = document.getElementById('dark-icon');
+  if (icon) {
+    icon.className = isDark ? 'bi bi-sun-fill' : 'bi bi-moon-fill';
+  }
+}
+function applyDarkModePreference() {
+  if (localStorage.getItem('sigei-dark') === '1') {
+    document.body.classList.add('dark-mode');
+    const icon = document.getElementById('dark-icon');
+    if (icon) icon.className = 'bi bi-sun-fill';
+  }
+}
+
+// ══════════════════════════════════════════════
+//  BÚSQUEDA GLOBAL
+// ══════════════════════════════════════════════
+var _searchIdx = -1;
+
+function buscarGlobal(q) {
+  const dd = document.getElementById('search-dropdown');
+  q = (q||'').trim().toLowerCase();
+  if (q.length < 2) { dd.classList.add('d-none'); _searchIdx = -1; return; }
+
+  const results = [];
+
+  // Docentes
+  DB.get('docentes').forEach(d => {
+    const nombre = ((d.p_nombre||'') + ' ' + (d.p_apellido||'')).toLowerCase();
+    const cedula = (d.cedula||'').toLowerCase();
+    if (nombre.includes(q) || cedula.includes(q) || (d.area||'').toLowerCase().includes(q)) {
+      results.push({
+        tipo: 'Docentes', icon: 'bi-person-badge-fill', iconBg:'#EFF6FF', iconColor:'#2563EB',
+        title: d.p_nombre + ' ' + d.p_apellido,
+        sub:   (d.area||'') + (d.estado ? ' · ' + d.estado : ''),
+        action: () => { navigate('docentes'); }
+      });
+    }
+  });
+
+  // Secciones/Grados
+  DB.get('secciones').forEach(s => {
+    const n = (s.nombre||'').toLowerCase();
+    const g = (s.grado||'').toLowerCase();
+    if (n.includes(q) || g.includes(q)) {
+      results.push({
+        tipo: 'Grupos', icon: 'bi-mortarboard-fill', iconBg:'#DCFCE7', iconColor:'#15803D',
+        title: s.nombre || s.grado,
+        sub:   'Grado: ' + (s.grado||'—') + ' · ' + (s.jornada||''),
+        action: () => { navigate('grados'); }
+      });
+    }
+  });
+
+  // Cronograma
+  DB.get('cronograma').forEach(e => {
+    if ((e.actividad||'').toLowerCase().includes(q) || (e.tipo||'').toLowerCase().includes(q)) {
+      results.push({
+        tipo: 'Cronograma', icon: 'bi-calendar-event-fill', iconBg:'#FEF3C7', iconColor:'#B45309',
+        title: e.actividad,
+        sub:   (e.tipo||'') + (e.fecha_inicio ? ' · ' + e.fecha_inicio : ''),
+        action: () => { navigate('cronograma'); }
+      });
+    }
+  });
+
+  // Reuniones
+  DB.get('reuniones').forEach(r => {
+    if ((r.tema||'').toLowerCase().includes(q) || (r.tipo||'').toLowerCase().includes(q)) {
+      results.push({
+        tipo: 'Reuniones', icon: 'bi-people-fill', iconBg:'#EDE9FE', iconColor:'#7C3AED',
+        title: r.tema,
+        sub:   (r.tipo||'') + (r.fecha ? ' · ' + r.fecha : ''),
+        action: () => { navigate('reuniones'); }
+      });
+    }
+  });
+
+  // Asignaciones
+  DB.get('asignaciones').forEach(a => {
+    if ((a.materia||'').toLowerCase().includes(q)) {
+      results.push({
+        tipo: 'Asignaciones', icon: 'bi-journal-check', iconBg:'#FCE7F3', iconColor:'#9D174D',
+        title: a.materia,
+        sub:   nombreDocente(a.docente_id) + (a.seccion ? ' · ' + a.seccion : ''),
+        action: () => { navigate('asignaciones'); }
+      });
+    }
+  });
+
+  if (!results.length) {
+    dd.innerHTML = '<div class="search-empty"><i class="bi bi-search me-1"></i>Sin resultados para "' + q + '"</div>';
+    dd.classList.remove('d-none');
+    return;
+  }
+
+  // Group by tipo
+  const groups = {};
+  results.forEach(r => { if (!groups[r.tipo]) groups[r.tipo] = []; groups[r.tipo].push(r); });
+  _searchItems = results;
+  _searchIdx   = -1;
+
+  dd.innerHTML = Object.entries(groups).map(([tipo, items]) =>
+    '<div class="search-result-group">'
+    + '<div class="search-result-group-title">' + tipo + '</div>'
+    + items.map((item, i) => {
+        const globalI = results.indexOf(item);
+        return '<div class="search-result-item" data-idx="' + globalI + '" onmousedown="_searchAction(' + globalI + ')">'
+          + '<div class="sri-icon" style="background:' + item.iconBg + ';color:' + item.iconColor + '"><i class="bi ' + item.icon + '"></i></div>'
+          + '<div class="sri-text"><strong>' + item.title + '</strong><small>' + item.sub + '</small></div>'
+          + '</div>';
+      }).join('')
+    + '</div>'
+  ).join('');
+
+  dd.classList.remove('d-none');
+}
+
+var _searchItems = [];
+function _searchAction(idx) {
+  if (_searchItems[idx]) {
+    _searchItems[idx].action();
+    document.getElementById('global-search-input').value = '';
+    document.getElementById('search-dropdown').classList.add('d-none');
+  }
+}
+function buscarGlobalKey(e) {
+  const items = document.querySelectorAll('.search-result-item');
+  if (!items.length) return;
+  if (e.key === 'ArrowDown') {
+    _searchIdx = Math.min(_searchIdx + 1, items.length - 1);
+  } else if (e.key === 'ArrowUp') {
+    _searchIdx = Math.max(_searchIdx - 1, 0);
+  } else if (e.key === 'Enter' && _searchIdx >= 0) {
+    const idx = parseInt(items[_searchIdx].dataset.idx);
+    _searchAction(idx);
+    return;
+  } else if (e.key === 'Escape') {
+    document.getElementById('search-dropdown').classList.add('d-none');
+    return;
+  } else { return; }
+  items.forEach((el,i) => el.classList.toggle('active', i === _searchIdx));
+  items[_searchIdx] && items[_searchIdx].scrollIntoView({ block:'nearest' });
+}
+
+// ══════════════════════════════════════════════
+//  LOG DE ACTIVIDAD
+// ══════════════════════════════════════════════
+const COL_LABELS = {
+  docentes:'Docentes', secciones:'Grupos', horarios:'Horarios',
+  permisos:'Permisos', asignaciones:'Asignaciones', cronograma:'Cronograma',
+  aulas:'Aulas', sedes:'Sedes', reuniones:'Reuniones'
+};
+const COL_ICONS = {
+  docentes:['bi-person-badge-fill','#EFF6FF','#2563EB'],
+  secciones:['bi-mortarboard-fill','#DCFCE7','#15803D'],
+  horarios:['bi-calendar3','#FEF3C7','#B45309'],
+  permisos:['bi-calendar2-check-fill','#FEE2E2','#B91C1C'],
+  asignaciones:['bi-journal-check','#FCE7F3','#9D174D'],
+  cronograma:['bi-calendar-event-fill','#FEF3C7','#B45309'],
+  aulas:['bi-door-closed-fill','#EDE9FE','#7C3AED'],
+  sedes:['bi-building-fill','#EDE9FE','#7C3AED'],
+  reuniones:['bi-people-fill','#EDE9FE','#7C3AED']
+};
+
+function _logActividad(colName, newData) {
+  if (!_cache || !firebase.auth().currentUser) return;
+  const user = firebase.auth().currentUser;
+  const log  = _cache['actividad'] || [];
+  const prev = _cache['_prev_' + colName] || [];
+  const prevLen = prev.length;
+  const newLen  = newData.length;
+  let accion = 'Modificó';
+  if (newLen > prevLen) accion = 'Agregó registro en';
+  else if (newLen < prevLen) accion = 'Eliminó registro en';
+  log.unshift({
+    id:      Date.now(),
+    ts:      new Date().toISOString(),
+    user:    user.email || 'desconocido',
+    col:     colName,
+    accion:  accion,
+    label:   COL_LABELS[colName] || colName,
+    count:   newLen
+  });
+  // Keep last 200 entries
+  _cache['actividad'] = log.slice(0, 200);
+  _cache['_prev_' + colName] = newData.slice();
+  _fs.collection('sigei').doc('actividad').set({ items: _cache['actividad'] })
+    .catch(() => {});
+}
+
+function renderActividad() {
+  const filtroCol = document.getElementById('filtro-act-col')?.value || '';
+  let log = (_cache['actividad'] || []).slice();
+  if (filtroCol) log = log.filter(e => e.col === filtroCol);
+
+  const container = document.getElementById('act-list');
+  if (!container) return;
+
+  if (!log.length) {
+    container.innerHTML = '<div class="search-empty p-4"><i class="bi bi-clock-history me-2"></i>No hay actividad registrada aún.</div>';
+    return;
+  }
+
+  container.innerHTML = log.map(entry => {
+    const [ico, bg, color] = COL_ICONS[entry.col] || ['bi-circle-fill','#F1F5F9','#64748B'];
+    const ts = entry.ts ? new Date(entry.ts).toLocaleString('es-CO', {
+      day:'2-digit', month:'short', year:'numeric',
+      hour:'2-digit', minute:'2-digit'
+    }) : '—';
+    return '<div class="act-item">'
+      + '<div class="act-dot" style="background:' + bg + ';color:' + color + '"><i class="bi ' + ico + '"></i></div>'
+      + '<div class="act-body">'
+      + '<strong>' + entry.accion + ' ' + (entry.label||entry.col) + '</strong>'
+      + '<small><i class="bi bi-person-fill me-1"></i>' + (entry.user||'—')
+      + '&nbsp;&nbsp;<i class="bi bi-clock me-1"></i>' + ts + '</small>'
+      + '</div></div>';
+  }).join('');
+}
+
+function limpiarActividad() {
+  if (!confirmar('¿Borrar todo el historial de actividad?')) return;
+  _cache['actividad'] = [];
+  _fs.collection('sigei').doc('actividad').set({ items: [] }).catch(()=>{});
+  renderActividad();
+  toast('Historial borrado.');
+}
+
 function exportarDatos() {
   const data = {};
   ['docentes','secciones','grados','horarios','aulas','sedes','permisos'].forEach(k => { data[k] = DB.get(k); });
@@ -3930,6 +4368,9 @@ _auth.onAuthStateChanged(async function(user) {
     const emailEl = document.getElementById('user-email-display');
     if (emailEl) emailEl.textContent = user.email;
     if (!_appLoaded) {
+      applyDarkModePreference();
+      // Init prev-snapshots for activity log
+      COLS.forEach(c => { if (_cache[c]) _cache['_prev_' + c] = (_cache[c]||[]).slice(); });
       // Set topbar date
       const dateEl = document.getElementById('topbar-date');
       if (dateEl) {
