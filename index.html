@@ -518,28 +518,107 @@
   .topbar-icon-btn:hover { background:var(--slate-100); color:var(--blue-600); }
 
   /* ── DARK MODE ──────────────────────────────────── */
+  /* ══ MODO OSCURO — paleta ══════════════════════════════════════════ */
   body.dark-mode {
-    --slate-900:#F8FAFC; --slate-800:#F1F5F9; --slate-700:#CBD5E1;
-    --slate-500:#94A3B8; --slate-400:#64748B; --slate-200:#334155;
-    --slate-100:#1E293B; --slate-50:#0F172A;  --white:#1A2332;
-    --blue-50:#1e3a5f;   --blue-100:#1e3a5f;
-    background:#0D1B2A;
+    --slate-900: #F1F5F9;
+    --slate-800: #E2E8F0;
+    --slate-700: #CBD5E1;
+    --slate-600: #94A3B8;
+    --slate-500: #94A3B8;
+    --slate-400: #64748B;
+    --slate-300: #475569;
+    --slate-200: #2D3F55;
+    --slate-100: #1E2F42;
+    --slate-50:  #162032;
+    --white:     #1A2B3C;
+    --blue-50:   #162645;
+    --blue-100:  #1d3461;
+    background:  #0F1E2E;
+    color:       #CBD5E1;
   }
-  body.dark-mode #sidebar     { background:#111927; border-color:#1E293B; }
-  body.dark-mode .topbar      { background:#111927; border-color:#1E293B; }
-  body.dark-mode .card-panel  { background:#1A2332; }
-  body.dark-mode .stat-card   { background:#1A2332; }
-  body.dark-mode .chart-card  { background:#1A2332; }
-  body.dark-mode table thead  { background:#111927; }
-  body.dark-mode table tbody tr:hover { background:#1E293B; }
-  body.dark-mode .topbar-search-input { background:#1E293B; color:#CBD5E1; border-color:#334155; }
-  body.dark-mode .search-dd   { background:#1A2332; border-color:#334155; }
+
+  /* Estructura principal */
+  body.dark-mode #sidebar            { background:#111F2E; border-color:#1E2F42; }
+  body.dark-mode .topbar             { background:#111F2E; border-color:#1E2F42; }
+  body.dark-mode #main               { background:#0F1E2E; }
+  body.dark-mode .content            { background:#0F1E2E; }
+
+  /* Tarjetas y paneles */
+  body.dark-mode .card-panel         { background:#1A2B3C; border-color:#2D3F55; }
+  body.dark-mode .stat-card          { background:#1A2B3C; }
+  body.dark-mode .chart-card         { background:#1A2B3C; }
+  body.dark-mode .panel-header       { border-color:#2D3F55; }
+
+  /* Íconos de colores (stat cards, badges) — atenuar fondos claros */
+  body.dark-mode .icon               { filter:brightness(.18) saturate(2.5) !important; }
+  body.dark-mode .act-dot            { filter:brightness(.22) saturate(2.5); }
+  body.dark-mode .sri-ico            { filter:brightness(.22) saturate(2.5); }
+
+  /* Tablas */
+  body.dark-mode table               { background:#1A2B3C; color:#CBD5E1; }
+  body.dark-mode table thead         { background:#111F2E; color:#94A3B8; }
+  body.dark-mode table thead th      { color:#94A3B8; border-color:#2D3F55; }
+  body.dark-mode table td            { border-color:#2D3F55; color:#CBD5E1; }
+  body.dark-mode table tbody tr:hover{ background:#1E2F42; }
+
+  /* Formularios */
   body.dark-mode .form-control,
-  body.dark-mode .form-select { background:#1E293B; color:#CBD5E1; border-color:#334155; }
-  body.dark-mode .modal-content { background:#1A2332; color:#CBD5E1; }
-  body.dark-mode .modal-header,
-  body.dark-mode .modal-footer  { border-color:#334155; }
-  body.dark-mode .offcanvas   { background:#1A2332; color:#CBD5E1; }
+  body.dark-mode .form-select        { background:#111F2E; color:#CBD5E1; border-color:#2D3F55; }
+  body.dark-mode .form-control::placeholder { color:#475569; }
+  body.dark-mode .form-control:focus,
+  body.dark-mode .form-select:focus  { background:#1A2B3C; border-color:var(--blue-600); }
+  body.dark-mode .form-label         { color:#94A3B8; }
+  body.dark-mode .form-check-input   { background-color:#2D3F55; border-color:#475569; }
+  body.dark-mode .form-check-input:checked { background-color:var(--blue-600); border-color:var(--blue-600); }
+  body.dark-mode .form-check-label   { color:#CBD5E1; }
+  body.dark-mode label               { color:#94A3B8; }
+
+  /* Modales */
+  body.dark-mode .modal-content      { background:#1A2B3C; color:#CBD5E1; }
+  body.dark-mode .modal-header       { background:#111F2E; border-color:#2D3F55; }
+  body.dark-mode .modal-body         { background:#1A2B3C; }
+  body.dark-mode .modal-footer       { background:#111F2E; border-color:#2D3F55; }
+
+  /* Offcanvas (detalle docente) */
+  body.dark-mode .offcanvas          { background:#1A2B3C; color:#CBD5E1; }
+  body.dark-mode .offcanvas-header   { background:#111F2E; border-color:#2D3F55; }
+  body.dark-mode .offcanvas-body     { background:#1A2B3C; }
+
+  /* Búsqueda */
+  body.dark-mode .topbar-search-input{ background:#111F2E; color:#CBD5E1; border-color:#2D3F55; }
+  body.dark-mode .search-dd          { background:#1A2B3C; border-color:#2D3F55; }
+  body.dark-mode .sri:hover,
+  body.dark-mode .sri.active         { background:#111F2E; }
+
+  /* Badges y etiquetas de estado — atenuar colores claros */
+  body.dark-mode .carga-badge        { filter:brightness(.85) saturate(1.2); }
+  body.dark-mode [style*="background:#F"]  { }
+
+  /* Paneles con fondo claro inline (info docente, cronograma, etc.) */
+  body.dark-mode [style*="background:#f8fafc"],
+  body.dark-mode [style*="background:#f1f5f9"],
+  body.dark-mode [style*="background:#e2e8f0"],
+  body.dark-mode [style*="background:#fff"]  { background:#1E2F42 !important; }
+
+  /* Calendario cronograma */
+  body.dark-mode #crono-cal-grid > div { border-color:#2D3F55 !important; }
+  body.dark-mode #crono-cal-grid > div[style*="background:#EFF6FF"] { background:#162645 !important; }
+
+  /* Botones outline */
+  body.dark-mode .btn-outline-secondary { color:#94A3B8; border-color:#2D3F55; }
+  body.dark-mode .btn-outline-secondary:hover { background:#1E2F42; color:#CBD5E1; }
+  body.dark-mode .btn-outline-primary   { color:#60A5FA; border-color:#1d3461; }
+  body.dark-mode .btn-outline-danger    { color:#F87171; border-color:#7f1d1d; }
+
+  /* Texto general */
+  body.dark-mode p, body.dark-mode span:not(.badge) { color:inherit; }
+  body.dark-mode small                               { color:#64748B; }
+  body.dark-mode strong                              { color:#E2E8F0; }
+  body.dark-mode h1,body.dark-mode h2,body.dark-mode h3,
+  body.dark-mode h4,body.dark-mode h5,body.dark-mode h6 { color:#F1F5F9; }
+
+  /* Login (no debe verse en oscuro pero por si acaso) */
+  body.dark-mode #login-overlay { background:linear-gradient(135deg,#0a1628 0%,#1e3a5f 100%) !important; }
 
   /* ── ACTIVITY LOG ────────────────────────────────── */
   #page-actividad .card-panel { border-left-color:#6366F1; }
