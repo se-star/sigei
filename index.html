@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SIGEI v12.0 — Sistema de Gestión Educativa Institucional</title>
+<title>SIGEI v13.0 — Sistema de Gestión Educativa Institucional</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 <style>
@@ -471,6 +471,16 @@
   tr.doc-row { cursor:pointer; transition:background .15s; }
   tr.doc-row:hover td { background:var(--blue-50) !important; }
 
+
+  /* ══ PRINT ═══════════════════════════════════════════════════════════ */
+  @media print {
+    #sidebar, .topbar, .panel-header button, .btn, select, input,
+    #lista-horarios-panel, #docentes-disponibles-panel { display:none!important; }
+    #main { margin-left:0!important; }
+    .card-panel { box-shadow:none; border:1px solid #ddd; }
+    body { background:#fff; }
+  }
+
 </style>
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -531,6 +541,9 @@
     <a href="#" onclick="navigate('cronograma')" data-page="cronograma">
       <i class="bi bi-calendar-event-fill"></i><span>Cronograma</span>
     </a>
+    <a href="#" onclick="navigate('reuniones')" data-page="reuniones">
+      <i class="bi bi-people-fill"></i><span>Reuniones</span>
+    </a>
 
     <div class="nav-section">Infraestructura</div>
     <a href="#" onclick="navigate('aulas')" data-page="aulas">
@@ -540,7 +553,7 @@
       <i class="bi bi-building-fill"></i><span>Sedes</span>
     </a>
   </nav>
-  <div class="version">v12.0 · Firebase</div>
+  <div class="version">v13.0 · Firebase</div>
 </div>
 
 <!-- ══════════════════════════════════════
@@ -807,6 +820,10 @@
             </select>
             <input type="number" class="form-control form-control-sm" id="filtro-crono-year"
               onchange="renderCronograma()" placeholder="Año" style="width:90px">
+            <div class="btn-group btn-group-sm">
+              <button class="btn btn-outline-secondary active" id="btn-crono-tabla" onclick="cronVista('tabla')"><i class="bi bi-list-ul me-1"></i>Tabla</button>
+              <button class="btn btn-outline-secondary" id="btn-crono-cal" onclick="cronVista('calendario')"><i class="bi bi-calendar3 me-1"></i>Calendario</button>
+            </div>
             <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="abrirEvento()">
               <i class="bi bi-plus-lg"></i> Nuevo evento
             </button>
@@ -815,7 +832,7 @@
       </div>
 
       <!-- Tabla de eventos -->
-      <div class="card-panel">
+      <div class="card-panel" id="crono-tabla-card">
         <div class="table-responsive">
           <table>
             <thead>
@@ -832,6 +849,16 @@
             <tbody id="tabla-cronograma"></tbody>
           </table>
         </div>
+      </div>
+
+      <!-- Calendar view -->
+      <div class="card-panel d-none" id="crono-cal-card">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <button class="btn btn-sm btn-outline-secondary" onclick="cronMes(-1)"><i class="bi bi-chevron-left"></i></button>
+          <strong id="crono-cal-titulo" style="font-size:15px"></strong>
+          <button class="btn btn-sm btn-outline-secondary" onclick="cronMes(1)"><i class="bi bi-chevron-right"></i></button>
+        </div>
+        <div id="crono-cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px"></div>
       </div>
     </div>
 
@@ -857,6 +884,9 @@
               <option>Lunes</option><option>Martes</option><option>Miércoles</option>
               <option>Jueves</option><option>Viernes</option>
             </select>
+            <button class="btn btn-sm btn-outline-secondary" onclick="imprimirHorario()" title="Imprimir horario">
+              <i class="bi bi-printer-fill"></i> Imprimir
+            </button>
           </div>
         </div>
       </div>
@@ -917,12 +947,22 @@
 
     <!-- ── PERMISOS ──────────────────────── -->
     <div id="page-permisos" class="d-none">
+      <!-- Stats row -->
+      <div class="row g-3 mb-3" id="permisos-stats-row">
+        <div class="col-md-3"><div class="stat-card"><div class="icon" style="background:#FEF3C7;color:#B45309"><i class="bi bi-hourglass-split"></i></div><div class="info"><h2 id="perm-cnt-pendiente">0</h2><p>Pendientes</p></div></div></div>
+        <div class="col-md-3"><div class="stat-card"><div class="icon" style="background:#DCFCE7;color:#15803D"><i class="bi bi-check-circle-fill"></i></div><div class="info"><h2 id="perm-cnt-aprobado">0</h2><p>Aprobados</p></div></div></div>
+        <div class="col-md-3"><div class="stat-card"><div class="icon" style="background:#FEE2E2;color:#B91C1C"><i class="bi bi-x-circle-fill"></i></div><div class="info"><h2 id="perm-cnt-rechazado">0</h2><p>Rechazados</p></div></div></div>
+        <div class="col-md-3"><div class="stat-card"><div class="icon" style="background:#EDE9FE;color:#7C3AED"><i class="bi bi-calendar-range-fill"></i></div><div class="info"><h2 id="perm-cnt-dias">0</h2><p>Días totales</p></div></div></div>
+      </div>
       <div class="card-panel">
         <div class="panel-header">
           <h6><i class="bi bi-calendar2-check-fill me-2"></i>Permisos y Licencias</h6>
           <div class="d-flex gap-2 align-items-center">
+            <select class="form-select form-select-sm" id="filtro-docente-permiso" onchange="renderPermisos()" style="width:160px">
+              <option value="">Todos los docentes</option>
+            </select>
             <select class="form-select form-select-sm" id="filtro-estado-permiso" onchange="renderPermisos()" style="width:140px">
-              <option value="">Todos</option>
+              <option value="">Todos los estados</option>
               <option value="Pendiente">Pendiente</option>
               <option value="Aprobado">Aprobado</option>
               <option value="Rechazado">Rechazado</option>
@@ -941,8 +981,112 @@
       </div>
     </div>
 
+
+    <!-- ── REUNIONES ──────────────────────── -->
+    <div id="page-reuniones" class="d-none">
+      <div class="card-panel mb-3">
+        <div class="panel-header flex-wrap gap-2">
+          <h6><i class="bi bi-people-fill me-2"></i>Reuniones y Actas</h6>
+          <div class="d-flex gap-2 align-items-center flex-wrap">
+            <select class="form-select form-select-sm" id="filtro-reunion-tipo" onchange="renderReuniones()" style="width:160px">
+              <option value="">Todos los tipos</option>
+              <option>General</option><option>Por área</option><option>Directiva</option>
+              <option>Capacitación</option><option>Otro</option>
+            </select>
+            <select class="form-select form-select-sm" id="filtro-reunion-estado" onchange="renderReuniones()" style="width:140px">
+              <option value="">Todos</option>
+              <option>Programada</option><option>Realizada</option><option>Cancelada</option>
+            </select>
+            <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="abrirReunion()">
+              <i class="bi bi-plus-lg"></i> Nueva reunión
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="card-panel">
+        <div class="table-responsive">
+          <table>
+            <thead><tr><th style="width:110px">Fecha</th><th>Tema</th><th>Tipo</th><th>Lugar</th><th>Asistentes</th><th>Estado</th><th style="width:90px">Acciones</th></tr></thead>
+            <tbody id="tabla-reuniones"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
   </div><!-- /content -->
 </div><!-- /main -->
+
+
+<!-- Modal Reunión -->
+<div class="modal fade" id="modalReunion" tabindex="-1">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal-reunion-title">Nueva Reunión</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="reunion-id">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label">Fecha *</label>
+            <input type="date" class="form-control" id="reunion-fecha">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Hora</label>
+            <input type="time" class="form-control" id="reunion-hora">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Tipo *</label>
+            <select class="form-select" id="reunion-tipo">
+              <option value="">Seleccione</option>
+              <option>General</option><option>Por área</option>
+              <option>Directiva</option><option>Capacitación</option><option>Otro</option>
+            </select>
+          </div>
+          <div class="col-md-8">
+            <label class="form-label">Tema / Agenda *</label>
+            <input type="text" class="form-control" id="reunion-tema" placeholder="Ej: Planificación del período académico">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Lugar</label>
+            <input type="text" class="form-control" id="reunion-lugar" placeholder="Ej: Sala de reuniones">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Estado</label>
+            <select class="form-select" id="reunion-estado">
+              <option>Programada</option><option>Realizada</option><option>Cancelada</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Área / Responsable</label>
+            <input type="text" class="form-control" id="reunion-area">
+          </div>
+          <div class="col-12">
+            <label class="form-label">Compromisos / Acuerdos</label>
+            <textarea class="form-control" id="reunion-compromisos" rows="3" placeholder="Anota los acuerdos y compromisos de la reunión..."></textarea>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Asistentes</label>
+            <div id="reunion-asistentes-wrap" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px;max-height:200px;overflow-y:auto;border:1px solid var(--slate-200);border-radius:8px;padding:10px">
+              <p class="text-muted" style="font-size:12px">Cargando docentes...</p>
+            </div>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Observaciones</label>
+            <textarea class="form-control" id="reunion-obs" rows="2"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="guardarReunion()">
+          <i class="bi bi-save me-1"></i>Guardar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Modal Cronograma -->
 <div class="modal fade" id="modalEvento" tabindex="-1">
@@ -1583,7 +1727,7 @@ const DB = {
 
   // Load all collections from Firestore into memory
   loadAll: async function() {
-    const COLS = ['docentes','secciones','horarios','aulas','sedes','permisos','asignaciones','cronograma','grados'];
+    const COLS = ['docentes','secciones','horarios','aulas','sedes','permisos','asignaciones','cronograma','grados','reuniones'];
     const snaps = await Promise.all(COLS.map(k => _fs.collection('sigei').doc(k).get()));
     snaps.forEach((snap, i) => {
       _cache[COLS[i]] = snap.exists ? (snap.data().items || []) : [];
@@ -1645,6 +1789,7 @@ function navigate(page) {
     asignaciones: renderAsignaciones,
     horarios:     renderHorarios,
     cronograma:   renderCronograma,
+    reuniones:    renderReuniones,
     aulas:        renderAulas,
     sedes:        renderSedes,
     permisos:     renderPermisos,
@@ -2440,7 +2585,7 @@ function renderAsignaciones() {
       + '<td><strong>' + nombreDocente(docId) + '</strong></td>'
       + '<td style="font-size:13px;color:#475569">' + materiasStr + '</td>'
       + '<td><span class="carga-badge ' + carga.cls + '">' + totalHoras.toFixed(1) + ' h/sem</span></td>'
-      + '<td><span class="carga-badge ' + carga.cls + '">' + carga.nivel + '</span></td>'
+      + '<td><span class="carga-badge ' + carga.cls + '">' + carga.nivel + '</span>' + (totalHoras >= CARGA_CONFIG.alta ? ' <i class="bi bi-exclamation-triangle-fill text-danger" title="Sobrecarga: supera ' + CARGA_CONFIG.alta + ' h/sem"></i>' : '') + '</td>'
       + '<td class="text-center"><i class="bi bi-chevron-right" style="color:#94a3b8"></i></td>'
       + '</tr>';
   }).join('');
@@ -2681,6 +2826,76 @@ const TIPO_COLORES = {
   'Deportivo':         { bg:'#cffafe', txt:'#0e7490' },
   'Otro':              { bg:'#e2e8f0', txt:'#475569' },
 };
+
+
+// ══ CRONOGRAMA CALENDAR ═════════════════════════════════════════════════════
+var _cronMesOffset = 0;
+
+function cronVista(v) {
+  const tableCard = document.getElementById('crono-tabla-card');
+  const calCard   = document.getElementById('crono-cal-card');
+  const btnT      = document.getElementById('btn-crono-tabla');
+  const btnC      = document.getElementById('btn-crono-cal');
+  if (v === 'tabla') {
+    tableCard && tableCard.classList.remove('d-none');
+    calCard   && calCard.classList.add('d-none');
+    btnT && btnT.classList.add('active');
+    btnC && btnC.classList.remove('active');
+  } else {
+    tableCard && tableCard.classList.add('d-none');
+    calCard   && calCard.classList.remove('d-none');
+    btnT && btnT.classList.remove('active');
+    btnC && btnC.classList.add('active');
+    renderCronCalendario();
+  }
+}
+
+function cronMes(delta) {
+  _cronMesOffset += delta;
+  renderCronCalendario();
+}
+
+function renderCronCalendario() {
+  const now  = new Date();
+  const base = new Date(now.getFullYear(), now.getMonth() + _cronMesOffset, 1);
+  const mes  = base.getMonth();
+  const ano  = base.getFullYear();
+  const nombres = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const titulo  = document.getElementById('crono-cal-titulo');
+  if (titulo) titulo.textContent = nombres[mes] + ' ' + ano;
+
+  const grid = document.getElementById('crono-cal-grid');
+  if (!grid) return;
+
+  const colorTipo = { 'Académica':'#3B82F6','Administrativa':'#8B5CF6','Cultural':'#EC4899','Deportiva':'#10B981','Evaluación':'#F59E0B','Otro':'#64748B' };
+  const dias = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const primerDia = new Date(ano, mes, 1).getDay();
+  const totalDias = new Date(ano, mes+1, 0).getDate();
+  const todayStr  = new Date().toISOString().slice(0,10);
+  const activ     = DB.get('cronograma');
+
+  let cells = dias.map(d => '<div style="text-align:center;font-size:11px;font-weight:700;color:var(--slate-500);padding:4px">' + d + '</div>').join('');
+  for (let i=0; i<primerDia; i++) cells += '<div></div>';
+  for (let d=1; d<=totalDias; d++) {
+    const dateStr = ano + '-' + String(mes+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+    const isToday = dateStr === todayStr;
+    const events  = activ.filter(a => {
+      if (!a.fecha_inicio) return false;
+      const ini = a.fecha_inicio.slice(0,10);
+      const fin = (a.fecha_fin||a.fecha_inicio).slice(0,10);
+      return dateStr >= ini && dateStr <= fin;
+    });
+    const evHtml = events.slice(0,2).map(e => {
+      const c = colorTipo[e.tipo] || '#64748B';
+      return '<div style="background:'+c+';color:#fff;border-radius:3px;padding:1px 4px;font-size:10px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-top:2px" title="'+e.actividad+'">' + e.actividad + '</div>';
+    }).join('') + (events.length>2 ? '<div style="font-size:9px;color:var(--slate-500);margin-top:1px">+' + (events.length-2) + ' más</div>' : '');
+    cells += '<div style="min-height:64px;border:1px solid var(--slate-200);border-radius:6px;padding:4px;'
+      + (isToday ? 'background:#EFF6FF;border-color:var(--blue-600)' : '') + '">'
+      + '<div style="font-size:12px;font-weight:' + (isToday?'700':'400') + ';color:' + (isToday?'var(--blue-600)':'var(--slate-700)') + '">' + d + '</div>'
+      + evHtml + '</div>';
+  }
+  grid.innerHTML = cells;
+}
 
 function renderCronograma() {
   const grados = DB.get('grados');
@@ -3266,9 +3481,36 @@ function guardarSede() {
 //  PERMISOS
 // ══════════════════════════════════════════════
 function renderPermisos() {
+  // Populate docente filter
+  const fDoc = document.getElementById('filtro-docente-permiso');
+  if (fDoc) {
+    const curDoc = fDoc.value;
+    const docs = DB.get('docentes');
+    fDoc.innerHTML = '<option value="">Todos los docentes</option>' +
+      docs.map(d => '<option value="' + d.id + '"' + (d.id == curDoc ? ' selected' : '') + '>'
+        + d.p_nombre + ' ' + d.p_apellido + '</option>').join('');
+  }
+  const filtroDoc = fDoc ? fDoc.value : '';
   const filtro = document.getElementById('filtro-estado-permiso').value;
   let perms = DB.get('permisos');
-  if (filtro) perms = perms.filter(p => p.estado === filtro);
+  if (filtroDoc) perms = perms.filter(p => p.docente_id == filtroDoc);
+  if (filtro)    perms = perms.filter(p => p.estado === filtro);
+
+  // Stats (over ALL permisos, unfiltered)
+  const allPerms = DB.get('permisos');
+  const cntPend  = allPerms.filter(p => p.estado === 'Pendiente').length;
+  const cntApro  = allPerms.filter(p => p.estado === 'Aprobado').length;
+  const cntRech  = allPerms.filter(p => p.estado === 'Rechazado').length;
+  const diasTot  = allPerms.reduce((acc,p) => {
+    const d1 = p.fecha_inicio ? new Date(p.fecha_inicio) : null;
+    const d2 = p.fecha_fin    ? new Date(p.fecha_fin)    : null;
+    return acc + ((d1 && d2) ? Math.ceil((d2-d1)/86400000)+1 : 0);
+  }, 0);
+  const setEl = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+  setEl('perm-cnt-pendiente', cntPend);
+  setEl('perm-cnt-aprobado',  cntApro);
+  setEl('perm-cnt-rechazado', cntRech);
+  setEl('perm-cnt-dias',      diasTot);
 
   const tb = document.getElementById('tabla-permisos');
   tb.innerHTML = perms.length ? perms.map(p => {
@@ -3359,6 +3601,111 @@ function eliminarPermiso(id) {
 // ══════════════════════════════════════════════
 function toggleSidebar() {
   document.body.classList.toggle('sidebar-collapsed');
+}
+
+
+// ══════════════════════════════════════════════
+//  REUNIONES
+// ══════════════════════════════════════════════
+function renderReuniones() {
+  const filtroTipo   = document.getElementById('filtro-reunion-tipo').value;
+  const filtroEstado = document.getElementById('filtro-reunion-estado').value;
+  let reuniones = DB.get('reuniones');
+  if (filtroTipo)   reuniones = reuniones.filter(r => r.tipo === filtroTipo);
+  if (filtroEstado) reuniones = reuniones.filter(r => r.estado === filtroEstado);
+  reuniones = reuniones.slice().sort((a,b) => b.fecha.localeCompare(a.fecha));
+
+  const estadoColors = { 'Programada':'#3B82F6','Realizada':'#10B981','Cancelada':'#94A3B8' };
+  const tb = document.getElementById('tabla-reuniones');
+  tb.innerHTML = reuniones.length ? reuniones.map(r => {
+    const sc = estadoColors[r.estado]||'#64748B';
+    const asisCount = (r.asistentes||[]).length;
+    return '<tr>'
+      + '<td>' + fmt(r.fecha) + (r.hora ? '<br><small style="color:var(--slate-400)">' + r.hora + '</small>' : '') + '</td>'
+      + '<td><strong>' + (r.tema||'—') + '</strong>'
+      + (r.compromisos ? '<br><small style="color:var(--slate-500)">' + r.compromisos.substring(0,60) + (r.compromisos.length>60?'...':'') + '</small>' : '') + '</td>'
+      + '<td><span style="font-size:11px;background:var(--blue-50);color:var(--blue-600);padding:2px 8px;border-radius:20px">' + (r.tipo||'—') + '</span></td>'
+      + '<td>' + (r.lugar||'—') + '</td>'
+      + '<td><span class="carga-badge media">' + asisCount + ' docente' + (asisCount!==1?'s':'') + '</span></td>'
+      + '<td><span style="font-size:11px;background:' + sc + '20;color:' + sc + ';padding:2px 8px;border-radius:20px;font-weight:600">' + (r.estado||'—') + '</span></td>'
+      + '<td>'
+      + '<button class="btn btn-xs btn-outline-primary btn-sm me-1" onclick="abrirReunion(' + r.id + ')" title="Editar"><i class="bi bi-pencil-fill"></i></button>'
+      + '<button class="btn btn-xs btn-outline-danger btn-sm" onclick="eliminarReunion(' + r.id + ')" title="Eliminar"><i class="bi bi-trash-fill"></i></button>'
+      + '</td></tr>';
+  }).join('') : emptyRow(7, 'No hay reuniones registradas');
+}
+
+function abrirReunion(id=null) {
+  document.getElementById('modal-reunion-title').textContent = id ? 'Editar Reunión' : 'Nueva Reunión';
+  const campos = ['id','fecha','hora','tipo','tema','lugar','estado','area','compromisos','obs'];
+  campos.forEach(c => { const el = document.getElementById('reunion-'+c); if(el) el.value=''; });
+
+  // Build asistentes checkboxes
+  const docentes = DB.get('docentes').filter(d => d.estado==='Activo');
+  const wrap = document.getElementById('reunion-asistentes-wrap');
+  wrap.innerHTML = docentes.map(d =>
+    '<label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer">'
+    + '<input type="checkbox" class="form-check-input" id="asis-' + d.id + '" value="' + d.id + '">'
+    + d.p_nombre + ' ' + d.p_apellido + '</label>'
+  ).join('');
+
+  if (id) {
+    const r = DB.get('reuniones').find(x => x.id === id);
+    if (!r) return;
+    campos.forEach(c => { const el = document.getElementById('reunion-'+c); if(el && r[c.replace('-','_')]) el.value = r[c.replace('-','_')]; });
+    document.getElementById('reunion-id').value = r.id;
+    // Check asistentes
+    (r.asistentes||[]).forEach(aid => {
+      const cb = document.getElementById('asis-'+aid);
+      if (cb) cb.checked = true;
+    });
+  }
+  new bootstrap.Modal(document.getElementById('modalReunion')).show();
+}
+
+function guardarReunion() {
+  const fecha = document.getElementById('reunion-fecha').value;
+  const tema  = document.getElementById('reunion-tema').value.trim();
+  const tipo  = document.getElementById('reunion-tipo').value;
+  if (!fecha || !tema || !tipo) { toast('Fecha, tema y tipo son obligatorios.', false); return; }
+
+  const asistentes = Array.from(document.querySelectorAll('#reunion-asistentes-wrap input:checked')).map(cb => parseInt(cb.value));
+  const reuniones = DB.get('reuniones');
+  const idEdit = document.getElementById('reunion-id').value;
+  const data = {
+    fecha, tema, tipo,
+    hora:          document.getElementById('reunion-hora').value,
+    lugar:         document.getElementById('reunion-lugar').value.trim(),
+    estado:        document.getElementById('reunion-estado').value,
+    area:          document.getElementById('reunion-area').value.trim(),
+    compromisos:   document.getElementById('reunion-compromisos').value.trim(),
+    obs:           document.getElementById('reunion-obs').value.trim(),
+    asistentes,
+  };
+  if (!idEdit) {
+    data.id = DB.nextId('reuniones');
+    reuniones.push(data);
+    toast('Reunión guardada.');
+  } else {
+    const idx = reuniones.findIndex(r => r.id == idEdit);
+    if (idx !== -1) Object.assign(reuniones[idx], data);
+    toast('Reunión actualizada.');
+  }
+  DB.set('reuniones', reuniones);
+  bootstrap.Modal.getInstance(document.getElementById('modalReunion')).hide();
+  renderReuniones();
+}
+
+function eliminarReunion(id) {
+  if (!confirmar('¿Eliminar esta reunión?')) return;
+  DB.set('reuniones', DB.get('reuniones').filter(r => r.id !== id));
+  toast('Reunión eliminada.');
+  renderReuniones();
+}
+
+// ══ IMPRIMIR HORARIO ════════════════════════════════════════════════════════
+function imprimirHorario() {
+  window.print();
 }
 
 function exportarDatos() {
