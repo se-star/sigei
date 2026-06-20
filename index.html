@@ -2999,9 +2999,9 @@ function renderCronCalendario() {
     const dateStr = ano + '-' + String(mes+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
     const isToday = dateStr === todayStr;
     const events  = activ.filter(a => {
-      if (!a.fecha_inicio) return false;
-      const ini = a.fecha_inicio.slice(0,10);
-      const fin = (a.fecha_fin||a.fecha_inicio).slice(0,10);
+      if (!a.fecha_ini) return false;
+      const ini = a.fecha_ini.slice(0,10);
+      const fin = (a.fecha_fin||a.fecha_ini).slice(0,10);
       return dateStr >= ini && dateStr <= fin;
     });
     const evHtml = events.slice(0,2).map(e => {
