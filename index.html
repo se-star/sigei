@@ -482,161 +482,78 @@
   }
 
 
-  /* ══ TOPBAR SEARCH ══════════════════════════════════════════════════ */
-  .topbar-search-wrap {
-    position: relative;
-    flex: 1;
-    max-width: 380px;
-    margin: 0 16px;
-  }
-  .topbar-search-icon {
-    position: absolute;
-    left: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--slate-400);
-    font-size: 13px;
-    pointer-events: none;
-  }
-  .topbar-search-input {
-    width: 100%;
-    height: 34px;
-    padding: 0 12px 0 30px;
-    border: 1.5px solid var(--slate-200);
-    border-radius: 20px;
-    font-size: 13px;
-    background: var(--slate-50);
-    color: var(--slate-700);
-    outline: none;
-    transition: border-color .15s, box-shadow .15s;
-  }
-  .topbar-search-input:focus {
-    border-color: var(--blue-600);
-    box-shadow: 0 0 0 3px rgba(37,99,235,.1);
-    background: var(--white);
-  }
-  .search-dropdown {
-    position: absolute;
-    top: calc(100% + 6px);
-    left: 0;
-    right: 0;
-    background: var(--white);
-    border: 1px solid var(--slate-200);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-md);
-    z-index: 1060;
-    max-height: 360px;
-    overflow-y: auto;
-  }
-  .search-result-group { padding: 6px 0; }
-  .search-result-group-title {
-    font-size: 10px;
-    font-weight: 700;
-    color: var(--slate-400);
-    letter-spacing: .06em;
-    text-transform: uppercase;
-    padding: 4px 12px;
-  }
-  .search-result-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 12px;
-    cursor: pointer;
-    transition: background .1s;
-  }
-  .search-result-item:hover, .search-result-item.active {
-    background: var(--blue-50);
-  }
-  .search-result-item .sri-icon {
-    width: 28px;
-    height: 28px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 13px;
-    flex-shrink: 0;
-  }
-  .search-result-item .sri-text strong { font-size: 13px; font-weight: 600; }
-  .search-result-item .sri-text small  { font-size: 11px; color: var(--slate-500); display: block; }
-  .search-empty { text-align: center; padding: 20px; color: var(--slate-400); font-size: 13px; }
+  /* ── TOPBAR SEARCH ─────────────────────────────── */
+  .topbar-search-wrap { position:relative; flex:1; max-width:380px; margin:0 16px; }
+  .topbar-search-icon { position:absolute; left:10px; top:50%; transform:translateY(-50%);
+    color:var(--slate-400); font-size:13px; pointer-events:none; }
+  .topbar-search-input { width:100%; height:34px; padding:0 12px 0 30px;
+    border:1.5px solid var(--slate-200); border-radius:20px; font-size:13px;
+    background:var(--slate-50); color:var(--slate-700); outline:none;
+    transition:border-color .15s; }
+  .topbar-search-input:focus { border-color:var(--blue-600); background:var(--white);
+    box-shadow:0 0 0 3px rgba(37,99,235,.1); }
+  .search-dd { position:absolute; top:calc(100% + 6px); left:0; right:0;
+    background:var(--white); border:1px solid var(--slate-200);
+    border-radius:var(--radius-md); box-shadow:var(--shadow-md);
+    z-index:1060; max-height:360px; overflow-y:auto; }
+  .sri { display:flex; align-items:center; gap:10px; padding:8px 12px;
+    cursor:pointer; transition:background .1s; }
+  .sri:hover, .sri.active { background:var(--blue-50); }
+  .sri-ico { width:28px; height:28px; border-radius:8px; display:flex;
+    align-items:center; justify-content:center; font-size:13px; flex-shrink:0; }
+  .sri strong { font-size:13px; font-weight:600; display:block; }
+  .sri small   { font-size:11px; color:var(--slate-500); }
+  .sri-group-title { font-size:10px; font-weight:700; color:var(--slate-400);
+    letter-spacing:.06em; text-transform:uppercase; padding:6px 12px 2px; }
+  .search-empty { text-align:center; padding:20px; color:var(--slate-400); font-size:13px; }
 
-  /* ══ DARK MODE TOGGLE BTN ═══════════════════════════════════════════ */
-  .topbar-icon-btn {
-    background: none;
-    border: 1.5px solid var(--slate-200);
-    border-radius: 50%;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: var(--slate-500);
-    font-size: 14px;
-    transition: background .15s, color .15s;
-  }
-  .topbar-icon-btn:hover { background: var(--slate-100); color: var(--blue-600); }
+  /* ── DARK TOGGLE BTN ────────────────────────────── */
+  .topbar-icon-btn { background:none; border:1.5px solid var(--slate-200);
+    border-radius:50%; width:32px; height:32px; display:flex; align-items:center;
+    justify-content:center; cursor:pointer; color:var(--slate-500); font-size:14px;
+    transition:background .15s; }
+  .topbar-icon-btn:hover { background:var(--slate-100); color:var(--blue-600); }
 
-  /* ══ DARK MODE ═══════════════════════════════════════════════════════ */
+  /* ── DARK MODE ──────────────────────────────────── */
   body.dark-mode {
-    --slate-900: #F8FAFC;
-    --slate-800: #F1F5F9;
-    --slate-700: #CBD5E1;
-    --slate-500: #94A3B8;
-    --slate-400: #64748B;
-    --slate-200: #334155;
-    --slate-100: #1E293B;
-    --slate-50:  #0F172A;
-    --white:     #1A2332;
-    --blue-50:   #1e3a5f;
-    --blue-100:  #1e3a5f;
-    background: #0D1B2A;
+    --slate-900:#F8FAFC; --slate-800:#F1F5F9; --slate-700:#CBD5E1;
+    --slate-500:#94A3B8; --slate-400:#64748B; --slate-200:#334155;
+    --slate-100:#1E293B; --slate-50:#0F172A;  --white:#1A2332;
+    --blue-50:#1e3a5f;   --blue-100:#1e3a5f;
+    background:#0D1B2A;
   }
-  body.dark-mode #sidebar        { background: #111927; border-color: #1E293B; }
-  body.dark-mode .topbar         { background: #111927; border-color: #1E293B; }
-  body.dark-mode .card-panel     { background: #1A2332; }
-  body.dark-mode .stat-card      { background: #1A2332; }
-  body.dark-mode .chart-card     { background: #1A2332; }
-  body.dark-mode table thead     { background: #111927; }
-  body.dark-mode table tbody tr:hover { background: #1E293B; }
-  body.dark-mode .topbar-search-input { background: #1E293B; color: #CBD5E1; border-color: #334155; }
-  body.dark-mode .search-dropdown     { background: #1A2332; border-color: #334155; }
+  body.dark-mode #sidebar     { background:#111927; border-color:#1E293B; }
+  body.dark-mode .topbar      { background:#111927; border-color:#1E293B; }
+  body.dark-mode .card-panel  { background:#1A2332; }
+  body.dark-mode .stat-card   { background:#1A2332; }
+  body.dark-mode .chart-card  { background:#1A2332; }
+  body.dark-mode table thead  { background:#111927; }
+  body.dark-mode table tbody tr:hover { background:#1E293B; }
+  body.dark-mode .topbar-search-input { background:#1E293B; color:#CBD5E1; border-color:#334155; }
+  body.dark-mode .search-dd   { background:#1A2332; border-color:#334155; }
   body.dark-mode .form-control,
-  body.dark-mode .form-select   { background: #1E293B; color: #CBD5E1; border-color: #334155; }
-  body.dark-mode #dark-icon::before { content: "\F497"; } /* sun icon override */
-  body.dark-mode #dark-icon { font-size: 15px; }
-  body.dark-mode .modal-content  { background: #1A2332; color: #CBD5E1; }
-  body.dark-mode .modal-header   { border-color: #334155; }
-  body.dark-mode .modal-footer   { border-color: #334155; }
-  body.dark-mode .offcanvas       { background: #1A2332; color: #CBD5E1; }
-  body.dark-mode .login-card      { background: #1A2332; }
-  body.dark-mode .badge { filter: brightness(.85); }
+  body.dark-mode .form-select { background:#1E293B; color:#CBD5E1; border-color:#334155; }
+  body.dark-mode .modal-content { background:#1A2332; color:#CBD5E1; }
+  body.dark-mode .modal-header,
+  body.dark-mode .modal-footer  { border-color:#334155; }
+  body.dark-mode .offcanvas   { background:#1A2332; color:#CBD5E1; }
 
-  /* ══ ACTIVITY LOG ════════════════════════════════════════════════════ */
-  #page-actividad .card-panel { border-left-color: #6366F1; }
-  .act-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 10px 0;
-    border-bottom: 1px solid var(--slate-100);
+  /* ── ACTIVITY LOG ────────────────────────────────── */
+  #page-actividad .card-panel { border-left-color:#6366F1; }
+  .act-item { display:flex; align-items:flex-start; gap:12px; padding:10px 0;
+    border-bottom:1px solid var(--slate-100); }
+  .act-item:last-child { border-bottom:none; }
+  .act-dot  { width:34px; height:34px; border-radius:10px; display:flex;
+    align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
+  .act-body strong { font-size:13px; font-weight:600; display:block; }
+  .act-body small  { font-size:11px; color:var(--slate-400); }
+
+  /* ── PRINT ───────────────────────────────────────── */
+  @media print {
+    #sidebar, .topbar, .panel-header button, .btn, select, input { display:none!important; }
+    #main { margin-left:0!important; }
+    .card-panel { box-shadow:none; border:1px solid #ddd; }
   }
-  .act-item:last-child { border-bottom: none; }
-  .act-dot {
-    width: 34px;
-    height: 34px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    flex-shrink: 0;
-    margin-top: 2px;
-  }
-  .act-body strong { font-size: 13px; font-weight: 600; display: block; }
-  .act-body small  { font-size: 11px; color: var(--slate-400); }
 
 </style>
   <!-- Chart.js -->
@@ -728,21 +645,20 @@
       <div class="page-icon" id="topbar-icon"><i class="bi bi-grid-1x2-fill"></i></div>
       <h5 id="page-title">Dashboard</h5>
     </div>
-    <!-- ── BÚSQUEDA GLOBAL ── -->
-    <div class="topbar-search-wrap" id="topbar-search-wrap">
+    <!-- búsqueda global -->
+    <div class="topbar-search-wrap">
       <i class="bi bi-search topbar-search-icon"></i>
-      <input type="text" id="global-search-input"
-        class="topbar-search-input"
+      <input type="text" id="global-search-input" class="topbar-search-input"
         placeholder="Buscar docentes, eventos, grupos…"
         autocomplete="off"
         oninput="buscarGlobal(this.value)"
         onkeydown="buscarGlobalKey(event)"
-        onfocus="if(this.value.length>1) document.getElementById('search-dropdown').classList.remove('d-none')"
-        onblur="setTimeout(()=>document.getElementById('search-dropdown').classList.add('d-none'),200)">
-      <div id="search-dropdown" class="search-dropdown d-none"></div>
+        onfocus="if(this.value.length>1)document.getElementById('search-dd').classList.remove('d-none')"
+        onblur="setTimeout(()=>document.getElementById('search-dd').classList.add('d-none'),200)">
+      <div id="search-dd" class="search-dd d-none"></div>
     </div>
     <div class="d-flex align-items-center gap-2">
-      <button class="topbar-icon-btn" id="dark-toggle" onclick="toggleDarkMode()" title="Modo oscuro/claro">
+      <button class="topbar-icon-btn" id="dark-toggle" onclick="toggleDarkMode()" title="Modo oscuro">
         <i class="bi bi-moon-fill" id="dark-icon"></i>
       </button>
       <span id="topbar-date" style="font-size:12px;color:var(--slate-400)"></span>
@@ -1190,7 +1106,7 @@
     </div>
 
 
-    <!-- ── ACTIVIDAD ──────────────────────── -->
+    <!-- ── ACTIVIDAD ────────────────────── -->
     <div id="page-actividad" class="d-none">
       <div class="card-panel">
         <div class="panel-header">
@@ -1203,15 +1119,14 @@
               <option value="permisos">Permisos</option>
               <option value="horarios">Horarios</option>
               <option value="cronograma">Cronograma</option>
-              <option value="secciones">Secciones</option>
               <option value="reuniones">Reuniones</option>
             </select>
-            <button class="btn btn-sm btn-outline-danger" onclick="limpiarActividad()" title="Borrar historial">
+            <button class="btn btn-sm btn-outline-danger" onclick="limpiarActividad()">
               <i class="bi bi-trash-fill me-1"></i>Limpiar
             </button>
           </div>
         </div>
-        <div id="act-list" style="max-height:70vh;overflow-y:auto;padding:4px 0"></div>
+        <div id="act-list" style="max-height:70vh;overflow-y:auto"></div>
       </div>
     </div>
 
@@ -1921,7 +1836,7 @@ const DB = {
     _cache[key] = data;
     _fs.collection('sigei').doc(key).set({ items: data })
       .catch(err => console.error('Firestore write error [' + key + ']:', err));
-    if (key !== 'actividad') _logActividad(key, data);
+    if (key !== 'actividad') { try { logAct(key, data); } catch(e) {} }
   },
   nextId(key) {
     const items = _cache[key] || [];
@@ -3913,165 +3828,129 @@ function imprimirHorario() {
 }
 
 
-// ══════════════════════════════════════════════
+// ════════════════════════════════════════════════
 //  DARK MODE
-// ══════════════════════════════════════════════
+// ════════════════════════════════════════════════
 function toggleDarkMode() {
-  const isDark = document.body.classList.toggle('dark-mode');
-  localStorage.setItem('sigei-dark', isDark ? '1' : '0');
-  const icon = document.getElementById('dark-icon');
-  if (icon) {
-    icon.className = isDark ? 'bi bi-sun-fill' : 'bi bi-moon-fill';
-  }
+  var dark = document.body.classList.toggle('dark-mode');
+  localStorage.setItem('sigei-dark', dark ? '1' : '0');
+  var ico = document.getElementById('dark-icon');
+  if (ico) ico.className = dark ? 'bi bi-sun-fill' : 'bi bi-moon-fill';
 }
-function applyDarkModePreference() {
+function applyDarkPref() {
   if (localStorage.getItem('sigei-dark') === '1') {
     document.body.classList.add('dark-mode');
-    const icon = document.getElementById('dark-icon');
-    if (icon) icon.className = 'bi bi-sun-fill';
+    var ico = document.getElementById('dark-icon');
+    if (ico) ico.className = 'bi bi-sun-fill';
   }
 }
 
-// ══════════════════════════════════════════════
+// ════════════════════════════════════════════════
 //  BÚSQUEDA GLOBAL
-// ══════════════════════════════════════════════
-var _searchIdx = -1;
+// ════════════════════════════════════════════════
+var _srItems = [];
+var _srIdx   = -1;
 
 function buscarGlobal(q) {
-  const dd = document.getElementById('search-dropdown');
-  q = (q||'').trim().toLowerCase();
-  if (q.length < 2) { dd.classList.add('d-none'); _searchIdx = -1; return; }
+  var dd = document.getElementById('search-dd');
+  if (!dd) return;
+  q = (q || '').trim().toLowerCase();
+  if (q.length < 2) { dd.classList.add('d-none'); return; }
 
-  const results = [];
+  var res = [];
 
-  // Docentes
-  DB.get('docentes').forEach(d => {
-    const nombre = ((d.p_nombre||'') + ' ' + (d.p_apellido||'')).toLowerCase();
-    const cedula = (d.cedula||'').toLowerCase();
-    if (nombre.includes(q) || cedula.includes(q) || (d.area||'').toLowerCase().includes(q)) {
-      results.push({
-        tipo: 'Docentes', icon: 'bi-person-badge-fill', iconBg:'#EFF6FF', iconColor:'#2563EB',
-        title: d.p_nombre + ' ' + d.p_apellido,
-        sub:   (d.area||'') + (d.estado ? ' · ' + d.estado : ''),
-        action: () => { navigate('docentes'); }
-      });
+  DB.get('docentes').forEach(function(d) {
+    var n = ((d.p_nombre||'') + ' ' + (d.p_apellido||'')).toLowerCase();
+    if (n.includes(q) || (d.cedula||'').toLowerCase().includes(q) || (d.area||'').toLowerCase().includes(q)) {
+      res.push({ g:'Docentes', ico:'bi-person-badge-fill', bg:'#EFF6FF', col:'#2563EB',
+        t: d.p_nombre+' '+d.p_apellido, s:(d.area||'')+(d.estado?' · '+d.estado:''),
+        fn: function(){ navigate('docentes'); } });
     }
   });
-
-  // Secciones/Grados
-  DB.get('secciones').forEach(s => {
-    const n = (s.nombre||'').toLowerCase();
-    const g = (s.grado||'').toLowerCase();
-    if (n.includes(q) || g.includes(q)) {
-      results.push({
-        tipo: 'Grupos', icon: 'bi-mortarboard-fill', iconBg:'#DCFCE7', iconColor:'#15803D',
-        title: s.nombre || s.grado,
-        sub:   'Grado: ' + (s.grado||'—') + ' · ' + (s.jornada||''),
-        action: () => { navigate('grados'); }
-      });
+  DB.get('secciones').forEach(function(s) {
+    if ((s.nombre||'').toLowerCase().includes(q) || (s.grado||'').toLowerCase().includes(q)) {
+      res.push({ g:'Grupos', ico:'bi-mortarboard-fill', bg:'#DCFCE7', col:'#15803D',
+        t: s.nombre||s.grado, s:'Grado: '+(s.grado||'—')+' · '+(s.jornada||''),
+        fn: function(){ navigate('grados'); } });
     }
   });
-
-  // Cronograma
-  DB.get('cronograma').forEach(e => {
+  DB.get('cronograma').forEach(function(e) {
     if ((e.actividad||'').toLowerCase().includes(q) || (e.tipo||'').toLowerCase().includes(q)) {
-      results.push({
-        tipo: 'Cronograma', icon: 'bi-calendar-event-fill', iconBg:'#FEF3C7', iconColor:'#B45309',
-        title: e.actividad,
-        sub:   (e.tipo||'') + (e.fecha_inicio ? ' · ' + e.fecha_inicio : ''),
-        action: () => { navigate('cronograma'); }
-      });
+      res.push({ g:'Cronograma', ico:'bi-calendar-event-fill', bg:'#FEF3C7', col:'#B45309',
+        t: e.actividad, s:(e.tipo||'')+(e.fecha_inicio?' · '+e.fecha_inicio:''),
+        fn: function(){ navigate('cronograma'); } });
     }
   });
-
-  // Reuniones
-  DB.get('reuniones').forEach(r => {
+  DB.get('reuniones').forEach(function(r) {
     if ((r.tema||'').toLowerCase().includes(q) || (r.tipo||'').toLowerCase().includes(q)) {
-      results.push({
-        tipo: 'Reuniones', icon: 'bi-people-fill', iconBg:'#EDE9FE', iconColor:'#7C3AED',
-        title: r.tema,
-        sub:   (r.tipo||'') + (r.fecha ? ' · ' + r.fecha : ''),
-        action: () => { navigate('reuniones'); }
-      });
+      res.push({ g:'Reuniones', ico:'bi-people-fill', bg:'#EDE9FE', col:'#7C3AED',
+        t: r.tema, s:(r.tipo||'')+(r.fecha?' · '+r.fecha:''),
+        fn: function(){ navigate('reuniones'); } });
     }
   });
-
-  // Asignaciones
-  DB.get('asignaciones').forEach(a => {
+  DB.get('asignaciones').forEach(function(a) {
     if ((a.materia||'').toLowerCase().includes(q)) {
-      results.push({
-        tipo: 'Asignaciones', icon: 'bi-journal-check', iconBg:'#FCE7F3', iconColor:'#9D174D',
-        title: a.materia,
-        sub:   nombreDocente(a.docente_id) + (a.seccion ? ' · ' + a.seccion : ''),
-        action: () => { navigate('asignaciones'); }
-      });
+      res.push({ g:'Asignaciones', ico:'bi-journal-check', bg:'#FCE7F3', col:'#9D174D',
+        t: a.materia, s: nombreDocente(a.docente_id)+(a.seccion?' · '+a.seccion:''),
+        fn: function(){ navigate('asignaciones'); } });
     }
   });
 
-  if (!results.length) {
-    dd.innerHTML = '<div class="search-empty"><i class="bi bi-search me-1"></i>Sin resultados para "' + q + '"</div>';
+  _srItems = res; _srIdx = -1;
+
+  if (!res.length) {
+    dd.innerHTML = '<div class="search-empty">Sin resultados para "'+q+'"</div>';
     dd.classList.remove('d-none');
     return;
   }
 
-  // Group by tipo
-  const groups = {};
-  results.forEach(r => { if (!groups[r.tipo]) groups[r.tipo] = []; groups[r.tipo].push(r); });
-  _searchItems = results;
-  _searchIdx   = -1;
-
-  dd.innerHTML = Object.entries(groups).map(([tipo, items]) =>
-    '<div class="search-result-group">'
-    + '<div class="search-result-group-title">' + tipo + '</div>'
-    + items.map((item, i) => {
-        const globalI = results.indexOf(item);
-        return '<div class="search-result-item" data-idx="' + globalI + '" onmousedown="_searchAction(' + globalI + ')">'
-          + '<div class="sri-icon" style="background:' + item.iconBg + ';color:' + item.iconColor + '"><i class="bi ' + item.icon + '"></i></div>'
-          + '<div class="sri-text"><strong>' + item.title + '</strong><small>' + item.sub + '</small></div>'
-          + '</div>';
-      }).join('')
-    + '</div>'
-  ).join('');
-
+  // Group
+  var groups = {};
+  res.forEach(function(r){ if(!groups[r.g]) groups[r.g]=[]; groups[r.g].push(r); });
+  var html = '';
+  Object.keys(groups).forEach(function(g) {
+    html += '<div class="sri-group-title">'+g+'</div>';
+    groups[g].forEach(function(item) {
+      var i = res.indexOf(item);
+      html += '<div class="sri" data-idx="'+i+'" onmousedown="_doSearch('+i+')">'
+        + '<div class="sri-ico" style="background:'+item.bg+';color:'+item.col+'"><i class="bi '+item.ico+'"></i></div>'
+        + '<div><strong>'+item.t+'</strong><small>'+item.s+'</small></div>'
+        + '</div>';
+    });
+  });
+  dd.innerHTML = html;
   dd.classList.remove('d-none');
 }
 
-var _searchItems = [];
-function _searchAction(idx) {
-  if (_searchItems[idx]) {
-    _searchItems[idx].action();
+function _doSearch(i) {
+  if (_srItems[i]) {
+    _srItems[i].fn();
     document.getElementById('global-search-input').value = '';
-    document.getElementById('search-dropdown').classList.add('d-none');
+    document.getElementById('search-dd').classList.add('d-none');
   }
 }
+
 function buscarGlobalKey(e) {
-  const items = document.querySelectorAll('.search-result-item');
+  var items = document.querySelectorAll('#search-dd .sri');
   if (!items.length) return;
-  if (e.key === 'ArrowDown') {
-    _searchIdx = Math.min(_searchIdx + 1, items.length - 1);
-  } else if (e.key === 'ArrowUp') {
-    _searchIdx = Math.max(_searchIdx - 1, 0);
-  } else if (e.key === 'Enter' && _searchIdx >= 0) {
-    const idx = parseInt(items[_searchIdx].dataset.idx);
-    _searchAction(idx);
-    return;
-  } else if (e.key === 'Escape') {
-    document.getElementById('search-dropdown').classList.add('d-none');
-    return;
-  } else { return; }
-  items.forEach((el,i) => el.classList.toggle('active', i === _searchIdx));
-  items[_searchIdx] && items[_searchIdx].scrollIntoView({ block:'nearest' });
+  if (e.key === 'ArrowDown')        _srIdx = Math.min(_srIdx+1, items.length-1);
+  else if (e.key === 'ArrowUp')     _srIdx = Math.max(_srIdx-1, 0);
+  else if (e.key === 'Enter' && _srIdx >= 0) { _doSearch(+items[_srIdx].dataset.idx); return; }
+  else if (e.key === 'Escape') { document.getElementById('search-dd').classList.add('d-none'); return; }
+  else return;
+  items.forEach(function(el,i){ el.classList.toggle('active', i===_srIdx); });
+  if (items[_srIdx]) items[_srIdx].scrollIntoView({block:'nearest'});
 }
 
-// ══════════════════════════════════════════════
-//  LOG DE ACTIVIDAD
-// ══════════════════════════════════════════════
-const ACT_LABELS = {
+// ════════════════════════════════════════════════
+//  LOG DE ACTIVIDAD  (localStorage + Firestore)
+// ════════════════════════════════════════════════
+var ACT_LABEL = {
   docentes:'Docentes', secciones:'Grupos', horarios:'Horarios',
   permisos:'Permisos', asignaciones:'Asignaciones', cronograma:'Cronograma',
   aulas:'Aulas', sedes:'Sedes', reuniones:'Reuniones'
 };
-const ACT_ICONS = {
+var ACT_ICON = {
   docentes:['bi-person-badge-fill','#EFF6FF','#2563EB'],
   secciones:['bi-mortarboard-fill','#DCFCE7','#15803D'],
   horarios:['bi-calendar3','#FEF3C7','#B45309'],
@@ -4083,65 +3962,46 @@ const ACT_ICONS = {
   reuniones:['bi-people-fill','#EDE9FE','#7C3AED']
 };
 
-function _logActividad(colName, newData) {
-  try { if (!firebase.auth().currentUser) return; } catch(e) { return; }
-  const user = firebase.auth().currentUser;
-  const log  = _cache['actividad'] || [];
-  const prev = _cache['_prev_' + colName] || [];
-  const prevLen = prev.length;
-  const newLen  = newData.length;
-  let accion = 'Modificó';
-  if (newLen > prevLen) accion = 'Agregó registro en';
-  else if (newLen < prevLen) accion = 'Eliminó registro en';
-  log.unshift({
-    id:      Date.now(),
-    ts:      new Date().toISOString(),
-    user:    user.email || 'desconocido',
-    col:     colName,
-    accion:  accion,
-    label:   ACT_LABELS[colName] || colName,
-    count:   newLen
-  });
-  // Keep last 200 entries
+function logAct(colName, newData) {
+  var user = (firebase.auth().currentUser || {}).email || '—';
+  var log  = _cache['actividad'] || [];
+  var prev = _cache['_prev_'+colName] || [];
+  var accion = newData.length > prev.length ? 'Agregó en'
+             : newData.length < prev.length ? 'Eliminó en'
+             : 'Modificó';
+  log.unshift({ id: Date.now(), ts: new Date().toISOString(),
+    user: user, col: colName, accion: accion,
+    label: ACT_LABEL[colName] || colName });
   _cache['actividad'] = log.slice(0, 200);
-  _cache['_prev_' + colName] = newData.slice();
-  _fs.collection('sigei').doc('actividad').set({ items: _cache['actividad'] })
-    .catch(() => {});
+  _cache['_prev_'+colName] = newData.slice();
+  _fs.collection('sigei').doc('actividad').set({ items: _cache['actividad'] }).catch(function(){});
 }
 
 function renderActividad() {
-  const filtroCol = document.getElementById('filtro-act-col')?.value || '';
-  let log = (_cache['actividad'] || []).slice();
-  if (filtroCol) log = log.filter(e => e.col === filtroCol);
-
-  const container = document.getElementById('act-list');
-  if (!container) return;
-
+  var filtro = (document.getElementById('filtro-act-col')||{}).value || '';
+  var log = (_cache['actividad'] || []).slice();
+  if (filtro) log = log.filter(function(e){ return e.col === filtro; });
+  var el = document.getElementById('act-list');
+  if (!el) return;
   if (!log.length) {
-    container.innerHTML = '<div class="search-empty p-4"><i class="bi bi-clock-history me-2"></i>No hay actividad registrada aún.</div>';
+    el.innerHTML = '<div class="search-empty p-4"><i class="bi bi-clock-history me-2"></i>Sin actividad registrada.</div>';
     return;
   }
-
-  container.innerHTML = log.map(entry => {
-    const [ico, bg, color] = ACT_ICONS[entry.col] || ['bi-circle-fill','#F1F5F9','#64748B'];
-    const ts = entry.ts ? new Date(entry.ts).toLocaleString('es-CO', {
-      day:'2-digit', month:'short', year:'numeric',
-      hour:'2-digit', minute:'2-digit'
-    }) : '—';
+  el.innerHTML = log.map(function(e) {
+    var info = ACT_ICON[e.col] || ['bi-circle-fill','#F1F5F9','#64748B'];
+    var ts = e.ts ? new Date(e.ts).toLocaleString('es-CO',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
     return '<div class="act-item">'
-      + '<div class="act-dot" style="background:' + bg + ';color:' + color + '"><i class="bi ' + ico + '"></i></div>'
-      + '<div class="act-body">'
-      + '<strong>' + entry.accion + ' ' + (entry.label||entry.col) + '</strong>'
-      + '<small><i class="bi bi-person-fill me-1"></i>' + (entry.user||'—')
-      + '&nbsp;&nbsp;<i class="bi bi-clock me-1"></i>' + ts + '</small>'
-      + '</div></div>';
+      +'<div class="act-dot" style="background:'+info[1]+';color:'+info[2]+'"><i class="bi '+info[0]+'"></i></div>'
+      +'<div class="act-body"><strong>'+e.accion+' '+(e.label||e.col)+'</strong>'
+      +'<small><i class="bi bi-person-fill me-1"></i>'+e.user
+      +'&nbsp;&nbsp;<i class="bi bi-clock me-1"></i>'+ts+'</small></div></div>';
   }).join('');
 }
 
 function limpiarActividad() {
-  if (!confirmar('¿Borrar todo el historial de actividad?')) return;
+  if (!confirmar('¿Borrar todo el historial?')) return;
   _cache['actividad'] = [];
-  _fs.collection('sigei').doc('actividad').set({ items: [] }).catch(()=>{});
+  _fs.collection('sigei').doc('actividad').set({ items:[] }).catch(function(){});
   renderActividad();
   toast('Historial borrado.');
 }
@@ -4368,16 +4228,13 @@ _auth.onAuthStateChanged(async function(user) {
     const emailEl = document.getElementById('user-email-display');
     if (emailEl) emailEl.textContent = user.email;
     if (!_appLoaded) {
-      applyDarkModePreference();
-      // Init prev-snapshots for activity log
-      Object.keys(_cache).forEach(c => { _cache['_prev_' + c] = (_cache[c]||[]).slice(); });
       // Set topbar date
       const dateEl = document.getElementById('topbar-date');
       if (dateEl) {
         const now = new Date();
         dateEl.textContent = now.toLocaleDateString('es-CO', { weekday:'short', day:'numeric', month:'short', year:'numeric' });
       }
-      renderDashboard(); navigate('dashboard'); _appLoaded = true;
+      applyDarkPref(); Object.keys(_cache).forEach(function(c){ _cache['_prev_'+c]=(_cache[c]||[]).slice(); }); renderDashboard(); navigate('dashboard'); _appLoaded = true;
     }
   } else {
     // Not logged in — just show the overlay (no reload)
