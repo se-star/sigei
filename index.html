@@ -1,0 +1,3315 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIGEI v10.0 — Sistema de Gestión Educativa Institucional</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<style>
+  /* ══ DESIGN TOKENS ═══════════════════════════════════════════════════ */
+  :root {
+    --blue-600:  #2563EB;
+    --blue-700:  #1D4ED8;
+    --blue-50:   #EFF6FF;
+    --blue-100:  #DBEAFE;
+    --slate-900: #0F172A;
+    --slate-800: #1E293B;
+    --slate-700: #334155;
+    --slate-500: #64748B;
+    --slate-400: #94A3B8;
+    --slate-200: #E2E8F0;
+    --slate-100: #F1F5F9;
+    --slate-50:  #F8FAFC;
+    --white:     #FFFFFF;
+    --green-500: #10B981;
+    --amber-500: #F59E0B;
+    --red-500:   #EF4444;
+    --sidebar-w: 248px;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,.08), 0 1px 3px rgba(0,0,0,.04);
+  }
+
+  /* ══ BASE ════════════════════════════════════════════════════════════ */
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    background: var(--slate-100);
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    font-size: 14px;
+    color: var(--slate-700);
+    margin: 0;
+  }
+
+  /* ══ SIDEBAR ══════════════════════════════════════════════════════════ */
+  #sidebar {
+    width: var(--sidebar-w);
+    min-height: 100vh;
+    background: var(--slate-900);
+    position: fixed; top: 0; left: 0; z-index: 200;
+    display: flex; flex-direction: column;
+    transition: width .25s ease;
+    overflow: hidden;
+  }
+
+  /* Brand */
+  #sidebar .brand {
+    padding: 22px 20px 18px;
+    border-bottom: 1px solid rgba(255,255,255,.07);
+  }
+  .brand-logo {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
+  }
+  .brand-logo .logo-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--blue-600), var(--blue-700));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+  }
+  .brand-logo h6 {
+    color: #fff; font-weight: 700; font-size: 15px; margin: 0; line-height: 1.2;
+  }
+  .brand-logo small { color: var(--slate-400); font-size: 11px; display: block; }
+  #user-email-display {
+    font-size: 11px; color: var(--slate-400);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    margin-bottom: 8px;
+  }
+  #sidebar .brand button {
+    width: 100%; padding: 7px 12px;
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: var(--radius-sm);
+    color: var(--slate-400); font-size: 11px;
+    cursor: pointer; display: flex; align-items: center; gap: 6px;
+    transition: background .2s, color .2s;
+  }
+  #sidebar .brand button:hover { background: rgba(255,255,255,.12); color: #fff; }
+
+  /* Nav */
+  #sidebar nav { padding: 8px 0; flex: 1; }
+  #sidebar nav .nav-section {
+    font-size: 10px; font-weight: 700; letter-spacing: .08em;
+    color: var(--slate-500); padding: 16px 20px 6px;
+    text-transform: uppercase;
+  }
+  #sidebar nav a {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px 9px 20px;
+    color: var(--slate-400);
+    text-decoration: none; font-size: 13px; font-weight: 500;
+    transition: color .18s, background .18s;
+    border-radius: 0; white-space: nowrap; position: relative;
+    margin: 1px 8px; border-radius: var(--radius-sm);
+  }
+  #sidebar nav a i { font-size: 15px; flex-shrink: 0; }
+  #sidebar nav a:hover  { background: rgba(255,255,255,.06); color: #fff; }
+  #sidebar nav a.active {
+    background: var(--blue-600);
+    color: #fff; font-weight: 600;
+    box-shadow: 0 2px 8px rgba(37,99,235,.35);
+  }
+  #sidebar .version {
+    padding: 12px 20px; color: var(--slate-500); font-size: 10px;
+    border-top: 1px solid rgba(255,255,255,.05);
+  }
+
+  /* ══ MAIN ════════════════════════════════════════════════════════════ */
+  #main { margin-left: var(--sidebar-w); min-height: 100vh; }
+
+  .topbar {
+    background: var(--white);
+    border-bottom: 1px solid var(--slate-200);
+    padding: 0 28px;
+    height: 60px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 1px 0 var(--slate-200);
+  }
+  .topbar-left { display: flex; align-items: center; gap: 10px; }
+  .topbar-left .page-icon {
+    width: 32px; height: 32px; border-radius: var(--radius-sm);
+    background: var(--blue-50); color: var(--blue-600);
+    display: flex; align-items: center; justify-content: center; font-size: 15px;
+  }
+  .topbar h5 { margin: 0; font-weight: 700; color: var(--slate-800); font-size: 15px; }
+
+  .content { padding: 24px 28px; }
+
+  /* ══ STAT CARDS ══════════════════════════════════════════════════════ */
+  .stat-card {
+    background: var(--white);
+    border-radius: var(--radius-md);
+    padding: 20px 20px 18px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--slate-200);
+    display: flex; align-items: flex-start; gap: 14px;
+    transition: box-shadow .2s, transform .2s;
+  }
+  .stat-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+  .stat-card .icon {
+    width: 44px; height: 44px; border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+  }
+  .stat-card .info { flex: 1; min-width: 0; }
+  .stat-card h2 { margin: 0 0 2px; font-size: 28px; font-weight: 800; line-height: 1; color: var(--slate-800); }
+  .stat-card p  { margin: 0; font-size: 12px; color: var(--slate-500); font-weight: 500; }
+
+  /* ══ CARD PANEL ══════════════════════════════════════════════════════ */
+  .card-panel {
+    background: var(--white);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--slate-200);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+  .card-panel .panel-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--slate-100);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .card-panel .panel-header h6 { margin: 0; font-weight: 700; color: var(--slate-800); font-size: 13px; }
+
+  /* ══ TABLES ══════════════════════════════════════════════════════════ */
+  .table-responsive { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    background: var(--slate-50);
+    color: var(--slate-500);
+    font-size: 11px; font-weight: 700;
+    letter-spacing: .06em; text-transform: uppercase;
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--slate-200);
+    white-space: nowrap;
+  }
+  tbody td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--slate-100);
+    color: var(--slate-700);
+    vertical-align: middle;
+  }
+  tbody tr:hover { background: var(--slate-50); }
+  tbody tr:last-child td { border-bottom: none; }
+
+  /* ══ BADGES ══════════════════════════════════════════════════════════ */
+  .badge-status {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 600; letter-spacing: .02em;
+  }
+  .badge-activo    { background: #DCFCE7; color: #15803D; }
+  .badge-inactivo  { background: #FEE2E2; color: #B91C1C; }
+  .badge-licencia  { background: #FEF3C7; color: #92400E; }
+  .badge-retirado  { background: var(--slate-100); color: var(--slate-500); }
+  .badge-aprobado  { background: #DCFCE7; color: #15803D; }
+  .badge-pendiente { background: #FEF3C7; color: #92400E; }
+  .badge-rechazado { background: #FEE2E2; color: #B91C1C; }
+
+  /* ══ BUTTONS ══════════════════════════════════════════════════════════ */
+  .btn-primary {
+    background: var(--blue-600) !important;
+    border-color: var(--blue-600) !important;
+    font-weight: 600 !important; font-size: 13px !important;
+  }
+  .btn-primary:hover {
+    background: var(--blue-700) !important;
+    border-color: var(--blue-700) !important;
+  }
+  .btn-outline-primary { color: var(--blue-600) !important; border-color: var(--blue-600) !important; font-size: 12px !important; }
+  .btn-outline-primary:hover { background: var(--blue-600) !important; color: #fff !important; }
+  .btn-outline-danger { font-size: 12px !important; }
+  .btn-sm { border-radius: 6px !important; padding: 4px 10px !important; }
+
+  /* ══ SEARCH BAR ═══════════════════════════════════════════════════════ */
+  .search-bar { position: relative; width: 240px; }
+  .search-bar input {
+    padding-left: 34px; border-radius: 20px;
+    border: 1px solid var(--slate-200); font-size: 13px;
+    background: var(--slate-50); height: 34px; width: 100%;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .search-bar input:focus {
+    border-color: var(--blue-600); outline: none;
+    box-shadow: 0 0 0 3px rgba(37,99,235,.12);
+    background: var(--white);
+  }
+  .search-bar i { position: absolute; left: 11px; top: 9px; color: var(--slate-400); font-size: 13px; }
+
+  /* ══ HORARIO GRID ═════════════════════════════════════════════════════ */
+  .horario-grid { overflow-x: auto; }
+  .horario-grid table { min-width: 700px; }
+  .horario-grid thead th {
+    text-align: center;
+    background: var(--slate-800); color: #fff;
+    font-size: 12px; letter-spacing: .04em;
+  }
+  .horario-grid td {
+    height: 42px; text-align: center;
+    vertical-align: middle; font-size: 12px;
+  }
+  .horario-grid td.hora {
+    background: var(--slate-50); font-weight: 600;
+    color: var(--slate-500); font-size: 11px; white-space: nowrap;
+    border-right: 1px solid var(--slate-200);
+  }
+  .horario-block {
+    border-radius: var(--radius-sm); padding: 4px 8px;
+    font-size: 11px; font-weight: 600; line-height: 1.3;
+    cursor: pointer; min-height: 38px;
+    display: flex; flex-direction: column; justify-content: center;
+    transition: filter .15s;
+  }
+  .horario-block:hover { filter: brightness(.93); }
+  .block-primaria     { background: #DBEAFE; color: #1D4ED8; border: 1px solid #BFDBFE; }
+  .block-secundaria   { background: #DCFCE7; color: #15803D; border: 1px solid #BBF7D0; }
+  .block-bachillerato { background: #FAE8FF; color: #7E22CE; border: 1px solid #E9D5FF; }
+
+  /* ══ DOCENTES PANEL ═══════════════════════════════════════════════════ */
+  .disp-card { display: flex; align-items: center; gap: 7px; padding: 6px 8px; border-radius: var(--radius-sm); font-size: 12px; margin-bottom: 3px; }
+  .disp-disponible { background: #F0FDF4; cursor: pointer; }
+  .disp-disponible:hover { background: #DCFCE7; }
+  .disp-ocupado { background: #EFF6FF; cursor: pointer; }
+  .disp-ocupado:hover { background: #DBEAFE; }
+  .disp-permiso { background: #FEFCE8; }
+
+  /* ══ CARGA DOCENTE ════════════════════════════════════════════════════ */
+  .carga-bar-wrap { background: var(--slate-200); border-radius: 20px; height: 8px; overflow: hidden; }
+  .carga-bar      { height: 8px; border-radius: 20px; transition: width .5s ease; }
+  .carga-baja     { background: var(--green-500); }
+  .carga-media    { background: var(--amber-500); }
+  .carga-alta     { background: var(--red-500); }
+  .carga-badge    { display: inline-block; padding: 3px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+  .carga-badge.baja  { background: #DCFCE7; color: #15803D; }
+  .carga-badge.media { background: #FEF3C7; color: #B45309; }
+  .carga-badge.alta  { background: #FEE2E2; color: #B91C1C; }
+
+  /* ══ CURSO ROW ════════════════════════════════════════════════════════ */
+  .curso-row {
+    background: var(--slate-50);
+    border: 1px solid var(--slate-200);
+    border-radius: var(--radius-md);
+    padding: 14px; margin-bottom: 10px; position: relative;
+  }
+  .curso-row .remove-curso {
+    position: absolute; top: 10px; right: 12px;
+    border: none; background: none; color: var(--slate-400);
+    cursor: pointer; font-size: 15px; padding: 2px;
+    border-radius: 4px; transition: color .15s, background .15s;
+  }
+  .curso-row .remove-curso:hover { color: var(--red-500); background: #FEE2E2; }
+
+  /* ══ MODAL ════════════════════════════════════════════════════════════ */
+  .modal-header {
+    background: var(--white);
+    border-bottom: 1px solid var(--slate-200);
+    padding: 16px 20px;
+  }
+  .modal-header .modal-title { font-weight: 700; color: var(--slate-800); font-size: 15px; }
+  .modal-header .btn-close { filter: none; }
+  .modal-footer { background: var(--slate-50); border-top: 1px solid var(--slate-200); }
+  .modal-content { border-radius: var(--radius-lg); overflow: hidden; border: none; box-shadow: var(--shadow-md); }
+
+  /* ══ FORM ═════════════════════════════════════════════════════════════ */
+  .form-label { font-weight: 600; font-size: 11px; color: var(--slate-500); margin-bottom: 4px; text-transform: uppercase; letter-spacing: .04em; }
+  .form-control, .form-select {
+    font-size: 13px; border-color: var(--slate-200);
+    border-radius: var(--radius-sm); background: var(--white);
+    color: var(--slate-700);
+  }
+  .form-control:focus, .form-select:focus {
+    border-color: var(--blue-600);
+    box-shadow: 0 0 0 3px rgba(37,99,235,.12);
+  }
+
+  /* ══ TOAST ════════════════════════════════════════════════════════════ */
+  #toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 9999; }
+  .toast-msg {
+    background: var(--white);
+    border-radius: var(--radius-md);
+    padding: 13px 18px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.12);
+    display: flex; align-items: center; gap: 10px;
+    font-size: 13px; font-weight: 500; margin-top: 8px;
+    animation: slideIn .3s cubic-bezier(.34,1.56,.64,1);
+    border-left: 4px solid var(--blue-600);
+    min-width: 260px;
+  }
+  .toast-msg.ok  { border-color: var(--green-500); }
+  .toast-msg.err { border-color: var(--red-500); }
+  @keyframes slideIn { from { transform: translateX(80px) scale(.95); opacity: 0; } to { transform: none; opacity: 1; } }
+
+  /* ══ EMPTY STATE ══════════════════════════════════════════════════════ */
+  /* ══ HORARIO VISUAL ══════════════════════════════════════════════════ */
+  .hv-wrap { display: flex; min-width: 600px; }
+  .hv-times { width: 52px; flex-shrink: 0; padding-top: 40px; position: relative; }
+  .hv-time-lbl { position: absolute; right: 6px; font-size: 10px; color: var(--slate-400);
+    transform: translateY(-50%); white-space: nowrap; font-weight: 500; }
+  .hv-days { display: flex; flex: 1; gap: 0; }
+  .hv-day { flex: 1; min-width: 100px; border-left: 1px solid var(--slate-100); }
+  .hv-day-hdr { height: 40px; display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; color: var(--slate-600); text-transform: uppercase;
+    letter-spacing: .04em; border-bottom: 2px solid var(--slate-200);
+    background: var(--slate-50); position: sticky; top: 0; z-index: 2; }
+  .hv-body { position: relative; }
+  .hv-hline { position: absolute; left: 0; right: 0; border-top: 1px solid var(--slate-100); pointer-events: none; }
+  .hv-hline.full { border-color: var(--slate-200); }
+  .hv-block { position: absolute; border-radius: 7px; padding: 5px 7px; overflow: hidden;
+    cursor: pointer; box-sizing: border-box; border: 1.5px solid rgba(0,0,0,.08);
+    transition: filter .15s, transform .15s; display: flex; flex-direction: column; gap: 1px; }
+  .hv-block:hover { filter: brightness(.93); transform: scale(1.02); z-index: 10; }
+  .hv-bm { font-weight: 700; font-size: 11px; line-height: 1.2; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis; }
+  .hv-bs { font-size: 10px; opacity: .75; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hv-bd { font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hv-bt { font-size: 9px; opacity: .6; margin-top: auto; }
+
+  .empty-state { text-align: center; padding: 48px 20px; color: var(--slate-400); }
+  .empty-state i { font-size: 36px; display: block; margin-bottom: 10px; opacity: .5; }
+  .empty-state p { font-size: 13px; margin: 0; }
+
+  /* ══ RESPONSIVE ═══════════════════════════════════════════════════════ */
+  @media (max-width: 768px) {
+    #sidebar { width: 60px; }
+    #sidebar .brand h6, #sidebar .brand small, #sidebar .brand button,
+    #sidebar nav a span, #sidebar .nav-section, #sidebar .version,
+    #user-email-display { display: none; }
+    #main { margin-left: 60px; }
+    .content { padding: 14px; }
+    .topbar { padding: 0 16px; }
+  }
+
+  /* ══ SIDEBAR COLLAPSIBLE ════════════════════════════════════════════ */
+  body.sidebar-collapsed #sidebar { width: 60px; }
+  body.sidebar-collapsed #sidebar .brand h6,
+  body.sidebar-collapsed #sidebar .brand small,
+  body.sidebar-collapsed #sidebar .brand button,
+  body.sidebar-collapsed #sidebar nav a span,
+  body.sidebar-collapsed #sidebar .nav-section,
+  body.sidebar-collapsed #sidebar .version,
+  body.sidebar-collapsed #user-email-display { display: none; }
+  body.sidebar-collapsed #main { margin-left: 60px; }
+
+  /* Toggle button */
+  #sidebar-toggle {
+    background: none; border: none; cursor: pointer;
+    color: var(--slate-500); font-size: 18px; padding: 4px 6px;
+    border-radius: var(--radius-sm); transition: color .18s, background .18s;
+    display: flex; align-items: center;
+  }
+  #sidebar-toggle:hover { background: var(--slate-100); color: var(--slate-800); }
+</style>
+  <!-- Firebase compat SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     SIDEBAR
+══════════════════════════════════════ -->
+<div id="sidebar">
+  <div class="brand">
+    <div class="brand-logo">
+      <div class="logo-icon">🎓</div>
+      <div>
+        <h6>SIGEI TIC</h6>
+        <small>Sistema de gestión Institucional ALFATIC</small>
+      </div>
+    </div>
+    <div id="user-email-display"></div>
+    <button onclick="logoutUser()">
+      <i class="bi bi-box-arrow-right"></i> Cerrar sesión
+    </button>
+  </div>
+  <nav class="mt-2">
+    <div class="nav-section">Principal</div>
+    <a href="#" onclick="navigate('dashboard')" data-page="dashboard" class="active">
+      <i class="bi bi-grid-1x2-fill"></i><span>Dashboard</span>
+    </a>
+
+    <div class="nav-section">Personal</div>
+    <a href="#" onclick="navigate('docentes')" data-page="docentes">
+      <i class="bi bi-person-badge-fill"></i><span>Docentes</span>
+    </a>
+    <a href="#" onclick="navigate('permisos')" data-page="permisos">
+      <i class="bi bi-calendar2-check-fill"></i><span>Permisos</span>
+    </a>
+
+    <div class="nav-section">Académico</div>
+    <a href="#" onclick="navigate('grados')" data-page="grados">
+      <i class="bi bi-diagram-3-fill"></i><span>Grupos</span>
+    </a>
+    <a href="#" onclick="navigate('asignaciones')" data-page="asignaciones">
+      <i class="bi bi-journal-bookmark-fill"></i><span>Asignación Académica</span>
+    </a>
+    <a href="#" onclick="navigate('horarios')" data-page="horarios">
+      <i class="bi bi-clock-fill"></i><span>Horarios</span>
+    </a>
+    <a href="#" onclick="navigate('cronograma')" data-page="cronograma">
+      <i class="bi bi-calendar-event-fill"></i><span>Cronograma</span>
+    </a>
+
+    <div class="nav-section">Infraestructura</div>
+    <a href="#" onclick="navigate('aulas')" data-page="aulas">
+      <i class="bi bi-door-open-fill"></i><span>Aulas</span>
+    </a>
+    <a href="#" onclick="navigate('sedes')" data-page="sedes">
+      <i class="bi bi-building-fill"></i><span>Sedes</span>
+    </a>
+  </nav>
+  <div class="version">v11.0 · Firebase</div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MAIN
+══════════════════════════════════════ -->
+<div id="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button id="sidebar-toggle" onclick="toggleSidebar()" title="Colapsar menú">
+        <i class="bi bi-list"></i>
+      </button>
+      <div class="page-icon" id="topbar-icon"><i class="bi bi-grid-1x2-fill"></i></div>
+      <h5 id="page-title">Dashboard</h5>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <span id="topbar-date" style="font-size:12px;color:var(--slate-400)"></span>
+    </div>
+  </div>
+  <div class="content">
+
+    <!-- ── DASHBOARD ────────────────────── -->
+    <div id="page-dashboard">
+      <div class="row g-3 mb-4">
+        <div class="col-6 col-md-4 col-lg-2">
+          <div class="stat-card">
+            <div class="icon" style="background:#EFF6FF;color:#2563EB"><i class="bi bi-person-badge-fill"></i></div>
+            <div class="info"><h2 id="cnt-docentes">0</h2><p>Docentes activos</p></div>
+          </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+          <div class="stat-card">
+            <div class="icon" style="background:#DCFCE7;color:#15803D"><i class="bi bi-diagram-3-fill"></i></div>
+            <div class="info"><h2 id="cnt-secciones">0</h2><p>Secciones activas</p></div>
+          </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+          <div class="stat-card">
+            <div class="icon" style="background:#FEF3C7;color:#B45309"><i class="bi bi-clock-fill"></i></div>
+            <div class="info"><h2 id="cnt-horarios">0</h2><p>Clases programadas</p></div>
+          </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+          <div class="stat-card">
+            <div class="icon" style="background:#FEE2E2;color:#B91C1C"><i class="bi bi-calendar2-check-fill"></i></div>
+            <div class="info"><h2 id="cnt-permisos">0</h2><p>Permisos pendientes</p></div>
+          </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+          <div class="stat-card">
+            <div class="icon" style="background:#EDE9FE;color:#7C3AED"><i class="bi bi-door-open-fill"></i></div>
+            <div class="info"><h2 id="cnt-aulas">0</h2><p>Aulas disponibles</p></div>
+          </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+          <div class="stat-card">
+            <div class="icon" style="background:#CFFAFE;color:#0E7490"><i class="bi bi-building-fill"></i></div>
+            <div class="info"><h2 id="cnt-sedes">0</h2><p>Sedes</p></div>
+          </div>
+        </div>
+      </div>
+      <div class="row g-3 mb-3">
+        <div class="col-12">
+          <div class="card-panel" id="dash-proximo-evento-panel">
+            <div class="panel-header">
+              <h6><i class="bi bi-calendar-event-fill me-2" style="color:#f59e0b"></i>Próximo Evento Institucional</h6>
+              <a href="#" onclick="navigate('cronograma')" class="btn btn-sm btn-outline-secondary">Ver cronograma</a>
+            </div>
+            <div id="dash-proximo-evento">
+              <p class="text-muted text-center py-2" style="font-size:13px">Sin eventos próximos registrados</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row g-3">
+        <div class="col-12">
+          <div class="card-panel">
+            <div class="panel-header"><h6><i class="bi bi-calendar2-check-fill me-2"></i>Permisos pendientes</h6></div>
+            <div class="p-0"><table><thead><tr><th>Docente</th><th>Tipo</th><th>Fecha inicio</th></tr></thead>
+            <tbody id="dash-permisos"></tbody></table></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── DOCENTES ──────────────────────── -->
+    <div id="page-docentes" class="d-none">
+      <div class="card-panel">
+        <div class="panel-header">
+          <h6><i class="bi bi-person-badge-fill me-2"></i>Registro de Docentes</h6>
+          <div class="d-flex gap-2 align-items-center">
+            <div class="search-bar">
+              <i class="bi bi-search"></i>
+              <input type="text" class="form-control" id="buscar-docente" placeholder="Buscar..." oninput="renderDocentes()">
+            </div>
+            <select class="form-select form-select-sm" id="filtro-estado-doc" onchange="renderDocentes()" style="width:130px">
+              <option value="">Todos</option>
+              <option value="Activo">Activo</option>
+              <option value="Inactivo">Inactivo</option>
+              <option value="Licencia">Licencia</option>
+              <option value="Retirado">Retirado</option>
+            </select>
+            <button class="btn btn-sm btn-outline-success" onclick="document.getElementById('xlsxDocentes').click()" title="Importar desde Excel">
+              <i class="bi bi-file-earmark-excel-fill"></i> Importar Excel
+            </button>
+            <input type="file" id="xlsxDocentes" accept=".xlsx,.xls,.csv" class="d-none" onchange="cargarExcelDocentes(event)">
+            <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="abrirDocente()">
+              <i class="bi bi-plus-lg"></i> Nuevo
+            </button>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table>
+            <thead><tr>
+              <th>#</th><th>Cédula</th><th>Nombre completo</th><th>Teléfono</th>
+              <th>Correo</th><th>Estado</th><th style="width:90px">Acciones</th>
+            </tr></thead>
+            <tbody id="tabla-docentes"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── GRADOS Y SECCIONES ────────────── -->
+    <div id="page-grados" class="d-none">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="card-panel">
+            <div class="panel-header">
+              <h6><i class="bi bi-diagram-3-fill me-2"></i>Grados</h6>
+            </div>
+            <div class="table-responsive">
+              <table>
+                <thead><tr><th>#</th><th>Grado</th><th>Nivel</th><th>Secciones</th></tr></thead>
+                <tbody id="tabla-grados"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-8">
+          <div class="card-panel">
+            <div class="panel-header">
+              <h6><i class="bi bi-people-fill me-2"></i>Secciones</h6>
+              <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="abrirSeccion()">
+                <i class="bi bi-plus-lg"></i> Nueva sección
+              </button>
+            </div>
+            <div class="table-responsive">
+              <table>
+                <thead><tr>
+                  <th>Grado</th><th>Sección</th><th>Turno</th>
+                  <th>Docente guía</th><th>Aula</th><th style="width:90px">Acciones</th>
+                </tr></thead>
+                <tbody id="tabla-secciones"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ── ASIGNACIÓN ACADÉMICA ──────────────── -->
+    <div id="page-asignaciones" class="d-none">
+
+      <!-- Filtros + acciones -->
+      <div class="card-panel mb-3">
+        <div class="panel-header flex-wrap gap-2">
+          <h6><i class="bi bi-journal-bookmark-fill me-2"></i>Asignación Académica</h6>
+          <div class="d-flex gap-2 align-items-center flex-wrap">
+            <select class="form-select form-select-sm" id="filtro-asig-docente" onchange="renderAsignaciones()" style="width:200px">
+              <option value="">Todos los docentes</option>
+            </select>
+            <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="abrirAsignacion()">
+              <i class="bi bi-plus-lg"></i> Nueva asignación
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabla agrupada por docente -->
+      <div class="card-panel mb-3">
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Docente</th>
+                <th>Materias</th>
+                <th>Horas/semana</th>
+                <th>Carga</th>
+                <th style="width:50px"></th>
+              </tr>
+            </thead>
+            <tbody id="tabla-asignaciones"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tablero docente — se activa al hacer clic en un docente -->
+      <div class="card-panel d-none" id="tablero-docente-panel">
+        <div class="panel-header mb-3" id="tablero-header">
+          <h6><i class="bi bi-bar-chart-fill me-2"></i>Tablero de Carga Académica</h6>
+          <button class="btn btn-sm btn-outline-secondary" onclick="cerrarTablero()">
+            <i class="bi bi-x-lg"></i> Cerrar
+          </button>
+        </div>
+        <div id="tablero-contenido"></div>
+      </div>
+      <!-- selector oculto requerido por renderTableroDocente -->
+      <select id="tablero-doc-sel" class="d-none" onchange="renderTableroDocente()"></select>
+    </div>
+
+    <!-- ── CRONOGRAMA ──────────────────── -->
+    <div id="page-cronograma" class="d-none">
+
+      <!-- Filtros + acciones -->
+      <div class="card-panel mb-3">
+        <div class="panel-header flex-wrap gap-2">
+          <h6><i class="bi bi-calendar-event-fill me-2"></i>Cronograma Institucional</h6>
+          <div class="d-flex gap-2 align-items-center flex-wrap">
+            <select class="form-select form-select-sm" id="filtro-crono-tipo" onchange="renderCronograma()" style="width:160px">
+              <option value="">Todos los tipos</option>
+            </select>
+            <select class="form-select form-select-sm" id="filtro-crono-grado" onchange="renderCronograma()" style="width:150px">
+              <option value="">Todos los grados</option>
+            </select>
+            <input type="number" class="form-control form-control-sm" id="filtro-crono-year"
+              onchange="renderCronograma()" placeholder="Año" style="width:90px">
+            <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="abrirEvento()">
+              <i class="bi bi-plus-lg"></i> Nuevo evento
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabla de eventos -->
+      <div class="card-panel">
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:110px">Fecha inicio</th>
+                <th style="width:110px">Fecha fin</th>
+                <th>Actividad</th>
+                <th style="width:130px">Tipo</th>
+                <th>Área / Responsable</th>
+                <th>Grados</th>
+                <th style="width:80px">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-cronograma"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── HORARIOS ──────────────────────── -->
+    <div id="page-horarios" class="d-none">
+
+      <!-- Filtros -->
+      <div class="card-panel mb-3">
+        <div class="panel-header flex-wrap gap-2">
+          <h6><i class="bi bi-clock-fill me-2"></i>Horarios de Clase</h6>
+          <div class="d-flex gap-2 align-items-center flex-wrap">
+            <select class="form-select form-select-sm" id="filtro-horario-grado"   onchange="actualizarFiltroSecciones()" style="width:145px">
+              <option value="">Todos los grados</option>
+            </select>
+            <select class="form-select form-select-sm" id="filtro-horario-seccion" onchange="renderHorarios()" style="width:165px">
+              <option value="">Todas las secciones</option>
+            </select>
+            <select class="form-select form-select-sm" id="filtro-horario-docente" onchange="renderHorarios()" style="width:165px">
+              <option value="">Todos los docentes</option>
+            </select>
+            <select class="form-select form-select-sm" id="filtro-horario-dia"     onchange="renderHorarios()" style="width:120px">
+              <option value="">Toda la semana</option>
+              <option>Lunes</option><option>Martes</option><option>Miércoles</option>
+              <option>Jueves</option><option>Viernes</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grid + Panel docentes disponibles -->
+      <div class="row g-3">
+        <div class="col-lg-9" style="min-width:0">
+          <div class="card-panel h-100">
+            <div id="horario-visual-container" style="overflow-x:auto;padding:8px 4px"></div>
+          </div>
+        </div>
+        <div class="col-lg-3">
+          <div class="card-panel h-100">
+            <div class="panel-header" style="border-bottom:1px solid #e2e8f0;padding-bottom:8px;margin-bottom:8px">
+              <h6 style="font-size:13px"><i class="bi bi-people-fill me-2"></i>Docentes</h6>
+            </div>
+            <div id="docentes-disponibles" style="max-height:480px;overflow-y:auto;padding:4px"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── AULAS ─────────────────────────── -->
+    <div id="page-aulas" class="d-none">
+      <div class="card-panel">
+        <div class="panel-header">
+          <h6><i class="bi bi-door-open-fill me-2"></i>Aulas</h6>
+          <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="abrirAula()">
+            <i class="bi bi-plus-lg"></i> Nueva aula
+          </button>
+        </div>
+        <div class="table-responsive">
+          <table>
+            <thead><tr><th>#</th><th>Nombre / Código</th><th>Capacidad</th><th>Tipo</th><th>Sede</th><th style="width:90px">Acciones</th></tr></thead>
+            <tbody id="tabla-aulas"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SEDES ─────────────────────────── -->
+    <div id="page-sedes" class="d-none">
+      <div class="card-panel">
+        <div class="panel-header">
+          <h6><i class="bi bi-building-fill me-2"></i>Sedes</h6>
+          <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="abrirSede()">
+            <i class="bi bi-plus-lg"></i> Nueva sede
+          </button>
+        </div>
+        <div class="table-responsive">
+          <table>
+            <thead><tr><th>#</th><th>Nombre</th><th>Dirección</th><th>Teléfono</th><th>Email</th><th style="width:90px">Acciones</th></tr></thead>
+            <tbody id="tabla-sedes"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PERMISOS ──────────────────────── -->
+    <div id="page-permisos" class="d-none">
+      <div class="card-panel">
+        <div class="panel-header">
+          <h6><i class="bi bi-calendar2-check-fill me-2"></i>Permisos y Licencias</h6>
+          <div class="d-flex gap-2 align-items-center">
+            <select class="form-select form-select-sm" id="filtro-estado-permiso" onchange="renderPermisos()" style="width:140px">
+              <option value="">Todos</option>
+              <option value="Pendiente">Pendiente</option>
+              <option value="Aprobado">Aprobado</option>
+              <option value="Rechazado">Rechazado</option>
+            </select>
+            <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="abrirPermiso()">
+              <i class="bi bi-plus-lg"></i> Nuevo permiso
+            </button>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table>
+            <thead><tr><th>Docente</th><th>Tipo</th><th>Desde</th><th>Hasta</th><th>Días</th><th>Motivo</th><th>Estado</th><th style="width:110px">Acciones</th></tr></thead>
+            <tbody id="tabla-permisos"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- Modal Cronograma -->
+<div class="modal fade" id="modalEvento" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal-evento-title">Nuevo Evento</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="evento-id">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Actividad *</label>
+            <input type="text" class="form-control" id="evento-actividad" placeholder="Nombre del evento">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Tipo *</label>
+            <select class="form-select" id="evento-tipo">
+              <option value="">Seleccionar tipo...</option>
+              <option>Institucional</option>
+              <option>Académica</option>
+              <option>Formación docente</option>
+              <option>Comunidad</option>
+              <option>Festivo</option>
+              <option>Cultural</option>
+              <option>Deportivo</option>
+              <option>Otro</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Fecha inicio *</label>
+            <input type="date" class="form-control" id="evento-fecha-ini">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Fecha fin</label>
+            <input type="date" class="form-control" id="evento-fecha-fin">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Área / Responsable</label>
+            <input type="text" class="form-control" id="evento-area" placeholder="Ej: Coordinación Académica">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Grados</label>
+            <select class="form-select" id="evento-grados" multiple style="height:100px">
+              <option value="all">Todos los grados</option>
+            </select>
+            <div class="form-text">Ctrl+clic para seleccionar varios</div>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Observaciones</label>
+            <textarea class="form-control" id="evento-observaciones" rows="3" placeholder="Notas adicionales..."></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-primary" onclick="guardarEvento()">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MODALES
+══════════════════════════════════════ -->
+
+
+<!-- Modal Asignación Académica -->
+<div class="modal fade" id="modalAsignacion" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal-asig-title">Nueva Asignación</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="asig-id">
+        <div class="row g-3 mb-3">
+          <!-- Docente -->
+          <div class="col-md-6">
+            <label class="form-label">Docente *</label>
+            <select class="form-select" id="asig-docente" onchange="actualizarResumenHoras()"></select>
+          </div>
+          <!-- Estado -->
+          <div class="col-md-3">
+            <label class="form-label">Estado</label>
+            <select class="form-select" id="asig-estado">
+              <option value="Activo">Activo</option>
+              <option value="Inactivo">Inactivo</option>
+            </select>
+          </div>
+          <!-- Total horas preview -->
+          <div class="col-md-3 d-flex align-items-end">
+            <div id="asig-total-horas" class="text-muted" style="font-size:12px;padding-bottom:8px;line-height:1.4"></div>
+          </div>
+          <!-- Materia -->
+          <div class="col-md-8">
+            <label class="form-label">Materia *</label>
+            <select class="form-select" id="asig-materia" onchange="toggleOtraMateria()"></select>
+          </div>
+          <div class="col-md-4" id="otra-materia-wrap" style="display:none">
+            <label class="form-label">Especificar materia</label>
+            <input type="text" class="form-control" id="asig-materia-otra" placeholder="Nombre de la materia">
+          </div>
+        </div>
+
+        <label class="form-label fw-semibold" style="font-size:13px">
+          <i class="bi bi-people-fill me-1 text-primary"></i>Grupos asignados *
+        </label>
+        <div id="cursos-container"></div>
+        <button type="button" class="btn btn-outline-primary btn-sm w-100 mt-1" onclick="agregarCursoRow()">
+          <i class="bi bi-plus-lg me-1"></i>Agregar otro grupo
+        </button>
+      </div>
+      <div class="modal-footer">
+        <div id="asig-footer-resumen" class="me-auto text-muted" style="font-size:12px"></div>
+        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn btn-success btn-sm" onclick="guardarAsignacion()">
+          <i class="bi bi-check-lg me-1"></i>Guardar y generar horario
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Docente -->
+<div class="modal fade" id="modalDocente" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal-doc-title">Nuevo Docente</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="doc-id">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label">Cédula / DNI *</label>
+            <input type="text" class="form-control" id="doc-cedula">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Primer Nombre *</label>
+            <input type="text" class="form-control" id="doc-p-nombre">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Segundo Nombre</label>
+            <input type="text" class="form-control" id="doc-s-nombre">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Primer Apellido *</label>
+            <input type="text" class="form-control" id="doc-p-apellido">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Segundo Apellido</label>
+            <input type="text" class="form-control" id="doc-s-apellido">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Fecha de Nacimiento</label>
+            <input type="date" class="form-control" id="doc-fecha">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Género</label>
+            <select class="form-select" id="doc-genero">
+              <option value="">Seleccione</option>
+              <option>Masculino</option><option>Femenino</option><option>Otro</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Teléfono</label>
+            <input type="text" class="form-control" id="doc-telefono">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Celular</label>
+            <input type="text" class="form-control" id="doc-celular">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Correo Electrónico</label>
+            <input type="email" class="form-control" id="doc-correo">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Municipio</label>
+            <input type="text" class="form-control" id="doc-municipio">
+          </div>
+          <div class="col-12">
+            <label class="form-label">Dirección</label>
+            <input type="text" class="form-control" id="doc-direccion">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Estado</label>
+            <select class="form-select" id="doc-estado">
+              <option>Activo</option><option>Inactivo</option>
+              <option>Licencia</option><option>Retirado</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="guardarDocente()">
+          <i class="bi bi-save me-1"></i>Guardar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Sección -->
+<div class="modal fade" id="modalSeccion" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal-sec-title">Nueva Sección</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="sec-id">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Grado *</label>
+            <select class="form-select" id="sec-grado"></select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Nombre de la Sección *</label>
+            <input type="text" class="form-control" id="sec-nombre" placeholder="Ej: A, B, C">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Turno</label>
+            <select class="form-select" id="sec-turno">
+              <option>Mañana</option><option>Tarde</option><option>Nocturno</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Capacidad máx.</label>
+            <input type="number" class="form-control" id="sec-capacidad" value="30" min="1">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Docente Guía</label>
+            <select class="form-select" id="sec-docente">
+              <option value="">Sin asignar</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Aula</label>
+            <select class="form-select" id="sec-aula">
+              <option value="">Sin asignar</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="guardarSeccion()">
+          <i class="bi bi-save me-1"></i>Guardar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Horario -->
+<div class="modal fade" id="modalHorario" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Nuevo Horario</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="hor-id">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Sección *</label>
+            <select class="form-select" id="hor-seccion"></select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Materia *</label>
+            <select class="form-select" id="hor-materia">
+              <option value="">Seleccione</option>
+              <option>Lengua y Literatura</option>
+              <option>Matemáticas</option>
+              <option>Ciencias Naturales</option>
+              <option>Ciencias Sociales</option>
+              <option>Educación Física</option>
+              <option>Arte y Cultura</option>
+              <option>Tecnología</option>
+              <option>Inglés</option>
+              <option>Valores y Ciudadanía</option>
+              <option>Otra</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Día *</label>
+            <select class="form-select" id="hor-dia">
+              <option>Lunes</option><option>Martes</option><option>Miércoles</option>
+              <option>Jueves</option><option>Viernes</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Hora inicio *</label>
+            <input type="time" class="form-control" id="hor-inicio" value="07:00">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Hora fin *</label>
+            <input type="time" class="form-control" id="hor-fin" value="08:00">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Docente</label>
+            <select class="form-select" id="hor-docente">
+              <option value="">Sin asignar</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Aula</label>
+            <select class="form-select" id="hor-aula">
+              <option value="">Sin asignar</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="guardarHorario()">
+          <i class="bi bi-save me-1"></i>Guardar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Aula -->
+<div class="modal fade" id="modalAula" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal-aula-title">Nueva Aula</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="aula-id">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Nombre / Código *</label>
+            <input type="text" class="form-control" id="aula-nombre" placeholder="Ej: Aula 101">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Capacidad</label>
+            <input type="number" class="form-control" id="aula-capacidad" value="30" min="1">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Tipo</label>
+            <select class="form-select" id="aula-tipo">
+              <option>Aula regular</option>
+              <option>Laboratorio</option>
+              <option>Sala de cómputo</option>
+              <option>Sala de arte</option>
+              <option>Gimnasio</option>
+              <option>Biblioteca</option>
+              <option>Auditorio</option>
+              <option>Otro</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Sede</label>
+            <select class="form-select" id="aula-sede">
+              <option value="">Sin sede</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="guardarAula()">
+          <i class="bi bi-save me-1"></i>Guardar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Sede -->
+<div class="modal fade" id="modalSede" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal-sede-title">Nueva Sede</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="sede-id">
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label">Nombre de la Sede *</label>
+            <input type="text" class="form-control" id="sede-nombre" placeholder="Ej: Sede Central">
+          </div>
+          <div class="col-12">
+            <label class="form-label">Dirección</label>
+            <input type="text" class="form-control" id="sede-direccion">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Teléfono</label>
+            <input type="text" class="form-control" id="sede-telefono">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-control" id="sede-email">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="guardarSede()">
+          <i class="bi bi-save me-1"></i>Guardar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Permiso -->
+<div class="modal fade" id="modalPermiso" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal-perm-title">Nuevo Permiso</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="perm-id">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Docente *</label>
+            <select class="form-select" id="perm-docente"></select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Tipo de permiso *</label>
+            <select class="form-select" id="perm-tipo">
+              <option>Vacaciones</option>
+              <option>Permiso médico</option>
+              <option>Permiso personal</option>
+              <option>Licencia de maternidad/paternidad</option>
+              <option>Licencia sindical</option>
+              <option>Comisión de servicio</option>
+              <option>Otro</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Fecha inicio *</label>
+            <input type="date" class="form-control" id="perm-inicio">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Fecha fin *</label>
+            <input type="date" class="form-control" id="perm-fin">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Estado</label>
+            <select class="form-select" id="perm-estado">
+              <option>Pendiente</option><option>Aprobado</option><option>Rechazado</option>
+            </select>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Motivo / Observaciones</label>
+            <textarea class="form-control" id="perm-motivo" rows="3"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="guardarPermiso()">
+          <i class="bi bi-save me-1"></i>Guardar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Importar Excel Docentes -->
+<div class="modal fade" id="modalImportExcel" tabindex="-1">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-file-earmark-excel-fill me-2"></i>Importar Docentes desde Excel</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+
+        <!-- Mapeo de columnas -->
+        <div class="mb-3 p-3 rounded" style="background:#f8fafc;border:1px solid #e2e8f0">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <strong style="font-size:13px;color:var(--blue-600)"><i class="bi bi-diagram-2 me-1"></i>Mapeo de columnas detectadas</strong>
+            <span id="import-resumen" class="badge bg-primary" style="font-size:12px"></span>
+          </div>
+          <div class="row g-2" id="import-mapeo">
+            <!-- Se genera dinámicamente -->
+          </div>
+        </div>
+
+        <!-- Modo de importación -->
+        <div class="mb-3 d-flex gap-3 align-items-center">
+          <strong style="font-size:12px;color:#475569">Modo:</strong>
+          <div class="form-check form-check-inline mb-0">
+            <input class="form-check-input" type="radio" name="importMode" id="mode-add" value="add" checked>
+            <label class="form-check-label" for="mode-add" style="font-size:12px">Agregar nuevos (omitir cédulas duplicadas)</label>
+          </div>
+          <div class="form-check form-check-inline mb-0">
+            <input class="form-check-input" type="radio" name="importMode" id="mode-update" value="update">
+            <label class="form-check-label" for="mode-update" style="font-size:12px">Agregar y actualizar duplicados</label>
+          </div>
+          <div class="form-check form-check-inline mb-0">
+            <input class="form-check-input" type="radio" name="importMode" id="mode-replace" value="replace">
+            <label class="form-check-label" for="mode-replace" style="font-size:12px">Reemplazar todos los docentes</label>
+          </div>
+        </div>
+
+        <!-- Previsualización -->
+        <div class="table-responsive" style="max-height:320px;overflow-y:auto">
+          <table>
+            <thead id="import-thead"></thead>
+            <tbody id="import-tbody"></tbody>
+          </table>
+        </div>
+        <p class="mt-2 mb-0" style="font-size:11px;color:#94a3b8">
+          <i class="bi bi-info-circle me-1"></i>Se muestran las primeras 10 filas. El sistema importará todos los registros del archivo.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn btn-success btn-sm" onclick="confirmarImportExcel()">
+          <i class="bi bi-check-lg me-1"></i>Confirmar importación
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast-container"></div>
+
+<!-- ══════════════════════════════════════
+     SCRIPTS
+══════════════════════════════════════ -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script>
+'use strict';
+
+// ══════════════════════════════════════════════
+//  BASE DE DATOS (Firebase Firestore)
+// ══════════════════════════════════════════════
+// ── Firebase config ────────────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey:            "AIzaSyCcg0K-54fE1RX4KT4od2oioUfYEWPYXPw",
+  authDomain:        "sigei-alfatic.firebaseapp.com",
+  projectId:         "sigei-alfatic",
+  storageBucket:     "sigei-alfatic.firebasestorage.app",
+  messagingSenderId: "776243600178",
+  appId:             "1:776243600178:web:3ae1f01325e2ccc925952b"
+};
+firebase.initializeApp(firebaseConfig);
+const _auth = firebase.auth();
+const _fs   = firebase.firestore();
+
+// ── In-memory cache + DB API ────────────────────────────────────────────
+let _cache = {};
+
+const DB = {
+  get(key)       { return _cache[key] || []; },
+  set(key, data) {
+    _cache[key] = data;
+    _fs.collection('sigei').doc(key).set({ items: data })
+      .catch(err => console.error('Firestore write error [' + key + ']:', err));
+  },
+  nextId(key) {
+    const items = _cache[key] || [];
+    return items.length ? Math.max(...items.map(i => i.id || 0)) + 1 : 1;
+  },
+
+  // Load all collections from Firestore into memory
+  loadAll: async function() {
+    const COLS = ['docentes','secciones','horarios','aulas','sedes','permisos','asignaciones','cronograma','grados'];
+    const snaps = await Promise.all(COLS.map(k => _fs.collection('sigei').doc(k).get()));
+    snaps.forEach((snap, i) => {
+      _cache[COLS[i]] = snap.exists ? (snap.data().items || []) : [];
+    });
+
+    // Seed grados on first run
+    if (!_cache.grados.length) {
+      const GRADOS = [
+        {id:1,nombre:'1° Grado',nivel:'Primaria'},{id:2,nombre:'2° Grado',nivel:'Primaria'},
+        {id:3,nombre:'3° Grado',nivel:'Primaria'},{id:4,nombre:'4° Grado',nivel:'Primaria'},
+        {id:5,nombre:'5° Grado',nivel:'Primaria'},{id:6,nombre:'6° Grado',nivel:'Primaria'},
+        {id:7,nombre:'7° Grado',nivel:'Secundaria'},{id:8,nombre:'8° Grado',nivel:'Secundaria'},
+        {id:9,nombre:'9° Grado',nivel:'Secundaria'},{id:10,nombre:'10° Grado',nivel:'Bachillerato'},
+        {id:11,nombre:'11° Grado',nivel:'Bachillerato'}
+      ];
+      DB.set('grados', GRADOS);
+    }
+  }
+}
+// ══════════════════════════════════════════════
+//  NAVEGACIÓN
+// ══════════════════════════════════════════════
+const PAGE_TITLES = {
+  dashboard: '<i class="bi bi-grid-1x2-fill me-2"></i>Dashboard',
+  docentes:  '<i class="bi bi-person-badge-fill me-2"></i>Docentes',
+  grados:    '<i class="bi bi-diagram-3-fill me-2"></i>Grados y Secciones',
+  asignaciones: '<i class="bi bi-journal-bookmark-fill me-2"></i>Asignación Académica',
+  horarios:  '<i class="bi bi-clock-fill me-2"></i>Horarios de Clase',
+  aulas:     '<i class="bi bi-door-open-fill me-2"></i>Aulas',
+  sedes:     '<i class="bi bi-building-fill me-2"></i>Sedes',
+  permisos:  '<i class="bi bi-calendar2-check-fill me-2"></i>Permisos y Licencias',
+};
+
+const PAGE_ICONS = {
+  'dashboard':    'bi-grid-1x2-fill',
+  'docentes':     'bi-person-badge-fill',
+  'permisos':     'bi-calendar2-check-fill',
+  'grados':       'bi-diagram-3-fill',
+  'asignaciones': 'bi-journal-bookmark-fill',
+  'horarios':     'bi-clock-fill',
+  'cronograma':   'bi-calendar-event-fill',
+  'aulas':        'bi-door-open-fill',
+  'sedes':        'bi-building-fill',
+};
+
+function navigate(page) {
+  document.querySelectorAll('[id^="page-"]').forEach(el => el.classList.add('d-none'));
+  document.getElementById('page-' + page).classList.remove('d-none');
+  document.getElementById('page-title').textContent = PAGE_TITLES[page] || page;
+  const iconEl = document.getElementById('topbar-icon');
+  if (iconEl) iconEl.innerHTML = '<i class="bi ' + (PAGE_ICONS[page] || 'bi-circle') + '"></i>';
+  document.querySelectorAll('#sidebar nav a').forEach(a => {
+    a.classList.toggle('active', a.dataset.page === page);
+  });
+  const renders = {
+    dashboard:    renderDashboard,
+    docentes:     renderDocentes,
+    grados:       renderGrados,
+    asignaciones: renderAsignaciones,
+    horarios:     renderHorarios,
+    cronograma:   renderCronograma,
+    aulas:        renderAulas,
+    sedes:        renderSedes,
+    permisos:     renderPermisos,
+  };
+  if (renders[page]) renders[page]();
+  return false;
+}
+
+// ══════════════════════════════════════════════
+//  UTILIDADES
+// ══════════════════════════════════════════════
+function uid()  { return Date.now() + Math.floor(Math.random()*1000); }
+function fmt(d) { if (!d) return '—'; const [y,m,dy] = d.split('-'); return `${dy}/${m}/${y}`; }
+function nombreDocente(id) {
+  const d = DB.get('docentes').find(x => x.id == id);
+  return d ? `${d.p_nombre} ${d.p_apellido}` : '—';
+}
+function nombreAula(id) {
+  const a = DB.get('aulas').find(x => x.id == id);
+  return a ? a.nombre : '—';
+}
+function nombreGrado(id) {
+  const g = DB.get('grados').find(x => x.id == id);
+  return g ? g.nombre : '—';
+}
+function badgeEstado(e) {
+  const cls = {
+    'Activo':'activo','Inactivo':'inactivo','Licencia':'licencia','Retirado':'retirado',
+    'Aprobado':'aprobado','Pendiente':'pendiente','Rechazado':'rechazado'
+  };
+  return `<span class="badge-status badge-${cls[e]||'pendiente'}">${e||'—'}</span>`;
+}
+function emptyRow(cols, msg) {
+  return `<tr><td colspan="${cols}" class="empty-state"><i class="bi bi-inbox"></i>${msg}</td></tr>`;
+}
+function toast(msg, ok=true) {
+  const el = document.createElement('div');
+  el.className = `toast-msg ${ok?'ok':'err'}`;
+  el.innerHTML = `<i class="bi bi-${ok?'check-circle-fill text-success':'x-circle-fill text-danger'}"></i>${msg}`;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+function confirmar(msg) { return confirm(msg); }
+
+// ══════════════════════════════════════════════
+//  DASHBOARD
+// ══════════════════════════════════════════════
+function renderDashboard() {
+  const docs   = DB.get('docentes');
+  const secs   = DB.get('secciones');
+  const hors   = DB.get('horarios');
+  const perms  = DB.get('permisos');
+  const aulas  = DB.get('aulas');
+  const sedes  = DB.get('sedes');
+
+  document.getElementById('cnt-docentes').textContent  = docs.length;
+  document.getElementById('cnt-secciones').textContent = secs.length;
+  document.getElementById('cnt-horarios').textContent  = hors.length;
+  document.getElementById('cnt-permisos').textContent  = perms.filter(p=>p.estado==='Pendiente').length;
+  document.getElementById('cnt-aulas').textContent     = aulas.length;
+  document.getElementById('cnt-sedes').textContent     = sedes.length;
+
+  const tbPerm = document.getElementById('dash-permisos');
+  const pending = perms.filter(p => p.estado === 'Pendiente').slice(0,5);
+  tbPerm.innerHTML = pending.length
+    ? pending.map(p => `<tr>
+        <td>${nombreDocente(p.docente_id)}</td>
+        <td>${p.tipo}</td>
+        <td>${fmt(p.fecha_inicio)}</td>
+      </tr>`).join('')
+    : emptyRow(3, 'Sin permisos pendientes');
+
+  // Próximo evento
+  const hoy   = new Date().toISOString().slice(0,10);
+  const crono = DB.get('cronograma')
+    .filter(e => (e.fecha_fin || e.fecha_ini) >= hoy)
+    .sort((a,b) => a.fecha_ini.localeCompare(b.fecha_ini));
+  const pe  = document.getElementById('dash-proximo-evento');
+  if (pe) {
+    if (!crono.length) {
+      pe.innerHTML = '<p class="text-muted text-center py-2" style="font-size:13px">Sin eventos próximos registrados</p>';
+    } else {
+      const ev     = crono[0];
+      const tipoColor = TIPO_COLORES[ev.tipo] || { bg:'#e2e8f0', txt:'#475569' };
+      const dias   = crono.length;
+      const gradStr = ev.grados && !ev.grados.includes('all')
+        ? ev.grados.map(id => { const g = DB.get('grados').find(x=>x.id==id); return g?g.nombre:id; }).join(', ')
+        : 'Todos los grados';
+      const finStr = ev.fecha_fin && ev.fecha_fin !== ev.fecha_ini ? ' → ' + fmt(ev.fecha_fin) : '';
+      pe.innerHTML = '<div class="d-flex align-items-start gap-3 py-1">'
+        + '<div style="background:' + tipoColor.bg + ';color:' + tipoColor.txt + ';border-radius:10px;padding:10px 16px;text-align:center;min-width:72px">'
+        + '<div style="font-size:22px;font-weight:800;line-height:1">' + fmt(ev.fecha_ini).split('/')[0] + '</div>'
+        + '<div style="font-size:11px;font-weight:600">' + fmt(ev.fecha_ini).split('/').slice(1).join('/') + '</div>'
+        + '</div>'
+        + '<div style="flex:1">'
+        + '<div style="font-size:16px;font-weight:700;color:#1e293b">' + ev.actividad + '</div>'
+        + '<div class="d-flex flex-wrap gap-2 mt-1">'
+        + '<span style="font-size:12px;background:' + tipoColor.bg + ';color:' + tipoColor.txt + ';padding:2px 10px;border-radius:20px;font-weight:600">' + ev.tipo + '</span>'
+        + (ev.area ? '<span style="font-size:12px;color:#64748b"><i class="bi bi-person-fill me-1"></i>' + ev.area + '</span>' : '')
+        + '<span style="font-size:12px;color:#64748b"><i class="bi bi-calendar me-1"></i>' + fmt(ev.fecha_ini) + finStr + '</span>'
+        + '</div>'
+        + '<div style="font-size:12px;color:#94a3b8;margin-top:4px">' + gradStr + '</div>'
+        + '</div>'
+        + (dias > 1 ? '<div style="text-align:right;font-size:12px;color:#94a3b8">+' + (dias-1) + ' eventos más</div>' : '')
+        + '</div>';
+    }
+  }
+}
+
+// ══════════════════════════════════════════════
+//  DOCENTES
+// ══════════════════════════════════════════════
+function renderDocentes() {
+  const q      = (document.getElementById('buscar-docente').value||'').toLowerCase();
+  const estado = document.getElementById('filtro-estado-doc').value;
+  let rows = DB.get('docentes').filter(d => {
+    const txt = `${d.cedula} ${d.p_nombre} ${d.s_nombre||''} ${d.p_apellido} ${d.s_apellido||''}`.toLowerCase();
+    return (!q || txt.includes(q)) && (!estado || d.estado === estado);
+  });
+  const tb = document.getElementById('tabla-docentes');
+  tb.innerHTML = rows.length ? rows.map((d,i) => `<tr>
+    <td>${i+1}</td>
+    <td><code>${d.cedula}</code></td>
+    <td><strong>${d.p_nombre} ${d.s_nombre||''} ${d.p_apellido} ${d.s_apellido||''}</strong></td>
+    <td>${d.telefono||d.celular||'—'}</td>
+    <td>${d.correo||'—'}</td>
+    <td>${badgeEstado(d.estado)}</td>
+    <td>
+      <button class="btn btn-xs btn-outline-primary btn-sm me-1" onclick="abrirDocente(${d.id})" title="Editar"><i class="bi bi-pencil-fill"></i></button>
+      <button class="btn btn-xs btn-outline-danger btn-sm" onclick="eliminarDocente(${d.id})" title="Eliminar"><i class="bi bi-trash-fill"></i></button>
+    </td>
+  </tr>`).join('') : emptyRow(7, 'No hay docentes registrados');
+}
+
+function abrirDocente(id=null) {
+  document.getElementById('modal-doc-title').textContent = id ? 'Editar Docente' : 'Nuevo Docente';
+  const campos = ['id','cedula','p-nombre','s-nombre','p-apellido','s-apellido','fecha','genero','telefono','celular','correo','municipio','direccion','estado'];
+  campos.forEach(c => { const el = document.getElementById('doc-'+c); if(el) el.value = ''; });
+  if (id) {
+    const d = DB.get('docentes').find(x=>x.id==id);
+    if (!d) return;
+    document.getElementById('doc-id').value        = d.id;
+    document.getElementById('doc-cedula').value    = d.cedula;
+    document.getElementById('doc-p-nombre').value  = d.p_nombre;
+    document.getElementById('doc-s-nombre').value  = d.s_nombre||'';
+    document.getElementById('doc-p-apellido').value= d.p_apellido;
+    document.getElementById('doc-s-apellido').value= d.s_apellido||'';
+    document.getElementById('doc-fecha').value     = d.fecha_nac||'';
+    document.getElementById('doc-genero').value    = d.genero||'';
+    document.getElementById('doc-telefono').value  = d.telefono||'';
+    document.getElementById('doc-celular').value   = d.celular||'';
+    document.getElementById('doc-correo').value    = d.correo||'';
+    document.getElementById('doc-municipio').value = d.municipio||'';
+    document.getElementById('doc-direccion').value = d.direccion||'';
+    document.getElementById('doc-estado').value    = d.estado||'Activo';
+  }
+  new bootstrap.Modal(document.getElementById('modalDocente')).show();
+}
+
+function guardarDocente() {
+  const cedula    = document.getElementById('doc-cedula').value.trim();
+  const p_nombre  = document.getElementById('doc-p-nombre').value.trim();
+  const p_apellido= document.getElementById('doc-p-apellido').value.trim();
+  if (!cedula || !p_nombre || !p_apellido) { toast('Cédula, primer nombre y primer apellido son obligatorios.', false); return; }
+
+  const docs = DB.get('docentes');
+  const idEdit = document.getElementById('doc-id').value;
+
+  if (!idEdit) {
+    if (docs.find(d => d.cedula === cedula)) { toast('La cédula ya está registrada.', false); return; }
+    docs.push({
+      id: DB.nextId('docentes'), cedula, p_nombre,
+      s_nombre:   document.getElementById('doc-s-nombre').value.trim(),
+      p_apellido,
+      s_apellido: document.getElementById('doc-s-apellido').value.trim(),
+      fecha_nac:  document.getElementById('doc-fecha').value,
+      genero:     document.getElementById('doc-genero').value,
+      telefono:   document.getElementById('doc-telefono').value.trim(),
+      celular:    document.getElementById('doc-celular').value.trim(),
+      correo:     document.getElementById('doc-correo').value.trim(),
+      municipio:  document.getElementById('doc-municipio').value.trim(),
+      direccion:  document.getElementById('doc-direccion').value.trim(),
+      estado:     document.getElementById('doc-estado').value,
+    });
+    toast('Docente guardado exitosamente.');
+  } else {
+    const idx = docs.findIndex(d => d.id == idEdit);
+    if (idx === -1) return;
+    Object.assign(docs[idx], {
+      cedula, p_nombre,
+      s_nombre:   document.getElementById('doc-s-nombre').value.trim(),
+      p_apellido,
+      s_apellido: document.getElementById('doc-s-apellido').value.trim(),
+      fecha_nac:  document.getElementById('doc-fecha').value,
+      genero:     document.getElementById('doc-genero').value,
+      telefono:   document.getElementById('doc-telefono').value.trim(),
+      celular:    document.getElementById('doc-celular').value.trim(),
+      correo:     document.getElementById('doc-correo').value.trim(),
+      municipio:  document.getElementById('doc-municipio').value.trim(),
+      direccion:  document.getElementById('doc-direccion').value.trim(),
+      estado:     document.getElementById('doc-estado').value,
+    });
+    toast('Docente actualizado.');
+  }
+  DB.set('docentes', docs);
+  bootstrap.Modal.getInstance(document.getElementById('modalDocente')).hide();
+  renderDocentes();
+}
+
+function eliminarDocente(id) {
+  if (!confirmar('¿Eliminar este docente? Esta acción no se puede deshacer.')) return;
+  DB.set('docentes', DB.get('docentes').filter(d => d.id !== id));
+  toast('Docente eliminado.');
+  renderDocentes();
+}
+
+// ══════════════════════════════════════════════
+//  GRADOS Y SECCIONES
+// ══════════════════════════════════════════════
+function renderGrados() {
+  const grados   = DB.get('grados');
+  const secciones = DB.get('secciones');
+
+  const NIVEL_BADGE = {
+    'Primaria':     'bg-success bg-opacity-10 text-success',
+    'Secundaria':   'bg-warning bg-opacity-10 text-warning',
+    'Bachillerato': 'bg-info bg-opacity-10 text-info',
+  };
+  const tbG = document.getElementById('tabla-grados');
+  tbG.innerHTML = grados.map(g => {
+    const cnt  = secciones.filter(s => s.grado_id == g.id).length;
+    const nBadge = NIVEL_BADGE[g.nivel] || 'bg-secondary bg-opacity-10 text-secondary';
+    return `<tr>
+      <td>${g.id}</td>
+      <td><strong>${g.nombre}</strong></td>
+      <td><span class="badge ${nBadge}">${g.nivel||'—'}</span></td>
+      <td><span class="badge bg-primary bg-opacity-10 text-primary">${cnt} secc.</span></td>
+    </tr>`;
+  }).join('');
+
+  const tbS = document.getElementById('tabla-secciones');
+  tbS.innerHTML = secciones.length ? secciones.map(s => `<tr>
+    <td>${nombreGrado(s.grado_id)}</td>
+    <td><strong>${s.nombre}</strong></td>
+    <td>${s.turno||'—'}</td>
+    <td>${nombreDocente(s.docente_id)}</td>
+    <td>${nombreAula(s.aula_id)}</td>
+    <td>
+      <button class="btn btn-sm btn-outline-primary me-1" onclick="abrirSeccion(${s.id})"><i class="bi bi-pencil-fill"></i></button>
+      <button class="btn btn-sm btn-outline-danger" onclick="eliminarSeccion(${s.id})"><i class="bi bi-trash-fill"></i></button>
+    </td>
+  </tr>`).join('') : emptyRow(6, 'No hay secciones registradas');
+}
+
+function abrirSeccion(id=null) {
+  document.getElementById('modal-sec-title').textContent = id ? 'Editar Sección' : 'Nueva Sección';
+  ['sec-id','sec-nombre','sec-capacidad'].forEach(x => { document.getElementById(x).value = x==='sec-capacidad'?'30':''; });
+
+  const gSel = document.getElementById('sec-grado');
+  gSel.innerHTML = DB.get('grados').map(g=>`<option value="${g.id}">${g.nombre}</option>`).join('');
+
+  const dSel = document.getElementById('sec-docente');
+  dSel.innerHTML = '<option value="">Sin asignar</option>' +
+    DB.get('docentes').filter(d=>d.estado==='Activo').map(d=>`<option value="${d.id}">${d.p_nombre} ${d.p_apellido}</option>`).join('');
+
+  const aSel = document.getElementById('sec-aula');
+  aSel.innerHTML = '<option value="">Sin asignar</option>' +
+    DB.get('aulas').map(a=>`<option value="${a.id}">${a.nombre}</option>`).join('');
+
+  if (id) {
+    const s = DB.get('secciones').find(x=>x.id==id);
+    if (!s) return;
+    document.getElementById('sec-id').value       = s.id;
+    document.getElementById('sec-grado').value    = s.grado_id;
+    document.getElementById('sec-nombre').value   = s.nombre;
+    document.getElementById('sec-turno').value    = s.turno||'Mañana';
+    document.getElementById('sec-capacidad').value= s.capacidad||30;
+    document.getElementById('sec-docente').value  = s.docente_id||'';
+    document.getElementById('sec-aula').value     = s.aula_id||'';
+  }
+  new bootstrap.Modal(document.getElementById('modalSeccion')).show();
+}
+
+function guardarSeccion() {
+  const nombre = document.getElementById('sec-nombre').value.trim();
+  const grado  = document.getElementById('sec-grado').value;
+  if (!nombre || !grado) { toast('Grado y nombre de sección son obligatorios.', false); return; }
+
+  const secciones = DB.get('secciones');
+  const idEdit    = document.getElementById('sec-id').value;
+  const data = {
+    grado_id:  parseInt(grado),
+    nombre,
+    turno:     document.getElementById('sec-turno').value,
+    capacidad: parseInt(document.getElementById('sec-capacidad').value)||30,
+    docente_id:document.getElementById('sec-docente').value||null,
+    aula_id:   document.getElementById('sec-aula').value||null,
+  };
+
+  if (!idEdit) {
+    secciones.push({ id: DB.nextId('secciones'), ...data });
+    toast('Sección creada.');
+  } else {
+    const idx = secciones.findIndex(s=>s.id==idEdit);
+    Object.assign(secciones[idx], data);
+    toast('Sección actualizada.');
+  }
+  DB.set('secciones', secciones);
+  bootstrap.Modal.getInstance(document.getElementById('modalSeccion')).hide();
+  renderGrados();
+}
+
+function eliminarSeccion(id) {
+  if (!confirmar('¿Eliminar esta sección?')) return;
+  DB.set('secciones', DB.get('secciones').filter(s=>s.id!==id));
+  toast('Sección eliminada.');
+  renderGrados();
+}
+
+// ══════════════════════════════════════════════
+//  ASIGNACIÓN ACADÉMICA
+// ══════════════════════════════════════════════
+
+const MATERIAS = [
+  'Matemáticas','Álgebra','Geometría','Cálculo','Estadística',
+  'Lengua Castellana','Literatura','Lectura Crítica',
+  'Inglés','Francés','Alemán',
+  'Ciencias Naturales','Biología','Química','Física',
+  'Ciencias Sociales','Historia','Geografía','Constitución y Democracia',
+  'Filosofía','Ética y Valores','Religión',
+  'Educación Física','Artística','Música','Tecnología e Informática',
+  'Emprendimiento','Economía','Contabilidad',
+  'Otra...'
+];
+
+const DIAS_SEMANA = ['Lunes','Martes','Miércoles','Jueves','Viernes'];
+const DIAS_CORTO  = { 'Lunes':'L','Martes':'Ma','Miércoles':'Mi','Jueves':'J','Viernes':'V' };
+const CARGA_CONFIG = { baja: 18, alta: 28 };
+
+// ── Migración v6→v7: dias:string[] → dias:[{dia,hora_inicio,hora_fin}] ──
+function migrarAsignaciones() {
+  const asigs = DB.get('asignaciones');
+  if (!asigs.length) return;
+  let changed = false;
+  const migradas = asigs.map(a => {
+    // v5→v6: flat → cursos[]
+    if (!a.cursos) {
+      changed = true;
+      return {
+        id: a.id, docente_id: a.docente_id, materia: a.materia,
+        estado: a.estado || 'Activo',
+        cursos: [{
+          seccion_id: a.seccion_id, aula_id: a.aula_id || null,
+          dias: DIAS_SEMANA
+            .filter(d => (a.dias||[]).includes(d))
+            .map(d => ({ dia: d, hora_inicio: a.hora_inicio, hora_fin: a.hora_fin }))
+        }]
+      };
+    }
+    // v6→v7: cursos[].dias:string[] → cursos[].dias:[{dia,...}]
+    const cursosMig = a.cursos.map(c => {
+      if (!c.dias || !c.dias.length) return c;
+      if (typeof c.dias[0] === 'object') return c; // ya migrado
+      changed = true;
+      return {
+        seccion_id: c.seccion_id, aula_id: c.aula_id || null,
+        dias: c.dias.map(d => ({ dia: d, hora_inicio: c.hora_inicio, hora_fin: c.hora_fin }))
+      };
+    });
+    return { ...a, cursos: cursosMig };
+  });
+  if (changed) DB.set('asignaciones', migradas);
+}
+
+// ── Cálculo de horas ────────────────────────────────────────────────────
+function calcHorasAsig(asig) {
+  if (!asig.cursos) return 0;
+  return asig.cursos.reduce((sum, c) => {
+    return sum + (c.dias || []).reduce((s2, d) => {
+      const m = timeToMins(d.hora_fin) - timeToMins(d.hora_inicio);
+      return s2 + (m > 0 ? m / 60 : 0);
+    }, 0);
+  }, 0);
+}
+
+function calcHorasDocente(docente_id) {
+  return DB.get('asignaciones')
+    .filter(a => a.docente_id == docente_id && a.estado === 'Activo')
+    .reduce((s, a) => s + calcHorasAsig(a), 0);
+}
+
+function nivelCarga(horas) {
+  if (horas < CARGA_CONFIG.baja)  return { nivel:'Baja',  cls:'baja',  pct: Math.round(horas / CARGA_CONFIG.alta * 100) };
+  if (horas <= CARGA_CONFIG.alta) return { nivel:'Media', cls:'media', pct: Math.round(horas / CARGA_CONFIG.alta * 100) };
+  return { nivel:'Alta', cls:'alta', pct: 100 };
+}
+
+// ── UI helpers ──────────────────────────────────────────────────────────
+function toggleOtraMateria() {
+  const sel  = document.getElementById('asig-materia').value;
+  const wrap = document.getElementById('otra-materia-wrap');
+  wrap.style.display = sel === 'Otra...' ? 'block' : 'none';
+}
+
+function actualizarResumenHoras() {
+  const docId  = document.getElementById('asig-docente').value;
+  const asigId = document.getElementById('asig-id').value;
+  const div    = document.getElementById('asig-total-horas');
+  if (!docId) { div.textContent = ''; return; }
+  const horasActuales = DB.get('asignaciones')
+    .filter(a => a.docente_id == docId && a.estado === 'Activo' && (!asigId || a.id != asigId))
+    .reduce((s, a) => s + calcHorasAsig(a), 0);
+  const carga = nivelCarga(horasActuales);
+  div.innerHTML = 'Carga actual: <strong>' + horasActuales.toFixed(1) + 'h/sem</strong>&nbsp;'
+    + '<span class="carga-badge ' + carga.cls + '">' + carga.nivel + '</span>';
+}
+
+function actualizarFiltroSecAsig() {
+  const gradoId = document.getElementById('filtro-asig-grado').value;
+  const fSec    = document.getElementById('filtro-asig-seccion');
+  const cur     = fSec.value;
+  const secs    = DB.get('secciones').filter(s => !gradoId || s.grado_id == gradoId);
+  fSec.innerHTML = '<option value="">Todas las secciones</option>' +
+    secs.map(s => '<option value="' + s.id + '"' + (s.id == cur ? ' selected' : '') + '>' +
+      nombreGrado(s.grado_id) + ' — ' + s.nombre + '</option>').join('');
+  renderAsignaciones();
+}
+
+// ── MODAL: curso rows ───────────────────────────────────────────────────
+let _cursoIdx = 0;
+
+function agregarCursoRow(data) {
+  data = data || {};
+  const idx     = _cursoIdx++;
+  const grados  = DB.get('grados');
+  const secciones = DB.get('secciones');
+  const aulas   = DB.get('aulas');
+
+  const gradoOpts = '<option value="">Grado...</option>' +
+    grados.map(g => '<option value="' + g.id + '"' + (g.id == data.grado_id ? ' selected' : '') + '>' + g.nombre + '</option>').join('');
+
+  const secsDelGrado = data.grado_id ? secciones.filter(s => s.grado_id == data.grado_id) : secciones;
+  const secOpts = '<option value="">Sección...</option>' +
+    secsDelGrado.map(s => '<option value="' + s.id + '"' + (s.id == data.seccion_id ? ' selected' : '') + '>' + s.nombre + '</option>').join('');
+
+  const aulaOpts = '<option value="">Sin asignar</option>' +
+    aulas.map(a => '<option value="' + a.id + '"' + (a.id == data.aula_id ? ' selected' : '') + '>' + a.nombre + '</option>').join('');
+
+  // Build day toggle buttons — each day gets a button + hidden time row
+  const diasData = data.dias || []; // [{dia, hora_inicio, hora_fin}]
+  const diasButtons = DIAS_SEMANA.map(d => {
+    const entry   = diasData.find(x => x.dia === d);
+    const activo  = !!entry;
+    return '<button type="button" id="cr-btn-' + idx + '-' + d + '" '
+      + 'class="btn btn-sm ' + (activo ? 'btn-primary' : 'btn-outline-secondary') + ' me-1 mb-1 cr-dia-btn" '
+      + 'onclick="toggleDiaCurso(' + idx + ',\'' + d + '\')">'
+      + DIAS_CORTO[d] + '</button>';
+  }).join('');
+
+  const diasRows = DIAS_SEMANA.map(d => {
+    const entry  = diasData.find(x => x.dia === d);
+    const activo = !!entry;
+    const ini    = entry ? entry.hora_inicio : '07:00';
+    const fin    = entry ? entry.hora_fin    : '08:00';
+        return '<div id="cr-drow-' + idx + '-' + d + '" class="d-flex align-items-center gap-2 mt-1 ps-1' + (activo ? '' : ' d-none') + '">'  
+      + '<span style="width:28px;font-size:12px;font-weight:600;color:#64748b">' + DIAS_CORTO[d] + '</span>'
+      + '<input type="time" class="form-control form-control-sm" style="width:110px" '
+      + 'id="cr-ini-' + idx + '-' + d + '" value="' + ini + '" onchange="actualizarTotalHorasModal()">'
+      + '<span style="font-size:12px;color:#94a3b8">–</span>'
+      + '<input type="time" class="form-control form-control-sm" style="width:110px" '
+      + 'id="cr-fin-' + idx + '-' + d + '" value="' + fin + '" onchange="actualizarTotalHorasModal()">'
+      + '<span id="cr-dur-' + idx + '-' + d + '" style="font-size:11px;color:#94a3b8;min-width:40px"></span>'
+      + '<button type="button" class="btn btn-sm text-danger p-0 ms-auto" style="font-size:14px;line-height:1" '
+      + 'onclick="toggleDiaCurso(' + idx + ',\'' + d + '\')" title="Quitar día">'
+      + '<i class="bi bi-x-circle-fill"></i></button>'
+      + '</div>';
+  }).join('');
+
+  const row = document.createElement('div');
+  row.className = 'curso-row';
+  row.id = 'curso-row-' + idx;
+  row.innerHTML =
+    '<button class="remove-curso" type="button" onclick="eliminarCursoRow(' + idx + ')" title="Quitar grupo">'
+    + '<i class="bi bi-x-lg"></i></button>'
+    + '<div class="row g-2">'
+    + '<div class="col-md-4"><label class="form-label" style="font-size:11px">Grado</label>'
+    + '<select class="form-select form-select-sm" id="cr-grado-' + idx + '" onchange="cargarSecsCurso(' + idx + ')">' + gradoOpts + '</select></div>'
+    + '<div class="col-md-4"><label class="form-label" style="font-size:11px">Sección *</label>'
+    + '<select class="form-select form-select-sm" id="cr-sec-' + idx + '">' + secOpts + '</select></div>'
+    + '<div class="col-md-4"><label class="form-label" style="font-size:11px">Aula</label>'
+    + '<select class="form-select form-select-sm" id="cr-aula-' + idx + '">' + aulaOpts + '</select></div>'
+    + '<div class="col-12 mt-2">'
+    + '<label class="form-label" style="font-size:11px">Días y horario *</label>'
+    + '<div>' + diasButtons + '</div>'
+    + '<div id="cr-diasrows-' + idx + '">' + diasRows + '</div>'
+    + '</div>'
+    + '</div>';
+
+  document.getElementById('cursos-container').appendChild(row);
+  actualizarTotalHorasModal();
+}
+
+function toggleDiaCurso(idx, dia) {
+  const btn  = document.getElementById('cr-btn-' + idx + '-' + dia);
+  const drow = document.getElementById('cr-drow-' + idx + '-' + dia);
+  const activo = btn.classList.contains('btn-primary');
+  if (activo) {
+    btn.classList.replace('btn-primary', 'btn-outline-secondary');
+    drow.classList.add('d-none');
+  } else {
+    btn.classList.replace('btn-outline-secondary', 'btn-primary');
+    drow.classList.remove('d-none');
+    // Copiar hora del último día activo si existe
+    const otrosDias = DIAS_SEMANA.filter(d => d !== dia
+      && document.getElementById('cr-btn-' + idx + '-' + d)
+      && document.getElementById('cr-btn-' + idx + '-' + d).classList.contains('btn-primary'));
+    if (otrosDias.length) {
+      const ultimo = otrosDias[otrosDias.length - 1];
+      const ini = document.getElementById('cr-ini-' + idx + '-' + ultimo);
+      const fin = document.getElementById('cr-fin-' + idx + '-' + ultimo);
+      if (ini) document.getElementById('cr-ini-' + idx + '-' + dia).value = ini.value;
+      if (fin) document.getElementById('cr-fin-' + idx + '-' + dia).value = fin.value;
+    }
+  }
+  actualizarTotalHorasModal();
+}
+
+function eliminarCursoRow(idx) {
+  const el = document.getElementById('curso-row-' + idx);
+  if (el) el.remove();
+  actualizarTotalHorasModal();
+}
+
+function cargarSecsCurso(idx) {
+  const gradoId = document.getElementById('cr-grado-' + idx).value;
+  const sSel    = document.getElementById('cr-sec-' + idx);
+  const secs    = DB.get('secciones').filter(s => !gradoId || s.grado_id == gradoId);
+  sSel.innerHTML = '<option value="">Sección...</option>' +
+    secs.map(s => '<option value="' + s.id + '">' + s.nombre + '</option>').join('');
+}
+
+function leerCursosModal() {
+  const filas = document.querySelectorAll('#cursos-container .curso-row');
+  return Array.from(filas).map(fila => {
+    const idx = fila.id.replace('curso-row-', '');
+    const seccion_id = document.getElementById('cr-sec-'  + idx) ? +document.getElementById('cr-sec-'  + idx).value : 0;
+    const aula_id    = document.getElementById('cr-aula-' + idx) ? document.getElementById('cr-aula-' + idx).value || null : null;
+    const dias = DIAS_SEMANA
+      .filter(d => {
+        const btn = document.getElementById('cr-btn-' + idx + '-' + d);
+        return btn && btn.classList.contains('btn-primary');
+      })
+      .map(d => ({
+        dia:         d,
+        hora_inicio: document.getElementById('cr-ini-' + idx + '-' + d).value,
+        hora_fin:    document.getElementById('cr-fin-' + idx + '-' + d).value,
+      }));
+    return seccion_id ? { seccion_id, aula_id, dias } : null;
+  }).filter(Boolean);
+}
+
+function actualizarTotalHorasModal() {
+  const cursos = leerCursosModal();
+  let total = 0;
+
+  // Update duration labels per day
+  document.querySelectorAll('#cursos-container .curso-row').forEach(fila => {
+    const idx = fila.id.replace('curso-row-', '');
+    DIAS_SEMANA.forEach(d => {
+      const ini = document.getElementById('cr-ini-' + idx + '-' + d);
+      const fin = document.getElementById('cr-fin-' + idx + '-' + d);
+      const dur = document.getElementById('cr-dur-' + idx + '-' + d);
+      if (ini && fin && dur) {
+        const m = timeToMins(fin.value) - timeToMins(ini.value);
+        if (m > 0) {
+          total += m / 60;
+          dur.textContent = (Math.floor(m/60) ? Math.floor(m/60)+'h' : '') + (m%60 ? (Math.floor(m/60)?' ':'') + m%60+'min' : '');
+        } else {
+          dur.textContent = m < 0 ? '⚠' : '';
+        }
+      }
+    });
+  });
+
+  // Recalculate from cursos to be safe
+  total = 0;
+  cursos.forEach(c => c.dias.forEach(d => {
+    const m = timeToMins(d.hora_fin) - timeToMins(d.hora_inicio);
+    if (m > 0) total += m / 60;
+  }));
+
+  const res   = document.getElementById('asig-footer-resumen');
+  const carga = nivelCarga(total);
+  if (res) res.innerHTML = 'Esta asignación: <strong>' + total.toFixed(1) + ' h/sem</strong> &nbsp;'
+    + '<span class="carga-badge ' + carga.cls + '">' + carga.nivel + '</span>';
+}
+
+// ── Render tabla ────────────────────────────────────────────────────────
+function renderAsignaciones() {
+  migrarAsignaciones();
+
+  const docentes  = DB.get('docentes').filter(d => d.estado === 'Activo');
+
+  // Populate docente filter
+  const fDoc   = document.getElementById('filtro-asig-docente');
+  const curDoc = fDoc.value;
+  fDoc.innerHTML = '<option value="">Todos los docentes</option>' +
+    docentes.map(d => '<option value="' + d.id + '"' + (d.id == curDoc ? ' selected' : '') + '>' +
+      d.p_nombre + ' ' + d.p_apellido + '</option>').join('');
+
+  // Populate hidden tablero selector
+  const tSel   = document.getElementById('tablero-doc-sel');
+  const curTab = tSel.value;
+  tSel.innerHTML = '<option value="">Seleccionar docente...</option>' +
+    docentes.map(d => '<option value="' + d.id + '"' + (d.id == curTab ? ' selected' : '') + '>' +
+      d.p_nombre + ' ' + d.p_apellido + '</option>').join('');
+
+  let asigs = DB.get('asignaciones');
+  if (curDoc) asigs = asigs.filter(a => a.docente_id == curDoc);
+
+  // Group by docente
+  const byDoc = {};
+  asigs.forEach(a => {
+    if (!byDoc[a.docente_id]) byDoc[a.docente_id] = [];
+    byDoc[a.docente_id].push(a);
+  });
+
+  const tb = document.getElementById('tabla-asignaciones');
+  const docIds = Object.keys(byDoc);
+
+  if (!docIds.length) {
+    tb.innerHTML = emptyRow(5, 'No hay asignaciones. Crea la primera con "Nueva asignación".');
+    return;
+  }
+
+  tb.innerHTML = docIds.map(docId => {
+    const listaAsigs  = byDoc[docId];
+    const totalHoras  = listaAsigs.reduce((s, a) => s + calcHorasAsig(a), 0);
+    const carga       = nivelCarga(totalHoras);
+    const materias    = [...new Set(listaAsigs.map(a => a.materia))];
+    const materiasStr = materias.length > 2
+      ? materias.slice(0,2).join(', ') + ' +' + (materias.length - 2) + ' más'
+      : materias.join(', ');
+
+    return '<tr style="cursor:pointer" onclick="verTableroDocente(' + docId + ')" title="Ver tablero de carga">'
+      + '<td><strong>' + nombreDocente(docId) + '</strong></td>'
+      + '<td style="font-size:13px;color:#475569">' + materiasStr + '</td>'
+      + '<td><span class="carga-badge ' + carga.cls + '">' + totalHoras.toFixed(1) + ' h/sem</span></td>'
+      + '<td><span class="carga-badge ' + carga.cls + '">' + carga.nivel + '</span></td>'
+      + '<td class="text-center"><i class="bi bi-chevron-right" style="color:#94a3b8"></i></td>'
+      + '</tr>';
+  }).join('');
+}
+
+function verTableroDocente(docId) {
+  const panel = document.getElementById('tablero-docente-panel');
+  panel.classList.remove('d-none');
+  document.getElementById('tablero-doc-sel').value = docId;
+  renderTableroDocente();
+  panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function cerrarTablero() {
+  document.getElementById('tablero-docente-panel').classList.add('d-none');
+  document.getElementById('tablero-doc-sel').value = '';
+}
+
+// ── Modal open/save ─────────────────────────────────────────────────────
+function abrirAsignacion(id) {
+  migrarAsignaciones();
+  id = id || null;
+  document.getElementById('modal-asig-title').textContent = id ? 'Editar Asignación' : 'Nueva Asignación';
+  document.getElementById('asig-id').value = '';
+  document.getElementById('asig-estado').value = 'Activo';
+  document.getElementById('asig-total-horas').textContent = '';
+  document.getElementById('asig-footer-resumen').textContent = '';
+  document.getElementById('cursos-container').innerHTML = '';
+  document.getElementById('otra-materia-wrap').style.display = 'none';
+  _cursoIdx = 0;
+
+  const dSel = document.getElementById('asig-docente');
+  dSel.innerHTML = '<option value="">Seleccionar docente...</option>' +
+    DB.get('docentes').filter(d => d.estado === 'Activo')
+      .map(d => '<option value="' + d.id + '">' + d.p_nombre + ' ' + d.p_apellido + '</option>').join('');
+
+  const mSel = document.getElementById('asig-materia');
+  mSel.innerHTML = '<option value="">Seleccionar materia...</option>' +
+    MATERIAS.map(m => '<option value="' + m + '">' + m + '</option>').join('');
+  const inputOtra = document.getElementById('asig-materia-otra');
+  if (inputOtra) inputOtra.value = '';
+
+  if (id) {
+    const a = DB.get('asignaciones').find(x => x.id == id);
+    if (!a) return;
+    document.getElementById('asig-id').value      = a.id;
+    document.getElementById('asig-docente').value = a.docente_id;
+    document.getElementById('asig-estado').value  = a.estado || 'Activo';
+
+    const enLista = MATERIAS.includes(a.materia);
+    mSel.value = enLista ? a.materia : 'Otra...';
+    if (!enLista) {
+      document.getElementById('otra-materia-wrap').style.display = 'block';
+      if (inputOtra) inputOtra.value = a.materia;
+    }
+
+    (a.cursos || []).forEach(c => {
+      const sec = DB.get('secciones').find(s => s.id == c.seccion_id);
+      agregarCursoRow({ seccion_id: c.seccion_id, aula_id: c.aula_id, dias: c.dias,
+                        grado_id: sec ? sec.grado_id : null });
+    });
+    actualizarResumenHoras();
+  } else {
+    agregarCursoRow();
+  }
+
+  new bootstrap.Modal(document.getElementById('modalAsignacion')).show();
+}
+
+function guardarAsignacion() {
+  migrarAsignaciones();
+  const docente_id = document.getElementById('asig-docente').value;
+  let   materia    = document.getElementById('asig-materia').value;
+  if (materia === 'Otra...') materia = (document.getElementById('asig-materia-otra').value||'').trim();
+
+  const cursos = leerCursosModal();
+
+  if (!docente_id)    { toast('Seleccione un docente.', false);  return; }
+  if (!materia)       { toast('Seleccione o escriba la materia.', false); return; }
+  if (!cursos.length) { toast('Agregue al menos un grupo.', false); return; }
+
+  for (const c of cursos) {
+    if (!c.seccion_id)    { toast('Seleccione sección en cada grupo.', false); return; }
+    if (!c.dias.length)   { toast('Active al menos un día en cada grupo.', false); return; }
+    for (const d of c.dias) {
+      if (!d.hora_inicio || !d.hora_fin) { toast('Complete los horarios de todos los días.', false); return; }
+      if (timeToMins(d.hora_fin) <= timeToMins(d.hora_inicio)) {
+        toast('Hora fin debe ser posterior a hora inicio (' + d.dia + ').', false); return;
+      }
+    }
+  }
+
+  const idEdit = document.getElementById('asig-id').value;
+  const data   = { docente_id: parseInt(docente_id), materia, cursos,
+                   estado: document.getElementById('asig-estado').value };
+
+  const asigs = DB.get('asignaciones');
+  let asigId;
+  if (!idEdit) {
+    asigId = DB.nextId('asignaciones');
+    asigs.push({ id: asigId, ...data });
+    toast('Asignación creada y horario generado.');
+  } else {
+    asigId = parseInt(idEdit);
+    const idx = asigs.findIndex(a => a.id == idEdit);
+    Object.assign(asigs[idx], data);
+    toast('Asignación actualizada.');
+  }
+  DB.set('asignaciones', asigs);
+  sincronizarHorarios(asigId, data);
+  bootstrap.Modal.getInstance(document.getElementById('modalAsignacion')).hide();
+  renderAsignaciones();
+  if (document.getElementById('tablero-doc-sel').value == data.docente_id) renderTableroDocente();
+}
+
+function sincronizarHorarios(asigId, data) {
+  let horarios = DB.get('horarios').filter(h => h.asignacion_id !== asigId);
+  let nextId   = horarios.length ? Math.max(...horarios.map(h => h.id)) + 1 : 1;
+  data.cursos.forEach(c => {
+    (c.dias || []).forEach(d => {
+      horarios.push({
+        id: nextId++,
+        seccion_id:    c.seccion_id,
+        materia:       data.materia,
+        dia:           d.dia,
+        hora_inicio:   d.hora_inicio,
+        hora_fin:      d.hora_fin,
+        docente_id:    data.docente_id,
+        aula_id:       c.aula_id || null,
+        asignacion_id: asigId,
+      });
+    });
+  });
+  DB.set('horarios', horarios);
+}
+
+function eliminarAsignacion(id) {
+  if (!confirmar('Eliminar esta asignación y sus horarios generados?')) return;
+  DB.set('asignaciones', DB.get('asignaciones').filter(a => a.id !== id));
+  DB.set('horarios',     DB.get('horarios').filter(h => h.asignacion_id !== id));
+  toast('Asignación eliminada.');
+  renderAsignaciones();
+}
+
+// ── Tablero docente ─────────────────────────────────────────────────────
+function renderTableroDocente() {
+  migrarAsignaciones();
+  const docId = document.getElementById('tablero-doc-sel').value;
+  const cont  = document.getElementById('tablero-contenido');
+
+  if (!docId) {
+    cont.innerHTML = '<p class="text-muted text-center py-3" style="font-size:13px">'
+      + '<i class="bi bi-person-fill me-2"></i>Seleccione un docente para ver su carga académica</p>';
+    return;
+  }
+
+  const asigs     = DB.get('asignaciones').filter(a => a.docente_id == docId && a.estado === 'Activo');
+  const secciones = DB.get('secciones');
+
+  const totalHoras  = asigs.reduce((s, a) => s + calcHorasAsig(a), 0);
+  const totalMats   = new Set(asigs.map(a => a.materia)).size;
+  const totalGrupos = asigs.reduce((s, a) => s + (a.cursos||[]).length, 0);
+  const carga = nivelCarga(totalHoras);
+  const pct   = Math.min(carga.pct, 100);
+
+  let html = '<div class="row g-3 mb-4">';
+  [
+    { icon:'bi-clock-fill',  color:'#3b82f6', val: totalHoras.toFixed(1)+' h/sem', lbl:'Horas semanales' },
+    { icon:'bi-book-fill',   color:'#8b5cf6', val: totalMats,                      lbl:'Materias' },
+    { icon:'bi-people-fill', color:'#10b981', val: totalGrupos,                    lbl:'Grupos' },
+  ].forEach(c => {
+    html += '<div class="col-md-3"><div class="card-panel text-center py-3">'
+      + '<i class="bi ' + c.icon + '" style="font-size:24px;color:' + c.color + '"></i>'
+      + '<div style="font-size:22px;font-weight:700;margin:4px 0">' + c.val + '</div>'
+      + '<div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px">' + c.lbl + '</div>'
+      + '</div></div>';
+  });
+  html += '<div class="col-md-3"><div class="card-panel py-3">'
+    + '<div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Carga horaria</div>'
+    + '<div class="carga-bar-wrap mb-2"><div class="carga-bar carga-' + carga.cls + '" style="width:' + pct + '%"></div></div>'
+    + '<div class="d-flex justify-content-between align-items-center">'
+    + '<span style="font-size:12px;color:#64748b">' + totalHoras.toFixed(1) + ' / ' + CARGA_CONFIG.alta + ' h</span>'
+    + '<span class="carga-badge ' + carga.cls + '">' + carga.nivel + '</span>'
+    + '</div></div></div>';
+  html += '</div>';
+
+  if (!asigs.length) {
+    html += '<p class="text-muted text-center">Sin asignaciones activas.</p>';
+  } else {
+    html += '<div class="row g-3">';
+    asigs.forEach(a => {
+      const horasA = calcHorasAsig(a).toFixed(1);
+      const cargaA = nivelCarga(parseFloat(horasA));
+      html += '<div class="col-md-6"><div class="card-panel">'
+        + '<div class="d-flex align-items-center justify-content-between mb-2">'
+        + '<span style="font-weight:700;font-size:14px">' + a.materia + '</span>'
+        + '<span class="carga-badge ' + cargaA.cls + '">' + horasA + ' h/sem</span>'
+        + '</div>';
+      (a.cursos||[]).forEach(c => {
+        const sec = secciones.find(s => s.id == c.seccion_id);
+        html += '<div style="background:#f8fafc;border-radius:8px;padding:8px 12px;margin-bottom:6px">';
+        html += '<div style="font-weight:600;font-size:13px">'
+          + (sec ? nombreGrado(sec.grado_id) + ' — ' + sec.nombre : 'Sección eliminada') + '</div>';
+        (c.dias||[]).forEach(d => {
+          html += '<div style="font-size:12px;color:#64748b">'
+            + d.dia + ': ' + d.hora_inicio + ' – ' + d.hora_fin + '</div>';
+        });
+        html += '</div>';
+      });
+      html += '<div class="d-flex gap-2 mt-2">'
+        + '<button class="btn btn-sm btn-outline-primary" onclick="abrirAsignacion(' + a.id + ');event.stopPropagation()">'
+        + '<i class="bi bi-pencil-fill me-1"></i>Editar</button>'
+        + '<button class="btn btn-sm btn-outline-danger" onclick="eliminarAsignacion(' + a.id + ');event.stopPropagation()">'
+        + '<i class="bi bi-trash-fill me-1"></i>Eliminar</button>'
+        + '</div>';
+      html += '</div></div>';
+    });
+    html += '</div>';
+  }
+
+  cont.innerHTML = html;
+}
+
+
+// ══════════════════════════════════════════════
+//  CRONOGRAMA INSTITUCIONAL
+// ══════════════════════════════════════════════
+
+const TIPOS_EVENTO = ['Institucional','Académica','Formación docente','Comunidad','Festivo','Cultural','Deportivo','Otro'];
+
+const TIPO_COLORES = {
+  'Institucional':     { bg:'#dbeafe', txt:'#1d4ed8' },
+  'Académica':         { bg:'#d1fae5', txt:'#065f46' },
+  'Formación docente': { bg:'#ede9fe', txt:'#5b21b6' },
+  'Comunidad':         { bg:'#fef3c7', txt:'#92400e' },
+  'Festivo':           { bg:'#fee2e2', txt:'#991b1b' },
+  'Cultural':          { bg:'#fce7f3', txt:'#9d174d' },
+  'Deportivo':         { bg:'#cffafe', txt:'#0e7490' },
+  'Otro':              { bg:'#e2e8f0', txt:'#475569' },
+};
+
+function renderCronograma() {
+  const grados = DB.get('grados');
+
+  // Populate tipo filter
+  const fTipo  = document.getElementById('filtro-crono-tipo');
+  const curTipo = fTipo.value;
+  fTipo.innerHTML = '<option value="">Todos los tipos</option>' +
+    TIPOS_EVENTO.map(t => '<option' + (t === curTipo ? ' selected' : '') + '>' + t + '</option>').join('');
+
+  // Populate grado filter
+  const fGrad   = document.getElementById('filtro-crono-grado');
+  const curGrad = fGrad.value;
+  fGrad.innerHTML = '<option value="">Todos los grados</option>' +
+    grados.map(g => '<option value="' + g.id + '"' + (g.id == curGrad ? ' selected' : '') + '>' + g.nombre + '</option>').join('');
+
+  // Year filter default = current year
+  const yearEl = document.getElementById('filtro-crono-year');
+  if (!yearEl.value) yearEl.value = new Date().getFullYear();
+  const year = yearEl.value;
+
+  let eventos = DB.get('cronograma').sort((a,b) => a.fecha_ini.localeCompare(b.fecha_ini));
+  if (curTipo) eventos = eventos.filter(e => e.tipo === curTipo);
+  if (curGrad) eventos = eventos.filter(e => !e.grados || e.grados.includes('all') || e.grados.includes(parseInt(curGrad)));
+  if (year)    eventos = eventos.filter(e => e.fecha_ini.startsWith(year));
+
+  const hoy = new Date().toISOString().slice(0,10);
+
+  const tb = document.getElementById('tabla-cronograma');
+  tb.innerHTML = eventos.length ? eventos.map(ev => {
+    const tc      = TIPO_COLORES[ev.tipo] || TIPO_COLORES['Otro'];
+    const pasado  = (ev.fecha_fin || ev.fecha_ini) < hoy;
+    const enCurso = ev.fecha_ini <= hoy && (ev.fecha_fin || ev.fecha_ini) >= hoy;
+    const rowStyle = pasado ? 'opacity:.55' : '';
+    const gradStr  = ev.grados && !ev.grados.includes('all')
+      ? ev.grados.map(id => { const g = grados.find(x => x.id == id); return g ? g.nombre : '?'; }).join(', ')
+      : 'Todos';
+    const tipoBadge = '<span style="background:' + tc.bg + ';color:' + tc.txt + ';padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700">' + ev.tipo + '</span>';
+    const cursoBadge = enCurso ? ' <span class="badge bg-success ms-1" style="font-size:10px">En curso</span>' : '';
+    return '<tr style="' + rowStyle + '">'
+      + '<td style="font-size:13px">' + fmt(ev.fecha_ini) + '</td>'
+      + '<td style="font-size:13px">' + (ev.fecha_fin ? fmt(ev.fecha_fin) : '—') + '</td>'
+      + '<td><strong>' + ev.actividad + '</strong>' + cursoBadge + (ev.observaciones ? '<br><span style="font-size:11px;color:#94a3b8">' + ev.observaciones + '</span>' : '') + '</td>'
+      + '<td>' + tipoBadge + '</td>'
+      + '<td style="font-size:13px">' + (ev.area || '—') + '</td>'
+      + '<td style="font-size:12px;color:#64748b">' + gradStr + '</td>'
+      + '<td>'
+      + '<button class="btn btn-sm btn-outline-primary me-1" onclick="abrirEvento(' + ev.id + ')"><i class="bi bi-pencil-fill"></i></button>'
+      + '<button class="btn btn-sm btn-outline-danger" onclick="eliminarEvento(' + ev.id + ')"><i class="bi bi-trash-fill"></i></button>'
+      + '</td></tr>';
+  }).join('') : emptyRow(7, 'No hay eventos registrados para este periodo.');
+}
+
+function abrirEvento(id) {
+  id = id || null;
+  document.getElementById('modal-evento-title').textContent = id ? 'Editar Evento' : 'Nuevo Evento';
+  document.getElementById('evento-id').value           = '';
+  document.getElementById('evento-actividad').value    = '';
+  document.getElementById('evento-tipo').value         = '';
+  document.getElementById('evento-fecha-ini').value    = '';
+  document.getElementById('evento-fecha-fin').value    = '';
+  document.getElementById('evento-area').value         = '';
+  document.getElementById('evento-observaciones').value = '';
+
+  // Populate grados multiselect
+  const gSel = document.getElementById('evento-grados');
+  const grados = DB.get('grados');
+  gSel.innerHTML = '<option value="all">Todos los grados</option>' +
+    grados.map(g => '<option value="' + g.id + '">' + g.nombre + '</option>').join('');
+
+  if (id) {
+    const ev = DB.get('cronograma').find(e => e.id == id);
+    if (!ev) return;
+    document.getElementById('evento-id').value           = ev.id;
+    document.getElementById('evento-actividad').value    = ev.actividad;
+    document.getElementById('evento-tipo').value         = ev.tipo;
+    document.getElementById('evento-fecha-ini').value    = ev.fecha_ini;
+    document.getElementById('evento-fecha-fin').value    = ev.fecha_fin || '';
+    document.getElementById('evento-area').value         = ev.area || '';
+    document.getElementById('evento-observaciones').value = ev.observaciones || '';
+    // Set grados selections
+    const selGrados = ev.grados || ['all'];
+    Array.from(gSel.options).forEach(opt => {
+      opt.selected = selGrados.includes(opt.value) || selGrados.includes(parseInt(opt.value));
+    });
+  } else {
+    gSel.options[0].selected = true; // default: todos
+  }
+
+  new bootstrap.Modal(document.getElementById('modalEvento')).show();
+}
+
+function guardarEvento() {
+  const actividad  = document.getElementById('evento-actividad').value.trim();
+  const tipo       = document.getElementById('evento-tipo').value;
+  const fecha_ini  = document.getElementById('evento-fecha-ini').value;
+  const fecha_fin  = document.getElementById('evento-fecha-fin').value;
+  const area       = document.getElementById('evento-area').value.trim();
+  const observaciones = document.getElementById('evento-observaciones').value.trim();
+
+  if (!actividad) { toast('Ingrese el nombre de la actividad.', false); return; }
+  if (!tipo)      { toast('Seleccione el tipo de evento.', false);      return; }
+  if (!fecha_ini) { toast('Seleccione la fecha de inicio.', false);     return; }
+  if (fecha_fin && fecha_fin < fecha_ini) { toast('La fecha fin no puede ser anterior a la fecha inicio.', false); return; }
+
+  // Read selected grados
+  const gSel   = document.getElementById('evento-grados');
+  const selOpts = Array.from(gSel.selectedOptions).map(o => o.value === 'all' ? 'all' : parseInt(o.value));
+  const grados  = selOpts.includes('all') ? ['all'] : selOpts;
+
+  const idEdit = document.getElementById('evento-id').value;
+  const data   = { actividad, tipo, fecha_ini, fecha_fin: fecha_fin || null, area, grados, observaciones };
+
+  const lista = DB.get('cronograma');
+  if (!idEdit) {
+    lista.push({ id: DB.nextId('cronograma'), ...data });
+    toast('Evento creado.');
+  } else {
+    const idx = lista.findIndex(e => e.id == idEdit);
+    Object.assign(lista[idx], data);
+    toast('Evento actualizado.');
+  }
+  DB.set('cronograma', lista);
+  bootstrap.Modal.getInstance(document.getElementById('modalEvento')).hide();
+  renderCronograma();
+  renderDashboard(); // refresh próximo evento
+}
+
+function eliminarEvento(id) {
+  if (!confirmar('Eliminar este evento del cronograma?')) return;
+  DB.set('cronograma', DB.get('cronograma').filter(e => e.id !== id));
+  toast('Evento eliminado.');
+  renderCronograma();
+  renderDashboard();
+}
+
+// ══════════════════════════════════════════════
+//  HORARIOS
+// ══════════════════════════════════════════════
+const DIAS  = ['Lunes','Martes','Miércoles','Jueves','Viernes'];
+const HORAS = ['07:00','07:30','08:00','08:30','09:00','09:30','10:00','10:30',
+               '11:00','11:30','12:00','12:30','13:00','13:30','14:00','14:30'];
+
+function timeToMins(t) {
+  if (!t) return 0;
+  const [h, m] = t.split(':').map(Number);
+  return h * 60 + m;
+}
+
+function actualizarFiltroSecciones() {
+  const gradoId = document.getElementById('filtro-horario-grado').value;
+  const fSec    = document.getElementById('filtro-horario-seccion');
+  const cur     = fSec.value;
+  const secs    = DB.get('secciones').filter(s => !gradoId || s.grado_id == gradoId);
+  fSec.innerHTML = '<option value="">Todas las secciones</option>' +
+    secs.map(s => '<option value="' + s.id + '"' + (s.id == cur ? ' selected' : '') + '>' +
+      nombreGrado(s.grado_id) + ' — ' + s.nombre + '</option>').join('');
+  renderHorarios();
+}
+
+function renderHorarios() {
+  const grados   = DB.get('grados');
+  const secciones = DB.get('secciones');
+  const docentes  = DB.get('docentes').filter(d => d.estado === 'Activo');
+
+  // Populate grado filter
+  const fGrado = document.getElementById('filtro-horario-grado');
+  const curGrado = fGrado.value;
+  fGrado.innerHTML = '<option value="">Todos los grados</option>' +
+    grados.map(g => '<option value="' + g.id + '"' + (g.id == curGrado ? ' selected' : '') + '>' + g.nombre + '</option>').join('');
+
+  // Populate seccion filter (depends on grado)
+  const fSec  = document.getElementById('filtro-horario-seccion');
+  const curSec = fSec.value;
+  const secsVis = secciones.filter(s => !curGrado || s.grado_id == curGrado);
+  fSec.innerHTML = '<option value="">Todas las secciones</option>' +
+    secsVis.map(s => '<option value="' + s.id + '"' + (s.id == curSec ? ' selected' : '') + '>' +
+      nombreGrado(s.grado_id) + ' — ' + s.nombre + '</option>').join('');
+
+  // Populate docente filter
+  const fDoc  = document.getElementById('filtro-horario-docente');
+  const curDoc = fDoc.value;
+  fDoc.innerHTML = '<option value="">Todos los docentes</option>' +
+    docentes.map(d => '<option value="' + d.id + '"' + (d.id == curDoc ? ' selected' : '') + '>' +
+      d.p_nombre + ' ' + d.p_apellido + '</option>').join('');
+
+  // Read active filters
+  const filtroGrado = fGrado.value;
+  const filtroSec   = fSec.value;
+  const filtroDoc   = fDoc.value;
+  const filtroDia   = document.getElementById('filtro-horario-dia').value;
+
+  // Filter horarios
+  let horarios = DB.get('horarios');
+  if (filtroGrado) {
+    const secIds = secciones.filter(s => s.grado_id == filtroGrado).map(s => s.id);
+    horarios = horarios.filter(h => secIds.includes(h.seccion_id));
+  }
+  if (filtroSec)   horarios = horarios.filter(h => h.seccion_id == filtroSec);
+  if (filtroDoc)   horarios = horarios.filter(h => h.docente_id == filtroDoc);
+
+  // Dias visibles
+  const diasVis = filtroDia ? [filtroDia] : DIAS;
+
+  // ── CALENDAR VISUAL LAYOUT ────────────────────────────────────────────
+  const PX_H = 64; // px per hour
+  const DAY_START = 7 * 60; // 7:00 in minutes
+  const DAY_END   = (() => {
+    let maxMin = 13 * 60; // minimum end: 13:00
+    horarios.forEach(h => { const m = timeToMins(h.hora_fin); if (m > maxMin) maxMin = m; });
+    // Round up to next hour
+    return Math.ceil(maxMin / 60) * 60;
+  })();
+  const TOTAL_MIN = DAY_END - DAY_START;
+  const TOTAL_PX  = TOTAL_MIN / 60 * PX_H;
+
+  function minToTop(m) { return (m - DAY_START) / 60 * PX_H; }
+
+  // Time labels
+  let timesHtml = '';
+  for (let m = DAY_START; m <= DAY_END; m += 60) {
+    const h = String(Math.floor(m / 60)).padStart(2, '0');
+    timesHtml += '<div class="hv-time-lbl" style="top:' + (40 + minToTop(m)) + 'px">' + h + ':00</div>';
+  }
+
+  // Build each day column
+  let daysHtml = '';
+  diasVis.forEach(function(dia) {
+    const diaBlocks = horarios.filter(function(h) { return h.dia === dia; });
+
+    // Sort by start time
+    const sorted = diaBlocks.slice().sort(function(a, b) {
+      return timeToMins(a.hora_inicio) - timeToMins(b.hora_inicio);
+    });
+
+    // Assign lanes (columns within the day) using greedy algorithm
+    const lanes = [];
+    const blockLane = sorted.map(function(b) {
+      const start = timeToMins(b.hora_inicio);
+      var lane = -1;
+      for (var i = 0; i < lanes.length; i++) {
+        if (lanes[i] <= start) { lane = i; break; }
+      }
+      if (lane === -1) { lane = lanes.length; lanes.push(0); }
+      lanes[lane] = timeToMins(b.hora_fin);
+      return lane;
+    });
+    const totalLanes = Math.max(1, lanes.length);
+
+    // Hour lines
+    var bodyHtml = '';
+    for (var m = DAY_START; m <= DAY_END; m += 60) {
+      var top = minToTop(m);
+      var cls = (m % 60 === 0) ? 'hv-hline full' : 'hv-hline';
+      bodyHtml += '<div class="' + cls + '" style="top:' + top + 'px"></div>';
+    }
+    // 30-min lines
+    for (var m = DAY_START + 30; m < DAY_END; m += 60) {
+      bodyHtml += '<div class="hv-hline" style="top:' + minToTop(m) + 'px;border-color:var(--slate-50)"></div>';
+    }
+
+    // Blocks
+    sorted.forEach(function(b, i) {
+      var start  = timeToMins(b.hora_inicio);
+      var end    = timeToMins(b.hora_fin);
+      var top    = minToTop(start);
+      var height = Math.max(22, (end - start) / 60 * PX_H - 3);
+      var lane   = blockLane[i];
+      var leftPct = (lane / totalLanes * 100).toFixed(1);
+      var widthPct = (100 / totalLanes).toFixed(1);
+
+      var sec   = secciones.find(function(s) { return s.id == b.seccion_id; });
+      var grado = sec ? grados.find(function(g) { return g.id == sec.grado_id; }) : null;
+      var nivel = grado ? grado.nivel : '';
+      var cls   = nivel === 'Primaria'     ? 'block-primaria'
+                : nivel === 'Secundaria'   ? 'block-secundaria'
+                : nivel === 'Bachillerato' ? 'block-bachillerato' : 'block-secundaria';
+      var secLabel = sec ? sec.nombre : '';
+
+      var gradoLabel = grado ? grado.nombre : '';
+      bodyHtml += '<div class="hv-block ' + cls + '" onclick="abrirHorario(' + b.id + ')"'
+        + ' style="top:' + top + 'px;height:' + height + 'px;left:calc(' + leftPct + '% + 2px);width:calc(' + widthPct + '% - 4px)">'
+        + '<div class="hv-bm">' + nombreDocente(b.docente_id) + '</div>'
+        + (height > 28 ? '<div class="hv-bs">' + gradoLabel + '</div>' : '')
+        + '</div>';
+    });
+
+    daysHtml += '<div class="hv-day">'
+      + '<div class="hv-day-hdr">' + dia + '</div>'
+      + '<div class="hv-body" style="height:' + TOTAL_PX + 'px">' + bodyHtml + '</div>'
+      + '</div>';
+  });
+
+  var emptyMsg = horarios.length === 0
+    ? '<div class="empty-state"><i class="bi bi-clock"></i><p>No hay horarios registrados</p></div>'
+    : '';
+
+  document.getElementById('horario-visual-container').innerHTML = emptyMsg ||
+    '<div class="hv-wrap"><div class="hv-times">' + timesHtml + '</div>'
+    + '<div class="hv-days">' + daysHtml + '</div></div>';
+
+  // Available teachers panel
+  renderDocentesDisponibles(filtroDia, horarios);
+
+  // Lista
+  const tbL = document.getElementById('tabla-horarios-lista');
+  const hFiltrados = filtroDia ? horarios.filter(h => h.dia === filtroDia) : horarios;
+  tbL.innerHTML = hFiltrados.length ? hFiltrados.map(h => {
+    const sec = secciones.find(s => s.id == h.seccion_id);
+    return '<tr>'
+      + '<td>' + (sec ? nombreGrado(sec.grado_id) + ' — ' + sec.nombre : '—') + '</td>'
+      + '<td><strong>' + h.materia + '</strong></td>'
+      + '<td>' + h.dia + '</td>'
+      + '<td>' + h.hora_inicio + '</td>'
+      + '<td>' + h.hora_fin + '</td>'
+      + '<td>' + nombreAula(h.aula_id) + '</td>'
+      + '<td>' + nombreDocente(h.docente_id) + '</td>'
+      + '<td>'
+      + '<button class="btn btn-sm btn-outline-primary me-1" onclick="abrirHorario(' + h.id + ')"><i class="bi bi-pencil-fill"></i></button>'
+      + '<button class="btn btn-sm btn-outline-danger" onclick="eliminarHorario(' + h.id + ')"><i class="bi bi-trash-fill"></i></button>'
+      + '</td></tr>';
+  }).join('') : emptyRow(8, 'No hay horarios registrados');
+}
+
+function renderDocentesDisponibles(dia, horariosActivos) {
+  const today    = new Date().toISOString().slice(0, 10);
+  const docentes = DB.get('docentes').filter(d => d.estado === 'Activo');
+
+  // Docentes con permiso aprobado que cubre hoy
+  const permisos   = DB.get('permisos').filter(p =>
+    p.estado === 'Aprobado' && p.fecha_inicio <= today && p.fecha_fin >= today
+  );
+  const enPermiso  = new Set(permisos.map(p => String(p.docente_id)));
+  const ocupados   = new Set(horariosActivos.map(h => String(h.docente_id)).filter(Boolean));
+
+  const disponibles = docentes.filter(d => !enPermiso.has(String(d.id)) && !ocupados.has(String(d.id)));
+  const conClase    = docentes.filter(d => ocupados.has(String(d.id)) && !enPermiso.has(String(d.id)));
+  const conPermiso  = docentes.filter(d => enPermiso.has(String(d.id)));
+
+  let html = '';
+
+  const card = (cls, icon, color, d, extra) =>
+    '<div class="disp-card ' + cls + '" onclick="' + (cls !== 'disp-permiso' ? 'filtrarPorDocente(' + d.id + ')' : '') + '">'
+    + '<i class="bi ' + icon + '" style="color:' + color + ';font-size:14px"></i>'
+    + '<div style="line-height:1.3">'
+    + '<span style="font-weight:600">' + d.p_nombre + ' ' + d.p_apellido + '</span>'
+    + (extra ? '<br><span style="font-size:10px;opacity:.7">' + extra + '</span>' : '')
+    + '</div></div>';
+
+  if (disponibles.length) {
+    html += '<p class="text-muted" style="font-size:10px;font-weight:700;margin:4px 0 2px;text-transform:uppercase;letter-spacing:.5px">'
+          + '✅ Disponibles (' + disponibles.length + ')</p>';
+    html += disponibles.map(d => card('disp-disponible','bi-person-check-fill','#16a34a', d, '')).join('');
+  }
+
+  if (conClase.length) {
+    const label = dia ? 'Con clase el ' + dia : 'Con clase asignada';
+    html += '<p class="text-muted" style="font-size:10px;font-weight:700;margin:8px 0 2px;text-transform:uppercase;letter-spacing:.5px">'
+          + '📚 ' + label + ' (' + conClase.length + ')</p>';
+    html += conClase.map(d => card('disp-ocupado','bi-person-fill','#2563eb', d, '')).join('');
+  }
+
+  if (conPermiso.length) {
+    html += '<p class="text-muted" style="font-size:10px;font-weight:700;margin:8px 0 2px;text-transform:uppercase;letter-spacing:.5px">'
+          + '⚠️ En permiso/licencia (' + conPermiso.length + ')</p>';
+    html += conPermiso.map(d => {
+      const p = permisos.find(pp => String(pp.docente_id) === String(d.id));
+      const extra = p ? p.tipo + ' hasta ' + (p.fecha_fin || '') : '';
+      return card('disp-permiso','bi-person-x-fill','#d97706', d, extra);
+    }).join('');
+  }
+
+  if (!html) html = '<p class="text-muted small text-center mt-3">No hay docentes activos registrados.</p>';
+  document.getElementById('docentes-disponibles').innerHTML = html;
+}
+
+function filtrarPorDocente(id) {
+  document.getElementById('filtro-horario-docente').value = id;
+  renderHorarios();
+}
+
+function abrirHorario(id=null) {
+  const sSel = document.getElementById('hor-seccion');
+  sSel.innerHTML = DB.get('secciones').map(s=>`<option value="${s.id}">${nombreGrado(s.grado_id)} — ${s.nombre}</option>`).join('');
+
+  const dSel = document.getElementById('hor-docente');
+  dSel.innerHTML = '<option value="">Sin asignar</option>' +
+    DB.get('docentes').filter(d=>d.estado==='Activo').map(d=>`<option value="${d.id}">${d.p_nombre} ${d.p_apellido}</option>`).join('');
+
+  const aSel = document.getElementById('hor-aula');
+  aSel.innerHTML = '<option value="">Sin asignar</option>' +
+    DB.get('aulas').map(a=>`<option value="${a.id}">${a.nombre}</option>`).join('');
+
+  ['hor-id','hor-materia','hor-inicio','hor-fin'].forEach(x => {
+    const el=document.getElementById(x); if(el) el.value = x.includes('inicio')?'07:00':x.includes('fin')?'08:00':'';
+  });
+
+  if (id) {
+    const h = DB.get('horarios').find(x=>x.id==id);
+    if (!h) return;
+    document.getElementById('hor-id').value       = h.id;
+    document.getElementById('hor-seccion').value  = h.seccion_id;
+    document.getElementById('hor-materia').value  = h.materia;
+    document.getElementById('hor-dia').value      = h.dia;
+    document.getElementById('hor-inicio').value   = h.hora_inicio;
+    document.getElementById('hor-fin').value      = h.hora_fin;
+    document.getElementById('hor-docente').value  = h.docente_id||'';
+    document.getElementById('hor-aula').value     = h.aula_id||'';
+  }
+  new bootstrap.Modal(document.getElementById('modalHorario')).show();
+}
+
+function guardarHorario() {
+  const seccion  = document.getElementById('hor-seccion').value;
+  const materia  = document.getElementById('hor-materia').value;
+  const inicio   = document.getElementById('hor-inicio').value;
+  const fin      = document.getElementById('hor-fin').value;
+  if (!seccion || !materia || !inicio || !fin) { toast('Sección, materia y horas son obligatorios.', false); return; }
+  if (inicio >= fin) { toast('La hora de inicio debe ser anterior a la hora de fin.', false); return; }
+
+  const horarios = DB.get('horarios');
+  const idEdit   = document.getElementById('hor-id').value;
+  const data = {
+    seccion_id: parseInt(seccion),
+    materia,
+    dia:         document.getElementById('hor-dia').value,
+    hora_inicio: inicio,
+    hora_fin:    fin,
+    docente_id:  document.getElementById('hor-docente').value||null,
+    aula_id:     document.getElementById('hor-aula').value||null,
+  };
+
+  if (!idEdit) {
+    horarios.push({ id: DB.nextId('horarios'), ...data });
+    toast('Horario guardado.');
+  } else {
+    const idx = horarios.findIndex(h=>h.id==idEdit);
+    Object.assign(horarios[idx], data);
+    toast('Horario actualizado.');
+  }
+  DB.set('horarios', horarios);
+  bootstrap.Modal.getInstance(document.getElementById('modalHorario')).hide();
+  renderHorarios();
+}
+
+function eliminarHorario(id) {
+  if (!confirmar('¿Eliminar este horario?')) return;
+  DB.set('horarios', DB.get('horarios').filter(h=>h.id!==id));
+  toast('Horario eliminado.');
+  renderHorarios();
+}
+
+// ══════════════════════════════════════════════
+//  AULAS
+// ══════════════════════════════════════════════
+function renderAulas() {
+  const aulas = DB.get('aulas');
+  const tb = document.getElementById('tabla-aulas');
+  tb.innerHTML = aulas.length ? aulas.map((a,i) => `<tr>
+    <td>${i+1}</td>
+    <td><strong>${a.nombre}</strong></td>
+    <td>${a.capacidad||'—'}</td>
+    <td>${a.tipo||'—'}</td>
+    <td>${a.sede_id ? (DB.get('sedes').find(s=>s.id==a.sede_id)||{nombre:'—'}).nombre : '—'}</td>
+    <td>
+      <button class="btn btn-sm btn-outline-primary me-1" onclick="abrirAula(${a.id})"><i class="bi bi-pencil-fill"></i></button>
+      <button class="btn btn-sm btn-outline-danger" onclick="eliminarAula(${a.id})"><i class="bi bi-trash-fill"></i></button>
+    </td>
+  </tr>`).join('') : emptyRow(6, 'No hay aulas registradas');
+}
+
+function abrirAula(id=null) {
+  document.getElementById('modal-aula-title').textContent = id ? 'Editar Aula' : 'Nueva Aula';
+  ['aula-id','aula-nombre','aula-capacidad'].forEach(x => {
+    document.getElementById(x).value = x==='aula-capacidad'?'30':'';
+  });
+  const sSel = document.getElementById('aula-sede');
+  sSel.innerHTML = '<option value="">Sin sede</option>' +
+    DB.get('sedes').map(s=>`<option value="${s.id}">${s.nombre}</option>`).join('');
+
+  if (id) {
+    const a = DB.get('aulas').find(x=>x.id==id);
+    if (!a) return;
+    document.getElementById('aula-id').value       = a.id;
+    document.getElementById('aula-nombre').value   = a.nombre;
+    document.getElementById('aula-capacidad').value= a.capacidad||30;
+    document.getElementById('aula-tipo').value     = a.tipo||'Aula regular';
+    document.getElementById('aula-sede').value     = a.sede_id||'';
+  }
+  new bootstrap.Modal(document.getElementById('modalAula')).show();
+}
+
+function guardarAula() {
+  const nombre = document.getElementById('aula-nombre').value.trim();
+  if (!nombre) { toast('El nombre del aula es obligatorio.', false); return; }
+  const aulas  = DB.get('aulas');
+  const idEdit = document.getElementById('aula-id').value;
+  const data   = {
+    nombre,
+    capacidad: parseInt(document.getElementById('aula-capacidad').value)||30,
+    tipo:      document.getElementById('aula-tipo').value,
+    sede_id:   document.getElementById('aula-sede').value||null,
+  };
+  if (!idEdit) { aulas.push({ id: DB.nextId('aulas'), ...data }); toast('Aula creada.'); }
+  else { const idx=aulas.findIndex(a=>a.id==idEdit); Object.assign(aulas[idx],data); toast('Aula actualizada.'); }
+  DB.set('aulas', aulas);
+  bootstrap.Modal.getInstance(document.getElementById('modalAula')).hide();
+  renderAulas();
+}
+
+function eliminarAula(id) {
+  if (!confirmar('¿Eliminar esta aula?')) return;
+  DB.set('aulas', DB.get('aulas').filter(a=>a.id!==id));
+  toast('Aula eliminada.');
+  renderAulas();
+}
+
+// ══════════════════════════════════════════════
+//  SEDES
+// ══════════════════════════════════════════════
+function renderSedes() {
+  const sedes = DB.get('sedes');
+  const tb = document.getElementById('tabla-sedes');
+  tb.innerHTML = sedes.length ? sedes.map((s,i) => `<tr>
+    <td>${i+1}</td>
+    <td><strong>${s.nombre}</strong></td>
+    <td>${s.direccion||'—'}</td>
+    <td>${s.telefono||'—'}</td>
+    <td>${s.email||'—'}</td>
+    <td>
+      <button class="btn btn-sm btn-outline-primary me-1" onclick="abrirSede(${s.id})"><i class="bi bi-pencil-fill"></i></button>
+      <button class="btn btn-sm btn-outline-danger" onclick="eliminarSede(${s.id})"><i class="bi bi-trash-fill"></i></button>
+    </td>
+  </tr>`).join('') : emptyRow(6, 'No hay sedes registradas');
+}
+
+function abrirSede(id=null) {
+  document.getElementById('modal-sede-title').textContent = id ? 'Editar Sede' : 'Nueva Sede';
+  ['sede-id','sede-nombre','sede-direccion','sede-telefono','sede-email'].forEach(x => {
+    document.getElementById(x).value = '';
+  });
+  if (id) {
+    const s = DB.get('sedes').find(x=>x.id==id);
+    if (!s) return;
+    document.getElementById('sede-id').value        = s.id;
+    document.getElementById('sede-nombre').value    = s.nombre;
+    document.getElementById('sede-direccion').value = s.direccion||'';
+    document.getElementById('sede-telefono').value  = s.telefono||'';
+    document.getElementById('sede-email').value     = s.email||'';
+  }
+  new bootstrap.Modal(document.getElementById('modalSede')).show();
+}
+
+function guardarSede() {
+  const nombre = document.getElementById('sede-nombre').value.trim();
+  if (!nombre) { toast('El nombre de la sede es obligatorio.', false); return; }
+  const sedes  = DB.get('sedes');
+  const idEdit = document.getElementById('sede-id').value;
+  const data   = {
+    nombre,
+    direccion: document.getElementById('sede-direccion').value.trim(),
+    telefono:  document.getElementById('sede-telefono').value.trim(),
+    email:     document.getElementById('sede-email').value.trim(),
+  };
+  if (!idEdit) { sedes.push({ id: DB.nextId('sedes'), ...data }); toast('Sede creada.'); }
+  else { const idx=sedes.findIndex(s=>s.id==idEdit); Object.assign(sedes[idx],data); toast('Sede actualizada.'); }
+  DB.set('sedes', sedes);
+  bootstrap.Modal.getInstance(document.getElementById('modalSede')).hide();
+  renderSedes();
+}
+
+// ══════════════════════════════════════════════
+//  PERMISOS
+// ══════════════════════════════════════════════
+function renderPermisos() {
+  const filtro = document.getElementById('filtro-estado-permiso').value;
+  let perms = DB.get('permisos');
+  if (filtro) perms = perms.filter(p => p.estado === filtro);
+
+  const tb = document.getElementById('tabla-permisos');
+  tb.innerHTML = perms.length ? perms.map(p => {
+    const d1 = p.fecha_inicio ? new Date(p.fecha_inicio) : null;
+    const d2 = p.fecha_fin    ? new Date(p.fecha_fin)    : null;
+    const dias = (d1 && d2) ? Math.ceil((d2-d1)/(86400000))+1 : '\u2014';
+    const btnAprobar = '<button class="btn btn-xs btn-success btn-sm me-1" onclick="cambiarEstadoPermiso(' + p.id + ',\'Aprobado\')" title="Aprobar"><i class="bi bi-check-lg"></i></button>';
+    const btnRechazar = '<button class="btn btn-xs btn-danger btn-sm me-1" onclick="cambiarEstadoPermiso(' + p.id + ',\'Rechazado\')" title="Rechazar"><i class="bi bi-x-lg"></i></button>';
+    return '<tr>'
+      + '<td><strong>' + nombreDocente(p.docente_id) + '</strong></td>'
+      + '<td>' + p.tipo + '</td>'
+      + '<td>' + fmt(p.fecha_inicio) + '</td>'
+      + '<td>' + fmt(p.fecha_fin) + '</td>'
+      + '<td>' + dias + '</td>'
+      + '<td>' + (p.motivo||'\u2014') + '</td>'
+      + '<td>' + badgeEstado(p.estado) + '</td>'
+      + '<td>'
+      + (p.estado==='Pendiente' ? btnAprobar + btnRechazar : '')
+      + '<button class="btn btn-sm btn-outline-primary me-1" onclick="abrirPermiso(' + p.id + ')"><i class="bi bi-pencil-fill"></i></button>'
+      + '<button class="btn btn-sm btn-outline-danger" onclick="eliminarPermiso(' + p.id + ')"><i class="bi bi-trash-fill"></i></button>'
+      + '</td></tr>';
+  }).join('') : emptyRow(8, 'No hay permisos registrados');
+}
+
+function abrirPermiso(id) {
+  id = id || null;
+  document.getElementById('modal-perm-title').textContent = id ? 'Editar Permiso' : 'Nuevo Permiso';
+  const dSel = document.getElementById('perm-docente');
+  dSel.innerHTML = DB.get('docentes').map(d => '<option value="' + d.id + '">' + d.p_nombre + ' ' + d.p_apellido + '</option>').join('');
+  ['perm-id','perm-inicio','perm-fin','perm-motivo'].forEach(x => { document.getElementById(x).value = ''; });
+  document.getElementById('perm-estado').value = 'Pendiente';
+  if (id) {
+    const p = DB.get('permisos').find(x => x.id == id);
+    if (!p) return;
+    document.getElementById('perm-id').value      = p.id;
+    document.getElementById('perm-docente').value = p.docente_id;
+    document.getElementById('perm-tipo').value    = p.tipo;
+    document.getElementById('perm-inicio').value  = p.fecha_inicio||'';
+    document.getElementById('perm-fin').value     = p.fecha_fin||'';
+    document.getElementById('perm-estado').value  = p.estado||'Pendiente';
+    document.getElementById('perm-motivo').value  = p.motivo||'';
+  }
+  new bootstrap.Modal(document.getElementById('modalPermiso')).show();
+}
+
+function guardarPermiso() {
+  const doc_id = document.getElementById('perm-docente').value;
+  const tipo   = document.getElementById('perm-tipo').value;
+  const inicio = document.getElementById('perm-inicio').value;
+  const fin    = document.getElementById('perm-fin').value;
+  if (!doc_id || !tipo || !inicio || !fin) { toast('Docente, tipo y fechas son obligatorios.', false); return; }
+  if (inicio > fin) { toast('La fecha de inicio no puede ser posterior a la fecha fin.', false); return; }
+  const perms  = DB.get('permisos');
+  const idEdit = document.getElementById('perm-id').value;
+  const data   = {
+    docente_id:   parseInt(doc_id),
+    tipo, fecha_inicio: inicio, fecha_fin: fin,
+    estado:       document.getElementById('perm-estado').value,
+    motivo:       document.getElementById('perm-motivo').value.trim(),
+    fecha_registro: new Date().toISOString().slice(0,10),
+  };
+  if (!idEdit) { perms.push({ id: DB.nextId('permisos'), ...data }); toast('Permiso registrado.'); }
+  else { const idx = perms.findIndex(p => p.id == idEdit); Object.assign(perms[idx], data); toast('Permiso actualizado.'); }
+  DB.set('permisos', perms);
+  bootstrap.Modal.getInstance(document.getElementById('modalPermiso')).hide();
+  renderPermisos();
+}
+
+function cambiarEstadoPermiso(id, estado) {
+  const perms = DB.get('permisos');
+  const idx   = perms.findIndex(p => p.id == id);
+  if (idx === -1) return;
+  perms[idx].estado = estado;
+  DB.set('permisos', perms);
+  toast('Permiso ' + estado.toLowerCase() + '.', estado === 'Aprobado');
+  renderPermisos();
+}
+
+function eliminarPermiso(id) {
+  if (!confirmar('\u00bfEliminar este permiso?')) return;
+  DB.set('permisos', DB.get('permisos').filter(p => p.id !== id));
+  toast('Permiso eliminado.');
+  renderPermisos();
+}
+
+// ══════════════════════════════════════════════
+//  EXPORTAR / IMPORTAR JSON
+// ══════════════════════════════════════════════
+function toggleSidebar() {
+  document.body.classList.toggle('sidebar-collapsed');
+}
+
+function exportarDatos() {
+  const data = {};
+  ['docentes','secciones','grados','horarios','aulas','sedes','permisos'].forEach(k => { data[k] = DB.get(k); });
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = 'SIGEI_backup_' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('Datos exportados.');
+}
+
+function importarDatos(ev) {
+  const file = ev.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      ['docentes','secciones','grados','horarios','aulas','sedes','permisos'].forEach(k => {
+        if (data[k]) DB.set(k, data[k]);
+      });
+      toast('Datos importados correctamente.');
+      navigate('dashboard');
+    } catch(_) { toast('Error al importar: archivo invalido.', false); }
+  };
+  reader.readAsText(file);
+  ev.target.value = '';
+}
+
+// ══════════════════════════════════════════════
+//  IMPORTAR EXCEL — DOCENTES
+// ══════════════════════════════════════════════
+const COL_ALIASES = {
+  cedula:     ['cedula','cedula/dni','ci','dni','documento','id','rut','curp'],
+  p_nombre:   ['primer nombre','p_nombre','nombre','nombres','first name','firstname','nombre1'],
+  s_nombre:   ['segundo nombre','s_nombre','nombre2','segundo','middle name'],
+  p_apellido: ['primer apellido','p_apellido','apellido','apellidos','last name','lastname','apellido1'],
+  s_apellido: ['segundo apellido','s_apellido','apellido2'],
+  fecha_nac:  ['fecha nacimiento','fecha de nacimiento','fecha_nac','nacimiento','birthdate','birth date','fec nac','fnac'],
+  genero:     ['genero','sexo','gender','sex'],
+  telefono:   ['telefono','tel','phone','fono'],
+  celular:    ['celular','movil','cell','mobile','cel'],
+  correo:     ['correo','email','e-mail','mail','correo electronico'],
+  municipio:  ['municipio','ciudad','city','localidad','canton'],
+  direccion:  ['direccion','address','domicilio'],
+  estado:     ['estado','status','situacion'],
+};
+const COL_LABELS = {
+  cedula:'Cedula/DNI', p_nombre:'Primer Nombre', s_nombre:'Segundo Nombre',
+  p_apellido:'Primer Apellido', s_apellido:'Segundo Apellido', fecha_nac:'Fecha Nacimiento',
+  genero:'Genero', telefono:'Telefono', celular:'Celular', correo:'Correo',
+  municipio:'Municipio', direccion:'Direccion', estado:'Estado',
+};
+let _xlsxRows = [], _xlsxHeaders = [];
+
+function normalizar(s) {
+  return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+}
+function detectarMapeo(headers) {
+  const mapa = {};
+  Object.keys(COL_ALIASES).forEach(campo => {
+    mapa[campo] = null;
+    headers.forEach((h, idx) => {
+      if (COL_ALIASES[campo].includes(normalizar(h)) && mapa[campo] === null) mapa[campo] = idx;
+    });
+  });
+  return mapa;
+}
+function cargarExcelDocentes(ev) {
+  const file = ev.target.files[0]; if (!file) return; ev.target.value = '';
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const wb   = XLSX.read(e.target.result, {type:'binary', cellDates:true});
+      const ws   = wb.Sheets[wb.SheetNames[0]];
+      const data = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+      if (!data || data.length < 2) { toast('El archivo esta vacio o no tiene datos.', false); return; }
+      _xlsxHeaders = data[0].map(h => String(h).trim());
+      _xlsxRows    = data.slice(1).filter(r => r.some(c => String(c).trim() !== ''));
+      const mapa = detectarMapeo(_xlsxHeaders);
+      const det  = Object.values(mapa).filter(v => v !== null).length;
+      document.getElementById('import-resumen').textContent =
+        _xlsxRows.length + ' filas \u00b7 ' + det + '/' + Object.keys(COL_ALIASES).length + ' campos detectados';
+      const mapeoDiv = document.getElementById('import-mapeo');
+      mapeoDiv.innerHTML = Object.keys(COL_ALIASES).map(campo => {
+        const colIdx = mapa[campo];
+        const req = ['cedula','p_nombre','p_apellido'].includes(campo);
+        const req_badge = req ? ' <span class="text-danger">*</span>' : '';
+        const opts = '<option value="">\u2014 No importar \u2014</option>'
+          + _xlsxHeaders.map((h,i) => '<option value="' + i + '"' + (i===colIdx?' selected':'') + '>' + h + '</option>').join('');
+        return '<div class="col-md-3 col-sm-4">'
+          + '<label class="form-label" style="font-size:11px">' + COL_LABELS[campo] + req_badge + '</label>'
+          + '<select class="form-select form-select-sm" id="map-' + campo + '">' + opts + '</select>'
+          + '</div>';
+      }).join('');
+      document.getElementById('import-thead').innerHTML =
+        '<tr>' + _xlsxHeaders.map(h => '<th>' + h + '</th>').join('') + '</tr>';
+      document.getElementById('import-tbody').innerHTML =
+        _xlsxRows.slice(0,10).map(r =>
+          '<tr>' + _xlsxHeaders.map((_,i) => '<td style="font-size:12px">' + (r[i] != null ? r[i] : '') + '</td>').join('') + '</tr>'
+        ).join('');
+      new bootstrap.Modal(document.getElementById('modalImportExcel')).show();
+    } catch(err) { toast('Error al leer el archivo: ' + err.message, false); }
+  };
+  reader.readAsBinaryString(file);
+}
+function xlsxFecha(val) {
+  if (!val) return '';
+  if (val instanceof Date) return val.toISOString().slice(0,10);
+  if (typeof val === 'number') return new Date(Math.round((val-25569)*86400*1000)).toISOString().slice(0,10);
+  const s = String(val).trim();
+  const ddmm = s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/);
+  if (ddmm) return ddmm[3]+'-'+ddmm[2].padStart(2,'0')+'-'+ddmm[1].padStart(2,'0');
+  if (s.match(/^\d{4}[\/-]/)) return s.slice(0,10);
+  return '';
+}
+function xlsxEstado(val) {
+  const v = normalizar(val);
+  if (['activo','active','1','si','true'].includes(v)) return 'Activo';
+  if (['inactivo','inactive','0','no','false'].includes(v)) return 'Inactivo';
+  if (['licencia','license','permiso'].includes(v)) return 'Licencia';
+  if (['retirado','retired','jubilado'].includes(v)) return 'Retirado';
+  return val || 'Activo';
+}
+function confirmarImportExcel() {
+  const mapa = {};
+  Object.keys(COL_ALIASES).forEach(campo => {
+    const sel = document.getElementById('map-' + campo);
+    mapa[campo] = sel && sel.value !== '' ? parseInt(sel.value) : null;
+  });
+  if (mapa.cedula === null || mapa.p_nombre === null || mapa.p_apellido === null) {
+    toast('Debe mapear al menos: Cedula, Primer Nombre y Primer Apellido.', false); return;
+  }
+  const mode = document.querySelector('input[name="importMode"]:checked').value;
+  let docs = mode === 'replace' ? [] : DB.get('docentes');
+  let added = 0, updated = 0, skipped = 0;
+  _xlsxRows.forEach(row => {
+    const cedula = String(row[mapa.cedula]||'').trim();
+    if (!cedula) { skipped++; return; }
+    const get = (k) => String(row[mapa[k]] != null ? row[mapa[k]] : '').trim();
+    const nuevo = {
+      cedula, p_nombre: get('p_nombre'), s_nombre: get('s_nombre'),
+      p_apellido: get('p_apellido'), s_apellido: get('s_apellido'),
+      fecha_nac: xlsxFecha(mapa.fecha_nac !== null ? row[mapa.fecha_nac] : ''),
+      genero: get('genero'), telefono: get('telefono'), celular: get('celular'),
+      correo: get('correo'), municipio: get('municipio'), direccion: get('direccion'),
+      estado: xlsxEstado(mapa.estado !== null ? row[mapa.estado] : 'Activo'),
+    };
+    if (!nuevo.p_nombre || !nuevo.p_apellido) { skipped++; return; }
+    const existIdx = docs.findIndex(d => d.cedula === cedula);
+    if (existIdx === -1) {
+      docs.push({ id: (docs.length ? Math.max(...docs.map(d=>d.id))+1 : 1), ...nuevo });
+      added++;
+    } else if (mode === 'update' || mode === 'replace') {
+      Object.assign(docs[existIdx], nuevo); updated++;
+    } else { skipped++; }
+  });
+  DB.set('docentes', docs);
+  bootstrap.Modal.getInstance(document.getElementById('modalImportExcel')).hide();
+  renderDocentes();
+  toast('Importacion: ' + added + ' nuevos, ' + updated + ' actualizados, ' + skipped + ' omitidos.');
+}
+
+// ══════════════════════════════════════════════
+//  INICIO
+// ══════════════════════════════════════════════
+// ── Firebase auth ──────────────────────────────────────────────────────
+async function loginSubmit() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass  = document.getElementById('login-pass').value;
+  const errEl = document.getElementById('login-error');
+  const btn   = document.getElementById('login-btn');
+  errEl.style.display = 'none';
+  btn.textContent = 'Iniciando sesión...';
+  btn.disabled = true;
+  try {
+    await _auth.signInWithEmailAndPassword(email, pass);
+  } catch(err) {
+    const msgs = {
+      'auth/user-not-found':    'Correo no registrado.',
+      'auth/wrong-password':    'Contraseña incorrecta.',
+      'auth/invalid-email':     'Correo inválido.',
+      'auth/too-many-requests': 'Demasiados intentos. Espera unos minutos.',
+      'auth/invalid-credential':'Correo o contraseña incorrectos.',
+    };
+    errEl.textContent = msgs[err.code] || 'Error: ' + err.message;
+    errEl.style.display = 'block';
+    btn.textContent = 'Iniciar sesión';
+    btn.disabled = false;
+  }
+}
+
+async function logoutUser() {
+  _appLoaded = false;
+  await _auth.signOut();
+}
+
+let _appLoaded = false;
+
+_auth.onAuthStateChanged(async function(user) {
+  const overlay = document.getElementById('login-overlay');
+  if (user) {
+    // Show loading indicator inside overlay without replacing the form
+    const loadEl = document.getElementById('login-loading');
+    if (loadEl) loadEl.style.display = 'block';
+    const btn = document.getElementById('login-btn');
+    if (btn) { btn.textContent = 'Cargando...'; btn.disabled = true; }
+    try {
+      await DB.loadAll();
+    } catch(e) {
+      const errEl = document.getElementById('login-error');
+      if (errEl) { errEl.textContent = 'Error al cargar datos: ' + e.message; errEl.style.display = 'block'; }
+      if (btn)   { btn.textContent = 'Iniciar sesión'; btn.disabled = false; }
+      if (loadEl) loadEl.style.display = 'none';
+      return;
+    }
+    overlay.style.display = 'none';
+    const emailEl = document.getElementById('user-email-display');
+    if (emailEl) emailEl.textContent = user.email;
+    if (!_appLoaded) {
+      // Set topbar date
+      const dateEl = document.getElementById('topbar-date');
+      if (dateEl) {
+        const now = new Date();
+        dateEl.textContent = now.toLocaleDateString('es-CO', { weekday:'short', day:'numeric', month:'short', year:'numeric' });
+      }
+      renderDashboard(); navigate('dashboard'); _appLoaded = true;
+    }
+  } else {
+    // Not logged in — just show the overlay (no reload)
+    _cache = {};
+    _appLoaded = false;
+    if (overlay) {
+      overlay.style.display = 'flex';
+      // Reset form state
+      const emailEl2 = document.getElementById('login-email');
+      const passEl   = document.getElementById('login-pass');
+      const errEl2   = document.getElementById('login-error');
+      const btn2     = document.getElementById('login-btn');
+      if (emailEl2) emailEl2.value = '';
+      if (passEl)   passEl.value   = '';
+      if (errEl2)   errEl2.style.display = 'none';
+      if (btn2)     { btn2.textContent = 'Iniciar sesión'; btn2.disabled = false; }
+    }
+  }
+});
+</script>
+
+<!-- ── LOGIN OVERLAY ─────────────────────────────────────────────── -->
+<div id="login-overlay" style="
+  position:fixed;inset:0;z-index:9999;
+  background:linear-gradient(135deg,#1e3a5f 0%,#2563eb 100%);
+  display:flex;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:20px;padding:40px 36px;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+    <div style="text-align:center;margin-bottom:28px">
+      <div style="font-size:36px;margin-bottom:8px">🎓</div>
+      <h1 style="font-size:22px;font-weight:800;color:#1e293b;margin:0">SIGEI</h1>
+      <p style="font-size:13px;color:#64748b;margin:4px 0 0">Sistema de Gestión Educativa Institucional</p>
+    </div>
+    <div id="login-error" style="display:none;background:#fee2e2;color:#991b1b;padding:10px 14px;border-radius:10px;font-size:13px;margin-bottom:16px"></div>
+    <div id="login-loading" style="display:none;text-align:center;color:#2563eb;font-size:13px;margin-bottom:12px">
+      <span>⏳ Cargando datos del sistema...</span>
+    </div>
+    <div style="margin-bottom:14px">
+      <label style="font-size:12px;font-weight:600;color:#475569;display:block;margin-bottom:6px">Correo electrónico</label>
+      <input type="email" id="login-email" placeholder="usuario@institución.edu"
+        style="width:100%;padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:14px;outline:none;box-sizing:border-box"
+        onkeydown="if(event.key==='Enter')loginSubmit()">
+    </div>
+    <div style="margin-bottom:24px">
+      <label style="font-size:12px;font-weight:600;color:#475569;display:block;margin-bottom:6px">Contraseña</label>
+      <input type="password" id="login-pass" placeholder="••••••••"
+        style="width:100%;padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:14px;outline:none;box-sizing:border-box"
+        onkeydown="if(event.key==='Enter')loginSubmit()">
+    </div>
+    <button onclick="loginSubmit()" id="login-btn"
+      style="width:100%;padding:12px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer">
+      Iniciar sesión
+    </button>
+    <p style="text-align:center;font-size:11px;color:#94a3b8;margin-top:20px;margin-bottom:0">
+      IER SANTANDERCITO · ALFATIC · © 2026
+    </p>
+  </div>
+</div>
+
+</bod
