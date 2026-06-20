@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SIGEI v10.0 — Sistema de Gestión Educativa Institucional</title>
+<title>SIGEI v12.0 — Sistema de Gestión Educativa Institucional</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 <style>
@@ -400,7 +400,70 @@
     display: flex; align-items: center;
   }
   #sidebar-toggle:hover { background: var(--slate-100); color: var(--slate-800); }
+
+
+  /* ══ HORARIO MATERIA COLORS ══════════════════════════════════════════ */
+  .block-mat   { background:#DBEAFE; color:#1E40AF; border-color:#BFDBFE; }
+  .block-esp   { background:#D1FAE5; color:#065F46; border-color:#A7F3D0; }
+  .block-cn    { background:#CCFBF1; color:#0F766E; border-color:#99F6E4; }
+  .block-soc   { background:#FEF3C7; color:#92400E; border-color:#FDE68A; }
+  .block-ing   { background:#EDE9FE; color:#5B21B6; border-color:#DDD6FE; }
+  .block-art   { background:#FCE7F3; color:#9D174D; border-color:#FBCFE8; }
+  .block-tec   { background:#F0FDF4; color:#15803D; border-color:#BBF7D0; }
+  .block-otros { background:#F1F5F9; color:#334155; border-color:#E2E8F0; }
+
+  /* ══ USER AVATAR ═════════════════════════════════════════════════════ */
+  .user-avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--blue-600), #7C3AED);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; color: #fff;
+    flex-shrink: 0; letter-spacing: .5px;
+  }
+  .sidebar-user {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 0; margin-bottom: 8px;
+  }
+  .sidebar-user-info { flex: 1; min-width: 0; }
+  .sidebar-user-info .name { color: #fff; font-size: 12px; font-weight: 600;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sidebar-user-info .role { color: var(--slate-400); font-size: 10px; }
+
+  /* ══ CARD ACCENT BORDERS ════════════════════════════════════════════ */
+  .card-panel { border-left: 3px solid transparent; }
+  #page-docentes .card-panel, #page-permisos .card-panel { border-left-color: #3B82F6; }
+  #page-grados .card-panel, #page-asignaciones .card-panel,
+  #page-horarios .card-panel { border-left-color: #10B981; }
+  #page-cronograma .card-panel { border-left-color: #F59E0B; }
+  #page-aulas .card-panel, #page-sedes .card-panel { border-left-color: #8B5CF6; }
+
+  /* ══ DASHBOARD CHARTS ═══════════════════════════════════════════════ */
+  .chart-card { background: var(--white); border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm); padding: 16px 20px; height: 100%; }
+  .chart-card h6 { margin: 0 0 12px; font-size: 13px; font-weight: 700;
+    color: var(--slate-700); }
+  .chart-wrap { position: relative; }
+
+  /* ══ TODAY WIDGET ════════════════════════════════════════════════════ */
+  .today-item { display: flex; align-items: center; gap: 10px;
+    padding: 8px 0; border-bottom: 1px solid var(--slate-100); }
+  .today-item:last-child { border-bottom: none; }
+  .today-time { font-size: 11px; font-weight: 700; color: var(--blue-600);
+    min-width: 48px; }
+  .today-info { flex: 1; min-width: 0; }
+  .today-info strong { font-size: 12px; display: block;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .today-info span { font-size: 11px; color: var(--slate-400); }
+  .today-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ══ STAT CARD UPGRADE ═══════════════════════════════════════════════ */
+  .stat-card { cursor: default; }
+  .stat-badge { font-size: 10px; font-weight: 600; padding: 2px 7px;
+    border-radius: 20px; margin-top: 4px; display: inline-block; }
+
 </style>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <!-- Firebase compat SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -417,10 +480,16 @@
       <div class="logo-icon">🎓</div>
       <div>
         <h6>SIGEI TIC</h6>
-        <small>Sistema de gestión Institucional ALFATIC</small>
+        <small>Gestión Institucional ALFATIC</small>
       </div>
     </div>
-    <div id="user-email-display"></div>
+    <div class="sidebar-user">
+      <div class="user-avatar" id="user-avatar-initials">?</div>
+      <div class="sidebar-user-info">
+        <div class="name" id="user-email-display"></div>
+        <div class="role">Administrador</div>
+      </div>
+    </div>
     <button onclick="logoutUser()">
       <i class="bi bi-box-arrow-right"></i> Cerrar sesión
     </button>
@@ -461,7 +530,7 @@
       <i class="bi bi-building-fill"></i><span>Sedes</span>
     </a>
   </nav>
-  <div class="version">v11.0 · Firebase</div>
+  <div class="version">v12.0 · Firebase</div>
 </div>
 
 <!-- ══════════════════════════════════════
@@ -484,61 +553,100 @@
 
     <!-- ── DASHBOARD ────────────────────── -->
     <div id="page-dashboard">
+      <!-- Stat cards -->
       <div class="row g-3 mb-4">
         <div class="col-6 col-md-4 col-lg-2">
-          <div class="stat-card">
+          <div class="stat-card" onclick="navigate('docentes')" style="cursor:pointer">
             <div class="icon" style="background:#EFF6FF;color:#2563EB"><i class="bi bi-person-badge-fill"></i></div>
             <div class="info"><h2 id="cnt-docentes">0</h2><p>Docentes activos</p></div>
           </div>
         </div>
         <div class="col-6 col-md-4 col-lg-2">
-          <div class="stat-card">
+          <div class="stat-card" onclick="navigate('grados')" style="cursor:pointer">
             <div class="icon" style="background:#DCFCE7;color:#15803D"><i class="bi bi-diagram-3-fill"></i></div>
             <div class="info"><h2 id="cnt-secciones">0</h2><p>Secciones activas</p></div>
           </div>
         </div>
         <div class="col-6 col-md-4 col-lg-2">
-          <div class="stat-card">
+          <div class="stat-card" onclick="navigate('horarios')" style="cursor:pointer">
             <div class="icon" style="background:#FEF3C7;color:#B45309"><i class="bi bi-clock-fill"></i></div>
             <div class="info"><h2 id="cnt-horarios">0</h2><p>Clases programadas</p></div>
           </div>
         </div>
         <div class="col-6 col-md-4 col-lg-2">
-          <div class="stat-card">
+          <div class="stat-card" onclick="navigate('permisos')" style="cursor:pointer">
             <div class="icon" style="background:#FEE2E2;color:#B91C1C"><i class="bi bi-calendar2-check-fill"></i></div>
             <div class="info"><h2 id="cnt-permisos">0</h2><p>Permisos pendientes</p></div>
           </div>
         </div>
         <div class="col-6 col-md-4 col-lg-2">
-          <div class="stat-card">
+          <div class="stat-card" onclick="navigate('aulas')" style="cursor:pointer">
             <div class="icon" style="background:#EDE9FE;color:#7C3AED"><i class="bi bi-door-open-fill"></i></div>
             <div class="info"><h2 id="cnt-aulas">0</h2><p>Aulas disponibles</p></div>
           </div>
         </div>
         <div class="col-6 col-md-4 col-lg-2">
-          <div class="stat-card">
+          <div class="stat-card" onclick="navigate('sedes')" style="cursor:pointer">
             <div class="icon" style="background:#CFFAFE;color:#0E7490"><i class="bi bi-building-fill"></i></div>
             <div class="info"><h2 id="cnt-sedes">0</h2><p>Sedes</p></div>
           </div>
         </div>
       </div>
+
+      <!-- Row 2: Próximo evento + Hoy -->
       <div class="row g-3 mb-3">
-        <div class="col-12">
-          <div class="card-panel" id="dash-proximo-evento-panel">
+        <div class="col-md-7">
+          <div class="card-panel h-100" id="dash-proximo-evento-panel">
             <div class="panel-header">
-              <h6><i class="bi bi-calendar-event-fill me-2" style="color:#f59e0b"></i>Próximo Evento Institucional</h6>
+              <h6><i class="bi bi-calendar-event-fill me-2" style="color:#f59e0b"></i>Próximo Evento</h6>
               <a href="#" onclick="navigate('cronograma')" class="btn btn-sm btn-outline-secondary">Ver cronograma</a>
             </div>
             <div id="dash-proximo-evento">
-              <p class="text-muted text-center py-2" style="font-size:13px">Sin eventos próximos registrados</p>
+              <p class="text-muted text-center py-2" style="font-size:13px">Sin eventos próximos</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-5">
+          <div class="card-panel h-100">
+            <div class="panel-header">
+              <h6><i class="bi bi-sun-fill me-2" style="color:#f59e0b"></i>Clases de hoy</h6>
+              <span id="dash-hoy-dia" style="font-size:11px;color:var(--slate-400)"></span>
+            </div>
+            <div id="dash-hoy-lista">
+              <p class="text-muted text-center py-2" style="font-size:13px">Sin clases hoy</p>
             </div>
           </div>
         </div>
       </div>
+
+      <!-- Row 3: Charts + Permisos -->
       <div class="row g-3">
+        <div class="col-md-4">
+          <div class="chart-card">
+            <h6><i class="bi bi-pie-chart-fill me-2" style="color:#7C3AED"></i>Estado docentes</h6>
+            <div class="chart-wrap" style="height:180px">
+              <canvas id="chart-docentes-estado"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-8">
+          <div class="chart-card">
+            <h6><i class="bi bi-bar-chart-fill me-2" style="color:#2563EB"></i>Carga académica (h/sem)</h6>
+            <div class="chart-wrap" style="height:180px">
+              <canvas id="chart-carga"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 4: Permisos pendientes -->
+      <div class="row g-3 mt-0">
         <div class="col-12">
           <div class="card-panel">
-            <div class="panel-header"><h6><i class="bi bi-calendar2-check-fill me-2"></i>Permisos pendientes</h6></div>
+            <div class="panel-header">
+              <h6><i class="bi bi-calendar2-check-fill me-2"></i>Permisos pendientes</h6>
+              <a href="#" onclick="navigate('permisos')" class="btn btn-sm btn-outline-secondary">Ver todos</a>
+            </div>
             <div class="p-0"><table><thead><tr><th>Docente</th><th>Tipo</th><th>Fecha inicio</th></tr></thead>
             <tbody id="dash-permisos"></tbody></table></div>
           </div>
@@ -1513,6 +1621,9 @@ function confirmar(msg) { return confirm(msg); }
 // ══════════════════════════════════════════════
 //  DASHBOARD
 // ══════════════════════════════════════════════
+// Chart instances (destroy before re-creating)
+let _chartEstado = null, _chartCarga = null;
+
 function renderDashboard() {
   const docs   = DB.get('docentes');
   const secs   = DB.get('secciones');
@@ -1520,8 +1631,9 @@ function renderDashboard() {
   const perms  = DB.get('permisos');
   const aulas  = DB.get('aulas');
   const sedes  = DB.get('sedes');
+  const asigs  = DB.get('asignaciones');
 
-  document.getElementById('cnt-docentes').textContent  = docs.length;
+  document.getElementById('cnt-docentes').textContent  = docs.filter(d=>d.estado==='Activo').length;
   document.getElementById('cnt-secciones').textContent = secs.length;
   document.getElementById('cnt-horarios').textContent  = hors.length;
   document.getElementById('cnt-permisos').textContent  = perms.filter(p=>p.estado==='Pendiente').length;
@@ -1531,12 +1643,94 @@ function renderDashboard() {
   const tbPerm = document.getElementById('dash-permisos');
   const pending = perms.filter(p => p.estado === 'Pendiente').slice(0,5);
   tbPerm.innerHTML = pending.length
-    ? pending.map(p => `<tr>
-        <td>${nombreDocente(p.docente_id)}</td>
-        <td>${p.tipo}</td>
-        <td>${fmt(p.fecha_inicio)}</td>
-      </tr>`).join('')
+    ? pending.map(p => '<tr>'
+        + '<td>' + nombreDocente(p.docente_id) + '</td>'
+        + '<td>' + p.tipo + '</td>'
+        + '<td>' + fmt(p.fecha_inicio) + '</td>'
+        + '</tr>').join('')
     : emptyRow(3, 'Sin permisos pendientes');
+
+  // ── Clases de hoy ───────────────────────────────────────────────────
+  const DIAS_ES = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const hoyDia = DIAS_ES[new Date().getDay()];
+  const hoyEl  = document.getElementById('dash-hoy-dia');
+  const hoyLista = document.getElementById('dash-hoy-lista');
+  if (hoyEl) hoyEl.textContent = hoyDia;
+  const clasesHoy = hors
+    .filter(h => h.dia === hoyDia)
+    .sort((a,b) => a.hora_inicio.localeCompare(b.hora_inicio));
+  if (hoyLista) {
+    if (!clasesHoy.length) {
+      hoyLista.innerHTML = '<p class="text-muted text-center py-2" style="font-size:13px">Sin clases hoy</p>';
+    } else {
+      const MATCOLORS = ['#3B82F6','#10B981','#F59E0B','#EF4444','#8B5CF6','#06B6D4','#EC4899','#84CC16'];
+      const colorMap = {};
+      let ci = 0;
+      hoyLista.innerHTML = clasesHoy.slice(0,6).map(h => {
+        if (!colorMap[h.materia]) colorMap[h.materia] = MATCOLORS[ci++ % MATCOLORS.length];
+        const sec = DB.get('secciones').find(s => s.id == h.seccion_id);
+        const gradoNom = sec ? nombreGrado(sec.grado_id) + ' — ' + sec.nombre : '—';
+        return '<div class="today-item">'
+          + '<div class="today-dot" style="background:' + colorMap[h.materia] + '"></div>'
+          + '<div class="today-time">' + h.hora_inicio + '</div>'
+          + '<div class="today-info"><strong>' + h.materia + '</strong>'
+          + '<span>' + nombreDocente(h.docente_id) + ' · ' + gradoNom + '</span></div>'
+          + '</div>';
+      }).join('') + (clasesHoy.length > 6 ? '<p style="font-size:11px;color:var(--slate-400);text-align:center;margin:6px 0 0">+' + (clasesHoy.length-6) + ' más...</p>' : '');
+    }
+  }
+
+  // ── Gráfica: Estado docentes ─────────────────────────────────────────
+  const ctxE = document.getElementById('chart-docentes-estado');
+  if (ctxE && typeof Chart !== 'undefined') {
+    if (_chartEstado) _chartEstado.destroy();
+    const activos   = docs.filter(d=>d.estado==='Activo').length;
+    const inactivos = docs.filter(d=>d.estado==='Inactivo').length;
+    const licencia  = docs.filter(d=>d.estado==='Licencia').length;
+    _chartEstado = new Chart(ctxE, {
+      type: 'doughnut',
+      data: {
+        labels: ['Activos','Inactivos','Licencia'],
+        datasets: [{ data: [activos, inactivos, licencia],
+          backgroundColor: ['#10B981','#94A3B8','#F59E0B'],
+          borderWidth: 2, borderColor: '#fff' }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, cutout: '65%',
+        plugins: { legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 10 } } } }
+    });
+  }
+
+  // ── Gráfica: Carga académica ─────────────────────────────────────────
+  const ctxC = document.getElementById('chart-carga');
+  if (ctxC && typeof Chart !== 'undefined') {
+    if (_chartCarga) _chartCarga.destroy();
+    const cargaMap = {};
+    asigs.forEach(a => {
+      if (!a.docente_id) return;
+      const nom = nombreDocente(a.docente_id);
+      if (!cargaMap[nom]) cargaMap[nom] = 0;
+      (a.cursos || []).forEach(c => {
+        (c.dias || []).forEach(d => {
+          const ini = timeToMins(d.hora_inicio || c.hora_inicio || '00:00');
+          const fin = timeToMins(d.hora_fin    || c.hora_fin    || '00:00');
+          if (fin > ini) cargaMap[nom] += (fin - ini) / 60;
+        });
+      });
+    });
+    const sorted = Object.entries(cargaMap).sort((a,b)=>b[1]-a[1]).slice(0,8);
+    _chartCarga = new Chart(ctxC, {
+      type: 'bar',
+      data: {
+        labels: sorted.map(e => e[0].split(' ')[0] + ' ' + (e[0].split(' ')[1]||'').charAt(0) + '.'),
+        datasets: [{ label: 'h/sem', data: sorted.map(e => +e[1].toFixed(1)),
+          backgroundColor: '#3B82F6', borderRadius: 6 }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+        plugins: { legend: { display: false } },
+        scales: { x: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 10 } } },
+                  y: { grid: { display: false }, ticks: { font: { size: 10 } } } } }
+    });
+  }
 
   // Próximo evento
   const hoy   = new Date().toISOString().slice(0,10);
@@ -2515,6 +2709,19 @@ function actualizarFiltroSecciones() {
   renderHorarios();
 }
 
+
+function materiaBlockClass(m) {
+  m = m.toLowerCase();
+  if (/matém|fisica|quím|cálculo/.test(m))   return 'block-mat';
+  if (/español|lengua|liter|comuni/.test(m))            return 'block-esp';
+  if (/ciencias nat|biología|ecolog/.test(m))           return 'block-cn';
+  if (/sociales|historia|geograf|etica|religi/.test(m))      return 'block-soc';
+  if (/inglés|franc|idioma|lengua ext/.test(m))         return 'block-ing';
+  if (/arte|música|plástica|educación f/.test(m)) return 'block-art';
+  if (/inform|tecnol|sistema/.test(m))                       return 'block-tec';
+  return 'block-otros';
+}
+
 function renderHorarios() {
   const grados   = DB.get('grados');
   const secciones = DB.get('secciones');
@@ -2628,10 +2835,7 @@ function renderHorarios() {
 
       var sec   = secciones.find(function(s) { return s.id == b.seccion_id; });
       var grado = sec ? grados.find(function(g) { return g.id == sec.grado_id; }) : null;
-      var nivel = grado ? grado.nivel : '';
-      var cls   = nivel === 'Primaria'     ? 'block-primaria'
-                : nivel === 'Secundaria'   ? 'block-secundaria'
-                : nivel === 'Bachillerato' ? 'block-bachillerato' : 'block-secundaria';
+      var cls   = materiaBlockClass(b.materia || '');
       var secLabel = sec ? sec.nombre : '';
 
       var gradoLabel = grado ? grado.nombre : '';
