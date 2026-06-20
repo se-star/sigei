@@ -4066,12 +4066,12 @@ function buscarGlobalKey(e) {
 // ══════════════════════════════════════════════
 //  LOG DE ACTIVIDAD
 // ══════════════════════════════════════════════
-const COL_LABELS = {
+const ACT_LABELS = {
   docentes:'Docentes', secciones:'Grupos', horarios:'Horarios',
   permisos:'Permisos', asignaciones:'Asignaciones', cronograma:'Cronograma',
   aulas:'Aulas', sedes:'Sedes', reuniones:'Reuniones'
 };
-const COL_ICONS = {
+const ACT_ICONS = {
   docentes:['bi-person-badge-fill','#EFF6FF','#2563EB'],
   secciones:['bi-mortarboard-fill','#DCFCE7','#15803D'],
   horarios:['bi-calendar3','#FEF3C7','#B45309'],
@@ -4099,7 +4099,7 @@ function _logActividad(colName, newData) {
     user:    user.email || 'desconocido',
     col:     colName,
     accion:  accion,
-    label:   COL_LABELS[colName] || colName,
+    label:   ACT_LABELS[colName] || colName,
     count:   newLen
   });
   // Keep last 200 entries
@@ -4123,7 +4123,7 @@ function renderActividad() {
   }
 
   container.innerHTML = log.map(entry => {
-    const [ico, bg, color] = COL_ICONS[entry.col] || ['bi-circle-fill','#F1F5F9','#64748B'];
+    const [ico, bg, color] = ACT_ICONS[entry.col] || ['bi-circle-fill','#F1F5F9','#64748B'];
     const ts = entry.ts ? new Date(entry.ts).toLocaleString('es-CO', {
       day:'2-digit', month:'short', year:'numeric',
       hour:'2-digit', minute:'2-digit'
