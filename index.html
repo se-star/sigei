@@ -461,6 +461,16 @@
   .stat-badge { font-size: 10px; font-weight: 600; padding: 2px 7px;
     border-radius: 20px; margin-top: 4px; display: inline-block; }
 
+
+  .det-field { background:var(--slate-50);border-radius:var(--radius-sm);padding:8px 10px;height:100%; }
+  .det-label { font-size:10px;font-weight:600;color:var(--slate-400);text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px; }
+  .det-val   { font-size:13px;font-weight:500;color:var(--slate-800);word-break:break-word; }
+  .det-asig-item { padding:8px 10px;border-radius:var(--radius-sm);background:var(--blue-50);margin-bottom:6px; }
+  .det-asig-item strong { font-size:12px;color:var(--blue-600);display:block; }
+  .det-asig-item span   { font-size:11px;color:var(--slate-500); }
+  tr.doc-row { cursor:pointer; transition:background .15s; }
+  tr.doc-row:hover td { background:var(--blue-50) !important; }
+
 </style>
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -1128,6 +1138,23 @@
               <option>Licencia</option><option>Retirado</option>
             </select>
           </div>
+          <div class="col-12"><hr style="margin:4px 0"><p class="fw-bold text-muted" style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;margin:0">Información Contractual</p></div>
+          <div class="col-md-4">
+            <label class="form-label">Área Principal</label>
+            <input type="text" class="form-control" id="doc-area" placeholder="Ej: Matemáticas, Ciencias...">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Tipo de Vinculación</label>
+            <select class="form-select" id="doc-tipo-vinc">
+              <option value="">Seleccione</option>
+              <option>Planta</option><option>Provisional</option>
+              <option>Contratista</option><option>Hora cátedra</option><option>Temporal</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Decreto</label>
+            <input type="text" class="form-control" id="doc-decreto" placeholder="Ej: 1278, 2277...">
+          </div>
         </div>
       </div>
       <div class="modal-footer">
@@ -1136,6 +1163,50 @@
           <i class="bi bi-save me-1"></i>Guardar
         </button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Offcanvas Detalle Docente -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasDocente" style="width:380px">
+  <div class="offcanvas-header border-bottom" style="background:var(--slate-900)">
+    <div class="d-flex align-items-center gap-3">
+      <div class="user-avatar" id="det-avatar" style="width:44px;height:44px;font-size:16px">?</div>
+      <div>
+        <h6 class="offcanvas-title text-white mb-0" id="det-nombre">—</h6>
+        <span id="det-estado-badge"></span>
+      </div>
+    </div>
+    <button class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+  </div>
+  <div class="offcanvas-body p-0" style="overflow-y:auto">
+    <div style="padding:16px 20px">
+      <p class="text-muted fw-bold mb-2" style="font-size:10px;text-transform:uppercase;letter-spacing:.06em">Identificación</p>
+      <div class="row g-2 mb-3">
+        <div class="col-6"><div class="det-field"><div class="det-label">Cédula</div><div id="det-cedula" class="det-val">—</div></div></div>
+        <div class="col-6"><div class="det-field"><div class="det-label">Género</div><div id="det-genero" class="det-val">—</div></div></div>
+        <div class="col-6"><div class="det-field"><div class="det-label">Fecha Nac.</div><div id="det-fecha" class="det-val">—</div></div></div>
+        <div class="col-6"><div class="det-field"><div class="det-label">Municipio</div><div id="det-municipio" class="det-val">—</div></div></div>
+      </div>
+      <p class="text-muted fw-bold mb-2" style="font-size:10px;text-transform:uppercase;letter-spacing:.06em">Contacto</p>
+      <div class="row g-2 mb-3">
+        <div class="col-6"><div class="det-field"><div class="det-label">Teléfono</div><div id="det-telefono" class="det-val">—</div></div></div>
+        <div class="col-6"><div class="det-field"><div class="det-label">Celular</div><div id="det-celular" class="det-val">—</div></div></div>
+        <div class="col-12"><div class="det-field"><div class="det-label">Correo</div><div id="det-correo" class="det-val">—</div></div></div>
+        <div class="col-12"><div class="det-field"><div class="det-label">Dirección</div><div id="det-direccion" class="det-val">—</div></div></div>
+      </div>
+      <p class="text-muted fw-bold mb-2" style="font-size:10px;text-transform:uppercase;letter-spacing:.06em">Información Contractual</p>
+      <div class="row g-2 mb-3">
+        <div class="col-12"><div class="det-field"><div class="det-label">Área Principal</div><div id="det-area" class="det-val">—</div></div></div>
+        <div class="col-6"><div class="det-field"><div class="det-label">Tipo Vinculación</div><div id="det-tipo-vinc" class="det-val">—</div></div></div>
+        <div class="col-6"><div class="det-field"><div class="det-label">Decreto</div><div id="det-decreto" class="det-val">—</div></div></div>
+      </div>
+      <p class="text-muted fw-bold mb-2" style="font-size:10px;text-transform:uppercase;letter-spacing:.06em">Asignación Académica</p>
+      <div id="det-asignaciones"><p class="text-muted" style="font-size:12px">Sin asignaciones</p></div>
+    </div>
+    <div class="border-top p-3 d-flex gap-2">
+      <button class="btn btn-sm text-white flex-fill" style="background:var(--blue-600)" id="det-btn-editar"><i class="bi bi-pencil-fill me-1"></i>Editar</button>
+      <button class="btn btn-sm btn-outline-danger" id="det-btn-eliminar"><i class="bi bi-trash-fill"></i></button>
     </div>
   </div>
 </div>
@@ -1780,7 +1851,7 @@ function renderDocentes() {
     return (!q || txt.includes(q)) && (!estado || d.estado === estado);
   });
   const tb = document.getElementById('tabla-docentes');
-  tb.innerHTML = rows.length ? rows.map((d,i) => `<tr>
+  tb.innerHTML = rows.length ? rows.map((d,i) => `<tr class="doc-row" onclick="verDocente(${d.id})">
     <td>${i+1}</td>
     <td><code>${d.cedula}</code></td>
     <td><strong>${d.p_nombre} ${d.s_nombre||''} ${d.p_apellido} ${d.s_apellido||''}</strong></td>
@@ -1788,15 +1859,15 @@ function renderDocentes() {
     <td>${d.correo||'—'}</td>
     <td>${badgeEstado(d.estado)}</td>
     <td>
-      <button class="btn btn-xs btn-outline-primary btn-sm me-1" onclick="abrirDocente(${d.id})" title="Editar"><i class="bi bi-pencil-fill"></i></button>
-      <button class="btn btn-xs btn-outline-danger btn-sm" onclick="eliminarDocente(${d.id})" title="Eliminar"><i class="bi bi-trash-fill"></i></button>
+      <button class="btn btn-xs btn-outline-primary btn-sm me-1" onclick="event.stopPropagation();abrirDocente(${d.id})" title="Editar"><i class="bi bi-pencil-fill"></i></button>
+      <button class="btn btn-xs btn-outline-danger btn-sm" onclick="event.stopPropagation();eliminarDocente(${d.id})" title="Eliminar"><i class="bi bi-trash-fill"></i></button>
     </td>
   </tr>`).join('') : emptyRow(7, 'No hay docentes registrados');
 }
 
 function abrirDocente(id=null) {
   document.getElementById('modal-doc-title').textContent = id ? 'Editar Docente' : 'Nuevo Docente';
-  const campos = ['id','cedula','p-nombre','s-nombre','p-apellido','s-apellido','fecha','genero','telefono','celular','correo','municipio','direccion','estado'];
+  const campos = ['id','cedula','p-nombre','s-nombre','p-apellido','s-apellido','fecha','genero','telefono','celular','correo','municipio','direccion','estado','area','tipo-vinc','decreto'];
   campos.forEach(c => { const el = document.getElementById('doc-'+c); if(el) el.value = ''; });
   if (id) {
     const d = DB.get('docentes').find(x=>x.id==id);
@@ -1832,17 +1903,20 @@ function guardarDocente() {
     if (docs.find(d => d.cedula === cedula)) { toast('La cédula ya está registrada.', false); return; }
     docs.push({
       id: DB.nextId('docentes'), cedula, p_nombre,
-      s_nombre:   document.getElementById('doc-s-nombre').value.trim(),
+      s_nombre:    document.getElementById('doc-s-nombre').value.trim(),
       p_apellido,
-      s_apellido: document.getElementById('doc-s-apellido').value.trim(),
-      fecha_nac:  document.getElementById('doc-fecha').value,
-      genero:     document.getElementById('doc-genero').value,
-      telefono:   document.getElementById('doc-telefono').value.trim(),
-      celular:    document.getElementById('doc-celular').value.trim(),
-      correo:     document.getElementById('doc-correo').value.trim(),
-      municipio:  document.getElementById('doc-municipio').value.trim(),
-      direccion:  document.getElementById('doc-direccion').value.trim(),
-      estado:     document.getElementById('doc-estado').value,
+      s_apellido:  document.getElementById('doc-s-apellido').value.trim(),
+      fecha_nac:   document.getElementById('doc-fecha').value,
+      genero:      document.getElementById('doc-genero').value,
+      telefono:    document.getElementById('doc-telefono').value.trim(),
+      celular:     document.getElementById('doc-celular').value.trim(),
+      correo:      document.getElementById('doc-correo').value.trim(),
+      municipio:   document.getElementById('doc-municipio').value.trim(),
+      direccion:   document.getElementById('doc-direccion').value.trim(),
+      estado:      document.getElementById('doc-estado').value,
+      area:        document.getElementById('doc-area').value.trim(),
+      tipo_vinc:   document.getElementById('doc-tipo-vinc').value,
+      decreto:     document.getElementById('doc-decreto').value.trim(),
     });
     toast('Docente guardado exitosamente.');
   } else {
@@ -1850,23 +1924,81 @@ function guardarDocente() {
     if (idx === -1) return;
     Object.assign(docs[idx], {
       cedula, p_nombre,
-      s_nombre:   document.getElementById('doc-s-nombre').value.trim(),
+      s_nombre:    document.getElementById('doc-s-nombre').value.trim(),
       p_apellido,
-      s_apellido: document.getElementById('doc-s-apellido').value.trim(),
-      fecha_nac:  document.getElementById('doc-fecha').value,
-      genero:     document.getElementById('doc-genero').value,
-      telefono:   document.getElementById('doc-telefono').value.trim(),
-      celular:    document.getElementById('doc-celular').value.trim(),
-      correo:     document.getElementById('doc-correo').value.trim(),
-      municipio:  document.getElementById('doc-municipio').value.trim(),
-      direccion:  document.getElementById('doc-direccion').value.trim(),
-      estado:     document.getElementById('doc-estado').value,
+      s_apellido:  document.getElementById('doc-s-apellido').value.trim(),
+      fecha_nac:   document.getElementById('doc-fecha').value,
+      genero:      document.getElementById('doc-genero').value,
+      telefono:    document.getElementById('doc-telefono').value.trim(),
+      celular:     document.getElementById('doc-celular').value.trim(),
+      correo:      document.getElementById('doc-correo').value.trim(),
+      municipio:   document.getElementById('doc-municipio').value.trim(),
+      direccion:   document.getElementById('doc-direccion').value.trim(),
+      estado:      document.getElementById('doc-estado').value,
+      area:        document.getElementById('doc-area').value.trim(),
+      tipo_vinc:   document.getElementById('doc-tipo-vinc').value,
+      decreto:     document.getElementById('doc-decreto').value.trim(),
     });
     toast('Docente actualizado.');
   }
   DB.set('docentes', docs);
   bootstrap.Modal.getInstance(document.getElementById('modalDocente')).hide();
   renderDocentes();
+}
+
+
+function verDocente(id) {
+  const d = DB.get('docentes').find(x => x.id === id);
+  if (!d) return;
+  const nombre = [d.p_nombre, d.s_nombre||'', d.p_apellido, d.s_apellido||''].filter(Boolean).join(' ');
+  const initials = ((d.p_nombre||'')[0]||'') + ((d.p_apellido||'')[0]||'');
+  document.getElementById('det-avatar').textContent = initials.toUpperCase();
+  document.getElementById('det-nombre').textContent = nombre;
+  const sc = {Activo:'#10B981',Inactivo:'#94A3B8',Licencia:'#F59E0B',Retirado:'#EF4444'}[d.estado]||'#64748B';
+  document.getElementById('det-estado-badge').innerHTML =
+    '<span style="background:'+sc+'20;color:'+sc+';padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600">'+(d.estado||'—')+'</span>';
+  document.getElementById('det-cedula').textContent    = d.cedula||'—';
+  document.getElementById('det-genero').textContent    = d.genero||'—';
+  document.getElementById('det-fecha').textContent     = d.fecha_nac ? fmt(d.fecha_nac) : '—';
+  document.getElementById('det-municipio').textContent = d.municipio||'—';
+  document.getElementById('det-telefono').textContent  = d.telefono||'—';
+  document.getElementById('det-celular').textContent   = d.celular||'—';
+  document.getElementById('det-correo').textContent    = d.correo||'—';
+  document.getElementById('det-direccion').textContent = d.direccion||'—';
+  document.getElementById('det-area').textContent      = d.area||'—';
+  document.getElementById('det-tipo-vinc').textContent = d.tipo_vinc||'—';
+  document.getElementById('det-decreto').textContent   = d.decreto||'—';
+  const asigs = DB.get('asignaciones').filter(a => a.docente_id == id);
+  const detAsig = document.getElementById('det-asignaciones');
+  if (!asigs.length) {
+    detAsig.innerHTML = '<p class="text-muted" style="font-size:12px">Sin asignaciones registradas</p>';
+  } else {
+    const secs = DB.get('secciones');
+    detAsig.innerHTML = asigs.map(a => {
+      const cursosStr = (a.cursos||[]).map(c => {
+        const sec = secs.find(s=>s.id==c.seccion_id);
+        return sec ? nombreGrado(sec.grado_id)+' — '+sec.nombre : '—';
+      }).join(', ');
+      const hTot = (a.cursos||[]).reduce((sum,c)=>sum+(c.dias||[]).reduce((s2,dd)=>{
+        const ini=timeToMins(dd.hora_inicio||'00:00'),fin=timeToMins(dd.hora_fin||'00:00');
+        return s2+(fin>ini?(fin-ini)/60:0);},0),0);
+      return '<div class="det-asig-item"><strong>'+(a.materia||'—')+'</strong>'
+        +'<span>'+cursosStr+' · '+hTot.toFixed(1)+' h/sem</span></div>';
+    }).join('');
+  }
+  document.getElementById('det-btn-editar').onclick = function() {
+    var oc = bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasDocente'));
+    if(oc) oc.hide();
+    setTimeout(function(){ abrirDocente(id); }, 300);
+  };
+  document.getElementById('det-btn-eliminar').onclick = function() {
+    var oc = bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasDocente'));
+    if(oc) oc.hide();
+    setTimeout(function(){ eliminarDocente(id); }, 300);
+  };
+  var ocEl = document.getElementById('offcanvasDocente');
+  var oc = bootstrap.Offcanvas.getOrCreateInstance(ocEl);
+  oc.show();
 }
 
 function eliminarDocente(id) {
