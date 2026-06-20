@@ -2565,8 +2565,9 @@ function verSeccion(secId) {
   var grado = DB.get('grados').find(function(g){ return g.id == sec.grado_id; });
   var gradoNom = grado ? grado.nombre : '—';
 
-  document.getElementById('sec-det-nombre').textContent  = sec.nombre || '—';
-  document.getElementById('sec-det-grado').textContent   = gradoNom;
+  var nombreCompleto = gradoNom && sec.nombre ? gradoNom + ' — ' + sec.nombre : (sec.nombre || gradoNom || '—');
+  document.getElementById('sec-det-nombre').textContent  = nombreCompleto;
+  document.getElementById('sec-det-grado').textContent   = 'Sección / Grupo';
   document.getElementById('sec-det-turno').textContent   = sec.turno || '—';
   document.getElementById('sec-det-cap').textContent     = (sec.capacidad || '—') + ' estudiantes';
 
@@ -4309,7 +4310,7 @@ function buscarGlobal(q) {
         res.push({ g:'Grupos', ico:'bi-mortarboard-fill', bg:'#DCFCE7', col:'#15803D',
           t: snom, s:'Grado: '+sgrado+(sturno?' · '+sturno:''),
           fn: function(){ verSeccion(sid); } });
-      })(s.id, s.nombre||(gradoNom||'Grupo'), gradoNom, s.turno||'');
+      })(s.id, (gradoNom ? gradoNom+' '+s.nombre : s.nombre)||(gradoNom||'Grupo'), gradoNom, s.turno||'');
     }
   });
   DB.get('cronograma').forEach(function(e) {
