@@ -376,82 +376,83 @@
   /* ══ RESPONSIVE ═══════════════════════════════════════════════════════ */
   /* ══ MOBILE — sidebar overlay ═══════════════════════════════════════ */
   @media (max-width: 768px) {
-    /* Sidebar becomes a full overlay */
+    /* Sidebar: completely off-screen by default */
     #sidebar {
-      width: var(--sidebar-w) !important;
-      transform: translateX(-100%);
-      transition: transform .28s cubic-bezier(.4,0,.2,1), width .25s;
-      z-index: 1050;
+      position: fixed !important;
+      width: 280px !important;
+      transform: translateX(-100%) !important;
+      transition: transform .28s cubic-bezier(.4,0,.2,1) !important;
+      z-index: 1050 !important;
       box-shadow: 4px 0 32px rgba(0,0,0,.35);
     }
-    body.mob-sidebar-open #sidebar {
-      transform: translateX(0);
+    /* Collapsed state also hidden on mobile */
+    body.sidebar-collapsed #sidebar {
+      width: 280px !important;
+      transform: translateX(-100%) !important;
     }
-    /* Overlay backdrop */
+    body.mob-sidebar-open #sidebar {
+      transform: translateX(0) !important;
+    }
+    /* Backdrop when sidebar open */
     body.mob-sidebar-open::after {
       content: '';
       position: fixed; inset: 0; z-index: 1049;
-      background: rgba(0,0,0,.45);
-      backdrop-filter: blur(2px);
+      background: rgba(0,0,0,.5);
     }
-    /* Show all sidebar labels on mobile overlay */
+    /* Always show full sidebar labels */
     #sidebar .brand h6, #sidebar .brand small, #sidebar .brand button,
     #sidebar nav a span, #sidebar .nav-section, #sidebar .version,
     #user-email-display { display: revert !important; }
 
-    /* Main takes full width */
+    /* Main content: full width */
     #main { margin-left: 0 !important; }
+    body.sidebar-collapsed #main { margin-left: 0 !important; }
 
-    /* Content padding */
+    /* Content & topbar */
     .content { padding: 12px 10px; }
-    .topbar  { padding: 0 12px; }
+    .topbar  { padding: 0 10px; }
+    .topbar h5 { font-size: 13px; }
 
-    /* Stat cards: 2 columns instead of 4 */
-    .stat-card { padding: 14px 14px 12px; }
-    .stat-card h2 { font-size: 22px; }
-
-    /* Tables: make them scroll horizontally */
-    .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-
-    /* Card panels: remove left margin */
-    .card-panel { border-left-width: 2px; }
-
-    /* Topbar search: hide on mobile, show toggle */
-    .topbar-search-wrap { display: none; }
-
-    /* Topbar: show hamburger */
+    /* Hamburger: show it */
     #mob-menu-btn { display: flex !important; }
+    /* Desktop toggle: hide it */
+    #sidebar-toggle { display: none !important; }
 
-    /* Panel headers: stack buttons on small screens */
+    /* Search bar: hidden on mobile */
+    .topbar-search-wrap { display: none !important; }
+
+    /* Offcanvas: full-screen width */
+    .offcanvas { width: 100vw !important; max-width: 100% !important; }
+
+    /* Modals */
+    .modal-dialog { margin: 6px !important; }
+    .modal-content { border-radius: 14px; }
+
+    /* Stat cards: 2-col */
+    .stat-card { padding: 12px 12px 10px; }
+    .stat-card h2 { font-size: 20px; }
+
+    /* Grid: 2 columns for col-md-3, full width for rest */
+    .row.g-3 > [class*="col-md-"] { flex: 0 0 100%; max-width: 100%; }
+    .row.g-3 > .col-md-3,
+    .row.g-3 > .col-6 { flex: 0 0 50%; max-width: 50%; }
+
+    /* Tables */
+    .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .table { font-size: 12px; }
+    .table th, .table td { padding: 6px 8px !important; }
+
+    /* Panel headers wrap */
     .panel-header { flex-wrap: wrap; gap: 8px; }
 
-    /* Offcanvas full width on mobile */
-    .offcanvas { width: 100% !important; }
-
-    /* Modal full width */
-    .modal-dialog { margin: 8px; }
-    .modal-content { border-radius: 16px; }
-
-    /* Charts: shorter on mobile */
-    .chart-wrap canvas { max-height: 180px !important; }
-
-    /* Login glass card: tighter padding */
-    #login-overlay > div[style*="max-width:420px"] {
-      padding: 32px 24px !important;
-      margin: 12px !important;
-    }
-
-    /* Grid adjustments */
-    .row.g-3 > .col-md-3 { flex: 0 0 50%; max-width: 50%; }
-    .row.g-3 > .col-md-4 { flex: 0 0 100%; max-width: 100%; }
-    .row.g-3 > .col-md-6 { flex: 0 0 100%; max-width: 100%; }
-    .row.g-3 > .col-md-8 { flex: 0 0 100%; max-width: 100%; }
+    /* Charts shorter */
+    .chart-wrap { height: 160px !important; }
   }
 
   @media (max-width: 480px) {
-    .row.g-3 > .col-md-3 { flex: 0 0 100%; max-width: 100%; }
-    .stat-card h2 { font-size: 20px; }
-    .topbar h5 { font-size: 13px; }
+    .offcanvas { width: 100vw !important; }
+    .row.g-3 > .col-md-3,
+    .row.g-3 > .col-6 { flex: 0 0 100%; max-width: 100%; }
   }
 
   /* ══ SIDEBAR COLLAPSIBLE ════════════════════════════════════════════ */
@@ -807,27 +808,61 @@
     border: 1px solid rgba(255,255,255,0.6) !important;
     box-shadow: 0 16px 56px rgba(30,50,120,.18) !important;
   }
-  .offcanvas {
-    background: #ffffff !important;
+  /* ── Offcanvas: solid, sin glass para máxima legibilidad ── */
+  .offcanvas,
+  .offcanvas-end,
+  .offcanvas-start {
+    background: #FFFFFF !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
-    border-left: 1px solid var(--slate-200) !important;
-    box-shadow: -8px 0 40px rgba(30,58,138,.12) !important;
+    border-left: 1px solid #E2E8F0 !important;
+    box-shadow: -4px 0 32px rgba(15,23,42,.14) !important;
   }
   .offcanvas-header {
-    background: #f8faff !important;
-    border-bottom: 1px solid var(--slate-200) !important;
+    background: #F1F5FF !important;
+    border-bottom: 1px solid #DBEAFE !important;
   }
   .offcanvas-body {
-    background: #ffffff !important;
+    background: #FFFFFF !important;
   }
+  /* Det-fields: contraste alto */
   .det-field {
-    background: var(--slate-50) !important;
-    border: 1px solid var(--slate-200) !important;
+    background: #F8FAFC !important;
+    border: 1px solid #E2E8F0 !important;
+    backdrop-filter: none !important;
     box-shadow: none !important;
   }
-  .det-label { color: var(--slate-400) !important; }
-  .det-val   { color: var(--slate-800) !important; }
+  .det-label {
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    color: #64748B !important;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+  }
+  .det-val {
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: #1E293B !important;
+  }
+  /* Section titles in offcanvas */
+  .offcanvas .text-muted.fw-bold {
+    color: #3B82F6 !important;
+    opacity: 1 !important;
+  }
+  /* Dark mode override */
+  body.dark-mode .offcanvas,
+  body.dark-mode .offcanvas-end {
+    background: #1A2B3C !important;
+    border-color: #2D3F55 !important;
+  }
+  body.dark-mode .offcanvas-header {
+    background: #111F2E !important;
+    border-color: #2D3F55 !important;
+  }
+  body.dark-mode .offcanvas-body { background: #1A2B3C !important; }
+  body.dark-mode .det-field { background: #0F1E2E !important; border-color: #2D3F55 !important; }
+  body.dark-mode .det-label { color: #94A3B8 !important; }
+  body.dark-mode .det-val   { color: #F1F5F9 !important; }
   #sidebar {
     background: rgba(15,23,42,0.82) !important;
     backdrop-filter: blur(20px);
@@ -863,15 +898,7 @@
     background: rgba(17,31,46,0.88) !important;
     border-color: rgba(255,255,255,0.1) !important;
   }
-  body.dark-mode .offcanvas {
-    background: #1A2B3C !important;
-    border-color: #2D3F55 !important;
-  }
-  body.dark-mode .offcanvas-header {
-    background: #111F2E !important;
-    border-color: #2D3F55 !important;
-  }
-  body.dark-mode .offcanvas-body { background: #1A2B3C !important; }
+
   body.dark-mode #sidebar {
     background: rgba(8,14,26,0.88) !important;
     border-color: rgba(255,255,255,0.05) !important;
@@ -4546,6 +4573,18 @@ function eliminarPermiso(id) {
 // ══════════════════════════════════════════════
 
 // ── MOBILE SIDEBAR ──────────────────────────────────────────────────────────
+// ── MOBILE OFFCANVAS FULL WIDTH ──────────────────────────────────────────────
+function fixOffcanvasMobile() {
+  if (window.innerWidth <= 768) {
+    document.querySelectorAll('.offcanvas').forEach(function(el) {
+      el.style.setProperty('width', '100vw', 'important');
+      el.style.setProperty('max-width', '100%', 'important');
+    });
+  }
+}
+document.addEventListener('show.bs.offcanvas', fixOffcanvasMobile);
+window.addEventListener('resize', fixOffcanvasMobile);
+
 function toggleMobileSidebar() {
   document.body.classList.toggle('mob-sidebar-open');
 }
