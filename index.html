@@ -4199,22 +4199,31 @@ function renderHorarios() {
   // Dias visibles
   const diasVis = filtroDia ? [filtroDia] : DIAS;
 
-  // ── Permisos activos para hoy (ausentes y reemplazos) ─────────────────────
-  const _todayDate = new Date().toISOString().slice(0, 10);
-  const _permisosHoy = DB.get('permisos').filter(function(p) {
-    return p.estado === 'Aprobado' && (
-      p.fecha_novedad === _todayDate ||
-      p.fecha_inicio === _todayDate ||
-      (p.fecha_inicio && p.fecha_fin && p.fecha_inicio <= _todayDate && p.fecha_fin >= _todayDate)
-    );
-  });
-  const _docentesAusentes = new Set(_permisosHoy.map(function(p){ return String(p.docente_id); }));
-  const _reemplazosHoy = {};
-  _permisosHoy.forEach(function(p) {
+  // ── Permisos: mapas por día de semana ────────────────────────────────────
+  function _fechaToDiaNombre(fechaStr) {
+    if (!fechaStr) return null;
+    var p = fechaStr.split('-');
+    if (p.length < 3) return null;
+    var d = new Date(parseInt(p[0]), parseInt(p[1])-1, parseInt(p[2]));
+    return ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'][d.getDay()];
+  }
+  // _ausenciasPorDia[dia] = Set of String(docente_id)
+  // _reemplazosPorDia[dia][String(docente_id)] = reemplazo_id
+  var _ausenciasPorDia = {};
+  var _reemplazosPorDia = {};
+  DB.get('permisos').filter(function(p){ return p.estado === 'Aprobado'; }).forEach(function(p) {
+    var fechaBase = p.fecha_novedad || p.fecha_inicio;
+    var diaNov = _fechaToDiaNombre(fechaBase);
+    if (!diaNov || diaNov === 'Domingo' || diaNov === 'Sábado') return;
+    // Mark absence on the day of the novedad
+    if (!_ausenciasPorDia[diaNov]) _ausenciasPorDia[diaNov] = new Set();
+    _ausenciasPorDia[diaNov].add(String(p.docente_id));
+    // Mark replacement on the day of the reemplazo (fallback: same day as absence)
     if (p.docente_reemplazo_id) {
-      var fechaReemplazo = p.fecha_reemplazo || p.fecha_novedad;
-      if (!fechaReemplazo || fechaReemplazo === _todayDate) {
-        _reemplazosHoy[String(p.docente_id)] = p.docente_reemplazo_id;
+      var diaRemp = _fechaToDiaNombre(p.fecha_reemplazo) || diaNov;
+      if (diaRemp !== 'Domingo' && diaRemp !== 'Sábado') {
+        if (!_reemplazosPorDia[diaRemp]) _reemplazosPorDia[diaRemp] = {};
+        _reemplazosPorDia[diaRemp][String(p.docente_id)] = p.docente_reemplazo_id;
       }
     }
   });
@@ -4245,10 +4254,14 @@ function renderHorarios() {
   diasVis.forEach(function(dia) {
     const diaBlocks = horarios.filter(function(h) { return h.dia === dia; });
 
-    // Add virtual replacement blocks for today's permisos
+    // Per-day absence/replacement lookup
+    var _ausentes   = _ausenciasPorDia[dia]   || new Set();
+    var _reemplazos = _reemplazosPorDia[dia]  || {};
+
+    // Add virtual replacement blocks for this day
     var _virtualBlocks = [];
     diaBlocks.forEach(function(b) {
-      var reempId = _reemplazosHoy[String(b.docente_id)];
+      var reempId = _reemplazos[String(b.docente_id)];
       if (reempId) {
         _virtualBlocks.push(Object.assign({}, b, {
           docente_id: reempId,
@@ -4307,7 +4320,7 @@ function renderHorarios() {
       var secLabel = sec ? sec.nombre : '';
 
       var gradoLabel = grado ? grado.nombre : '';
-      var _esAusente   = _docentesAusentes.has(String(b.docente_id)) && !b._es_reemplazo;
+      var _esAusente   = _ausentes.has(String(b.docente_id)) && !b._es_reemplazo;
       var _esReemplazo = b._es_reemplazo;
       var _extraCls = _esAusente ? ' hv-block-ausente' : (_esReemplazo ? ' hv-block-reemplazo' : '');
       var _clickAction = (b._es_reemplazo || !b.id || String(b.id).indexOf('_') > -1)
