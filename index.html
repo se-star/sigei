@@ -481,6 +481,14 @@
   body.dark-mode .grado-card-secs .gc-badge { background: rgba(255,255,255,.05); border-color: #3D5470; color: #CBD5E1; }
   body.dark-mode .grado-card-secs .gc-names { color: #64748B; }
 
+  .oc-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: #F1F5F9; border: 1px solid #E2E8F0;
+    border-radius: 20px; padding: 4px 12px;
+    font-size: 12px; font-weight: 600; color: #475569;
+  }
+  body.dark-mode .oc-chip { background: #1A2B3C; border-color: #2D3F55; color: #CBD5E1; }
+
   .empty-state { text-align: center; padding: 48px 20px; color: var(--slate-400); }
   .empty-state i { font-size: 36px; display: block; margin-bottom: 10px; opacity: .5; }
   .empty-state p { font-size: 13px; margin: 0; }
@@ -2070,6 +2078,66 @@
 <!-- Offcanvas Detalle Docente -->
 
 <!-- Offcanvas Sección / Grupo -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasClase" style="width:400px">
+  <div class="offcanvas-header border-bottom" id="oc-clase-header" style="background:var(--slate-900);padding:20px">
+    <div style="flex:1;min-width:0">
+      <div id="oc-clase-materia-badge" style="display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;
+           letter-spacing:.8px;padding:3px 10px;border-radius:20px;margin-bottom:8px;background:rgba(255,255,255,.2);color:#fff"></div>
+      <h5 class="offcanvas-title text-white mb-0" id="oc-clase-materia" style="font-weight:800;letter-spacing:-.3px">—</h5>
+      <div id="oc-clase-seccion" style="color:rgba(255,255,255,.7);font-size:13px;margin-top:2px">—</div>
+    </div>
+    <button class="btn-close btn-close-white ms-3" data-bs-dismiss="offcanvas"></button>
+  </div>
+  <div class="offcanvas-body p-0" style="overflow-y:auto">
+
+    <!-- Info chips -->
+    <div style="padding:16px 20px;display:flex;flex-wrap:wrap;gap:8px;border-bottom:1px solid #F1F4F8">
+      <div id="oc-clase-dia-chip"   class="oc-chip"><i class="bi bi-calendar3 me-1"></i><span></span></div>
+      <div id="oc-clase-hora-chip"  class="oc-chip"><i class="bi bi-clock me-1"></i><span></span></div>
+      <div id="oc-clase-aula-chip"  class="oc-chip"><i class="bi bi-door-open me-1"></i><span></span></div>
+    </div>
+
+    <!-- Docente titular -->
+    <div style="padding:16px 20px;border-bottom:1px solid #F1F4F8">
+      <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#94A3B8;margin-bottom:10px">Docente Titular</p>
+      <div id="oc-clase-docente" style="display:flex;align-items:center;gap:12px">
+        <div id="oc-clase-doc-avatar" class="user-avatar" style="width:40px;height:40px;font-size:15px;flex-shrink:0">?</div>
+        <div>
+          <div id="oc-clase-doc-nombre" style="font-weight:700;font-size:14px;color:#0F172A">—</div>
+          <div id="oc-clase-doc-estado" style="font-size:11px;color:#16A34A;font-weight:600"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Novedad / Reemplazo (hidden by default) -->
+    <div id="oc-clase-novedad-section" style="padding:16px 20px;border-bottom:1px solid #F1F4F8;display:none">
+      <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#EF4444;margin-bottom:10px">
+        <i class="bi bi-exclamation-triangle-fill me-1"></i>Novedad Activa
+      </p>
+      <div id="oc-clase-novedad-info" style="background:#FEF2F2;border:1px solid #FECACA;border-radius:10px;padding:12px;margin-bottom:12px;font-size:12px;color:#B91C1C"></div>
+      <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#16A34A;margin:12px 0 10px">
+        <i class="bi bi-arrow-right-circle-fill me-1"></i>Docente Reemplazo
+      </p>
+      <div id="oc-clase-reemplazo" style="display:flex;align-items:center;gap:12px">
+        <div id="oc-clase-remp-avatar" class="user-avatar" style="width:40px;height:40px;font-size:15px;flex-shrink:0;background:linear-gradient(135deg,#16a34a,#15803d)">?</div>
+        <div>
+          <div id="oc-clase-remp-nombre" style="font-weight:700;font-size:14px;color:#0F172A">—</div>
+          <div style="font-size:11px;color:#16A34A;font-weight:600">Docente de reemplazo</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer actions -->
+    <div style="padding:16px 20px">
+      <button class="btn btn-sm w-100" id="oc-clase-edit-btn"
+        style="background:#F1F5F9;color:#475569;border:1px solid #E2E8F0;border-radius:10px;padding:10px;font-weight:600">
+        <i class="bi bi-pencil-fill me-2"></i>Editar clase
+      </button>
+    </div>
+
+  </div>
+</div>
+
 <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasSeccion" style="width:420px">
   <div class="offcanvas-header border-bottom" style="background:var(--blue-600)">
     <div class="d-flex align-items-center gap-3">
@@ -4386,7 +4454,7 @@ function renderHorarios() {
       + '<td>' + nombreAula(h.aula_id) + '</td>'
       + '<td>' + nombreDocente(h.docente_id) + '</td>'
       + '<td>'
-      + '<button class="btn btn-sm btn-outline-primary me-1" onclick="abrirHorario(' + h.id + ')"><i class="bi bi-pencil-fill"></i></button>'
+      + '<button class="btn btn-sm btn-outline-primary me-1" onclick="editarHorario(' + h.id + ')"><i class="bi bi-pencil-fill"></i></button>'
       + '<button class="btn btn-sm btn-outline-danger" onclick="eliminarHorario(' + h.id + ')"><i class="bi bi-trash-fill"></i></button>'
       + '</td></tr>';
   }).join('') : emptyRow(8, 'No hay horarios registrados');
@@ -4453,7 +4521,102 @@ function filtrarPorDocente(id) {
   renderHorarios();
 }
 
-function abrirHorario(id=null) {
+// ── Ver clase (read-only) ──────────────────────────────────────────────────
+function abrirHorario(id) {
+  if (!id) { editarHorario(null); return; } // new horario → edit mode
+  const h = DB.get('horarios').find(function(x){ return x.id == id; });
+  if (!h) return;
+
+  const sec   = DB.get('secciones').find(function(s){ return s.id == h.seccion_id; });
+  const grado = sec ? DB.get('grados').find(function(g){ return g.id == sec.grado_id; }) : null;
+  const doc   = h.docente_id ? DB.get('docentes').find(function(d){ return d.id == h.docente_id; }) : null;
+  const aula  = h.aula_id   ? DB.get('aulas').find(function(a){ return a.id == h.aula_id; })    : null;
+
+  // Header color per subject
+  var headerColors = {
+    'block-mat':'#2563EB','block-esp':'#7C3AED','block-cn':'#16A34A',
+    'block-soc':'#D97706','block-ing':'#0891B2','block-art':'#DB2777',
+    'block-tec':'#0D9488','block-otros':'#475569'
+  };
+  var cls = materiaBlockClass(h.materia || '');
+  var hColor = headerColors[cls] || '#1E293B';
+
+  document.getElementById('oc-clase-header').style.background = hColor;
+  document.getElementById('oc-clase-materia-badge').textContent = cls.replace('block-','').toUpperCase();
+  document.getElementById('oc-clase-materia').textContent = h.materia || '—';
+  document.getElementById('oc-clase-seccion').textContent =
+    (grado ? grado.nombre : '—') + (sec ? ' — Sección ' + sec.nombre : '');
+
+  // Chips
+  document.querySelector('#oc-clase-dia-chip span').textContent  = h.dia || '—';
+  document.querySelector('#oc-clase-hora-chip span').textContent = (h.hora_inicio||'') + ' – ' + (h.hora_fin||'');
+  document.querySelector('#oc-clase-aula-chip span').textContent = aula ? aula.nombre : 'Sin aula';
+
+  // Docente titular
+  if (doc) {
+    var ini = ((doc.p_nombre||'')[0]||'') + ((doc.p_apellido||'')[0]||'');
+    document.getElementById('oc-clase-doc-avatar').textContent = ini.toUpperCase();
+    document.getElementById('oc-clase-doc-nombre').textContent = (doc.p_nombre||'') + ' ' + (doc.p_apellido||'');
+  } else {
+    document.getElementById('oc-clase-doc-avatar').textContent = '?';
+    document.getElementById('oc-clase-doc-nombre').textContent = 'Sin docente asignado';
+  }
+
+  // Check for active permiso on this day for this docente
+  var novSection = document.getElementById('oc-clase-novedad-section');
+  novSection.style.display = 'none';
+  if (h.docente_id && h.dia) {
+    var permisos = DB.get('permisos').filter(function(p) {
+      if (p.estado !== 'Aprobado' || p.docente_id != h.docente_id) return false;
+      var fechaBase = p.fecha_novedad || p.fecha_inicio;
+      if (!fechaBase) return false;
+      var parts = fechaBase.split('-');
+      var d = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
+      var diaNom = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'][d.getDay()];
+      return diaNom === h.dia;
+    });
+    if (permisos.length) {
+      var p = permisos[0];
+      novSection.style.display = '';
+      document.getElementById('oc-clase-doc-estado').textContent = '⚠️ Ausente — ' + (p.tipo||'Novedad');
+      document.getElementById('oc-clase-doc-estado').style.color = '#EF4444';
+      document.getElementById('oc-clase-novedad-info').innerHTML =
+        '<strong>' + (p.tipo||'Novedad') + '</strong>'
+        + (p.fecha_novedad ? ' · ' + p.fecha_novedad : '')
+        + (p.motivo ? '<br>' + p.motivo : '')
+        + (p.autorizado_por ? '<br><span style="opacity:.8">Autorizado por: ' + p.autorizado_por + '</span>' : '');
+      if (p.docente_reemplazo_id) {
+        var remp = DB.get('docentes').find(function(d){ return d.id == p.docente_reemplazo_id; });
+        if (remp) {
+          var rIni = ((remp.p_nombre||'')[0]||'') + ((remp.p_apellido||'')[0]||'');
+          document.getElementById('oc-clase-remp-avatar').textContent = rIni.toUpperCase();
+          document.getElementById('oc-clase-remp-nombre').textContent = (remp.p_nombre||'') + ' ' + (remp.p_apellido||'');
+          document.getElementById('oc-clase-reemplazo').style.display = 'flex';
+        } else {
+          document.getElementById('oc-clase-reemplazo').style.display = 'none';
+        }
+      } else {
+        document.getElementById('oc-clase-reemplazo').style.display = 'none';
+        document.getElementById('oc-clase-novedad-info').innerHTML +=
+          '<br><span style="opacity:.75;font-style:italic">Sin docente de reemplazo asignado</span>';
+      }
+    } else {
+      document.getElementById('oc-clase-doc-estado').textContent = 'Disponible';
+      document.getElementById('oc-clase-doc-estado').style.color = '#16A34A';
+    }
+  }
+
+  // Edit button
+  document.getElementById('oc-clase-edit-btn').onclick = function() {
+    bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasClase')).hide();
+    setTimeout(function(){ editarHorario(id); }, 250);
+  };
+
+  bootstrap.Offcanvas.getOrCreateInstance(document.getElementById('offcanvasClase')).show();
+}
+
+// ── Editar horario (edit form, original logic) ─────────────────────────────
+function editarHorario(id) {
   const sSel = document.getElementById('hor-seccion');
   sSel.innerHTML = DB.get('secciones').map(s=>`<option value="${s.id}">${nombreGrado(s.grado_id)} — ${s.nombre}</option>`).join('');
 
@@ -4481,6 +4644,7 @@ function abrirHorario(id=null) {
     document.getElementById('hor-docente').value  = h.docente_id||'';
     document.getElementById('hor-aula').value     = h.aula_id||'';
   }
+  document.querySelector('#modalHorario .modal-title').textContent = id ? 'Editar Horario' : 'Nuevo Horario';
   new bootstrap.Modal(document.getElementById('modalHorario')).show();
 }
 
