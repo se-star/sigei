@@ -374,14 +374,84 @@
   .empty-state p { font-size: 13px; margin: 0; }
 
   /* ══ RESPONSIVE ═══════════════════════════════════════════════════════ */
+  /* ══ MOBILE — sidebar overlay ═══════════════════════════════════════ */
   @media (max-width: 768px) {
-    #sidebar { width: 60px; }
+    /* Sidebar becomes a full overlay */
+    #sidebar {
+      width: var(--sidebar-w) !important;
+      transform: translateX(-100%);
+      transition: transform .28s cubic-bezier(.4,0,.2,1), width .25s;
+      z-index: 1050;
+      box-shadow: 4px 0 32px rgba(0,0,0,.35);
+    }
+    body.mob-sidebar-open #sidebar {
+      transform: translateX(0);
+    }
+    /* Overlay backdrop */
+    body.mob-sidebar-open::after {
+      content: '';
+      position: fixed; inset: 0; z-index: 1049;
+      background: rgba(0,0,0,.45);
+      backdrop-filter: blur(2px);
+    }
+    /* Show all sidebar labels on mobile overlay */
     #sidebar .brand h6, #sidebar .brand small, #sidebar .brand button,
     #sidebar nav a span, #sidebar .nav-section, #sidebar .version,
-    #user-email-display { display: none; }
-    #main { margin-left: 60px; }
-    .content { padding: 14px; }
-    .topbar { padding: 0 16px; }
+    #user-email-display { display: revert !important; }
+
+    /* Main takes full width */
+    #main { margin-left: 0 !important; }
+
+    /* Content padding */
+    .content { padding: 12px 10px; }
+    .topbar  { padding: 0 12px; }
+
+    /* Stat cards: 2 columns instead of 4 */
+    .stat-card { padding: 14px 14px 12px; }
+    .stat-card h2 { font-size: 22px; }
+
+    /* Tables: make them scroll horizontally */
+    .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+    /* Card panels: remove left margin */
+    .card-panel { border-left-width: 2px; }
+
+    /* Topbar search: hide on mobile, show toggle */
+    .topbar-search-wrap { display: none; }
+
+    /* Topbar: show hamburger */
+    #mob-menu-btn { display: flex !important; }
+
+    /* Panel headers: stack buttons on small screens */
+    .panel-header { flex-wrap: wrap; gap: 8px; }
+
+    /* Offcanvas full width on mobile */
+    .offcanvas { width: 100% !important; }
+
+    /* Modal full width */
+    .modal-dialog { margin: 8px; }
+    .modal-content { border-radius: 16px; }
+
+    /* Charts: shorter on mobile */
+    .chart-wrap canvas { max-height: 180px !important; }
+
+    /* Login glass card: tighter padding */
+    #login-overlay > div[style*="max-width:420px"] {
+      padding: 32px 24px !important;
+      margin: 12px !important;
+    }
+
+    /* Grid adjustments */
+    .row.g-3 > .col-md-3 { flex: 0 0 50%; max-width: 50%; }
+    .row.g-3 > .col-md-4 { flex: 0 0 100%; max-width: 100%; }
+    .row.g-3 > .col-md-6 { flex: 0 0 100%; max-width: 100%; }
+    .row.g-3 > .col-md-8 { flex: 0 0 100%; max-width: 100%; }
+  }
+
+  @media (max-width: 480px) {
+    .row.g-3 > .col-md-3 { flex: 0 0 100%; max-width: 100%; }
+    .stat-card h2 { font-size: 20px; }
+    .topbar h5 { font-size: 13px; }
   }
 
   /* ══ SIDEBAR COLLAPSIBLE ════════════════════════════════════════════ */
@@ -904,7 +974,10 @@
 <div id="main">
   <div class="topbar">
     <div class="topbar-left">
-      <button id="sidebar-toggle" onclick="toggleSidebar()" title="Colapsar menú">
+      <button id="mob-menu-btn" onclick="toggleMobileSidebar()" title="Menú" style="display:none;align-items:center;justify-content:center;background:none;border:none;cursor:pointer;color:var(--slate-600);font-size:22px;padding:4px 8px;border-radius:8px;margin-right:4px">
+    <i class="bi bi-list"></i>
+  </button>
+  <button id="sidebar-toggle" onclick="toggleSidebar()" title="Colapsar menú">
         <i class="bi bi-list"></i>
       </button>
       <div class="page-icon" id="topbar-icon"><i class="bi bi-grid-1x2-fill"></i></div>
@@ -4471,6 +4544,28 @@ function eliminarPermiso(id) {
 // ══════════════════════════════════════════════
 //  EXPORTAR / IMPORTAR JSON
 // ══════════════════════════════════════════════
+
+// ── MOBILE SIDEBAR ──────────────────────────────────────────────────────────
+function toggleMobileSidebar() {
+  document.body.classList.toggle('mob-sidebar-open');
+}
+// Close mobile sidebar when clicking backdrop
+document.addEventListener('click', function(e) {
+  if (document.body.classList.contains('mob-sidebar-open')) {
+    var sidebar = document.getElementById('sidebar');
+    if (!sidebar.contains(e.target) && !document.getElementById('mob-menu-btn').contains(e.target)) {
+      document.body.classList.remove('mob-sidebar-open');
+    }
+  }
+});
+// Close mobile sidebar on nav link click
+document.querySelectorAll('#sidebar nav a').forEach(function(a) {
+  a.addEventListener('click', function() {
+    if (window.innerWidth <= 768) {
+      document.body.classList.remove('mob-sidebar-open');
+    }
+  });
+});
 function toggleSidebar() {
   document.body.classList.toggle('sidebar-collapsed');
 }
