@@ -56,6 +56,7 @@
     transition: width .25s ease;
     overflow: hidden;
   }
+  body.sidebar-collapsed #sidebar { overflow: visible; }
 
   /* Brand */
   #sidebar .brand {
@@ -602,8 +603,45 @@
   body.sidebar-collapsed #sidebar .brand { padding: 20px 0; display:flex; flex-direction:column; align-items:center; }
   body.sidebar-collapsed #sidebar .brand-logo { justify-content:center; margin-bottom:0; }
   body.sidebar-collapsed #sidebar .sidebar-user { justify-content:center; padding:10px 0 6px; }
-  body.sidebar-collapsed #sidebar nav a { justify-content:center; padding:10px 0; margin:1px 6px; }
+  body.sidebar-collapsed #sidebar nav a { justify-content:center; padding:10px 0; margin:1px 6px; position:relative; overflow:visible; }
   body.sidebar-collapsed #sidebar nav a i { margin:0; }
+  body.sidebar-collapsed #sidebar nav a span { display:none !important; }
+
+  /* Tooltip on collapsed sidebar */
+  body.sidebar-collapsed #sidebar nav a::after {
+    content: attr(data-sb-label);
+    position: absolute;
+    left: calc(100% + 10px);
+    top: 50%;
+    transform: translateY(-50%);
+    background: #1E293B;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    padding: 6px 12px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,.25);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .15s, transform .15s;
+    transform: translateY(-50%) translateX(-4px);
+    z-index: 999;
+  }
+  body.sidebar-collapsed #sidebar nav a::before {
+    content: '';
+    position: absolute;
+    left: calc(100% + 6px);
+    top: 50%;
+    transform: translateY(-50%);
+    border: 5px solid transparent;
+    border-right-color: #1E293B;
+    opacity: 0;
+    transition: opacity .15s;
+    z-index: 999;
+  }
+  body.sidebar-collapsed #sidebar nav a:hover::after,
+  body.sidebar-collapsed #sidebar nav a:hover::before { opacity: 1; transform: translateY(-50%) translateX(0); }
   body.sidebar-collapsed #main { margin-left: 72px; }
 
   /* Toggle button */
@@ -1131,48 +1169,48 @@
   </div>
   <nav class="mt-2">
     <div class="nav-section">Principal</div>
-    <a href="#" onclick="navigate('dashboard')" data-page="dashboard" class="active">
+    <a href="#" onclick="navigate('dashboard')" data-sb-label="Dashboard" title="Dashboard" data-page="dashboard" class="active">
       <i class="bi bi-grid-1x2-fill"></i><span>Dashboard</span>
     </a>
 
     <div class="nav-section">Personal</div>
-    <a href="#" onclick="navigate('docentes')" data-page="docentes">
+    <a href="#" onclick="navigate('docentes')" data-sb-label="Docentes" title="Docentes" data-page="docentes">
       <i class="bi bi-person-badge-fill"></i><span>Docentes</span>
     </a>
-    <a href="#" onclick="navigate('permisos')" data-page="permisos">
+    <a href="#" onclick="navigate('permisos')" data-sb-label="Permisos" title="Permisos" data-page="permisos">
       <i class="bi bi-calendar2-check-fill"></i><span>Permisos</span>
     </a>
 
     <div class="nav-section">Académico</div>
-    <a href="#" onclick="navigate('grados')" data-page="grados">
+    <a href="#" onclick="navigate('grados')" data-sb-label="Grupos" title="Grupos" data-page="grados">
       <i class="bi bi-diagram-3-fill"></i><span>Grupos</span>
     </a>
-    <a href="#" onclick="navigate('asignaciones')" data-page="asignaciones">
+    <a href="#" onclick="navigate('asignaciones')" data-sb-label="Asignación Académica" title="Asignación Académica" data-page="asignaciones">
       <i class="bi bi-journal-bookmark-fill"></i><span>Asignación Académica</span>
     </a>
-    <a href="#" onclick="navigate('horarios')" data-page="horarios">
+    <a href="#" onclick="navigate('horarios')" data-sb-label="Horarios" title="Horarios" data-page="horarios">
       <i class="bi bi-clock-fill"></i><span>Horarios</span>
     </a>
-    <a href="#" onclick="navigate('cronograma')" data-page="cronograma">
+    <a href="#" onclick="navigate('cronograma')" data-sb-label="Cronograma" title="Cronograma" data-page="cronograma">
       <i class="bi bi-calendar-event-fill"></i><span>Cronograma</span>
     </a>
-    <a href="#" onclick="navigate('reuniones')" data-page="reuniones">
+    <a href="#" onclick="navigate('reuniones')" data-sb-label="Reuniones" title="Reuniones" data-page="reuniones">
       <i class="bi bi-people-fill"></i><span>Reuniones</span>
     </a>
-    <a href="#" onclick="navigate('actividad')" data-page="actividad">
+    <a href="#" onclick="navigate('actividad')" data-sb-label="Actividad" title="Actividad" data-page="actividad">
       <i class="bi bi-clock-history"></i><span>Actividad</span>
     </a>
 
     <div class="nav-section">Administración</div>
-    <a href="#" onclick="navigate('usuarios')" data-page="usuarios">
+    <a href="#" onclick="navigate('usuarios')" data-sb-label="Usuarios" title="Usuarios" data-page="usuarios">
       <i class="bi bi-people-fill"></i><span>Usuarios</span>
     </a>
 
     <div class="nav-section">Infraestructura</div>
-    <a href="#" onclick="navigate('aulas')" data-page="aulas">
+    <a href="#" onclick="navigate('aulas')" data-sb-label="Aulas" title="Aulas" data-page="aulas">
       <i class="bi bi-door-open-fill"></i><span>Aulas</span>
     </a>
-    <a href="#" onclick="navigate('sedes')" data-page="sedes">
+    <a href="#" onclick="navigate('sedes')" data-sb-label="Sedes" title="Sedes" data-page="sedes">
       <i class="bi bi-building-fill"></i><span>Sedes</span>
     </a>
   </nav>
@@ -1277,7 +1315,7 @@
           <div class="card-panel h-100" id="dash-proximo-evento-panel">
             <div class="panel-header">
               <h6><i class="bi bi-calendar-event-fill me-2" style="color:#f59e0b"></i>Próximo Evento</h6>
-              <a href="#" onclick="navigate('cronograma')" class="btn btn-sm btn-outline-secondary">Ver cronograma</a>
+              <a href="#" onclick="navigate('cronograma')" data-sb-label="Cronograma" title="Cronograma" class="btn btn-sm btn-outline-secondary">Ver cronograma</a>
             </div>
             <div id="dash-proximo-evento">
               <p class="text-muted text-center py-2" style="font-size:13px">Sin eventos próximos</p>
@@ -1323,7 +1361,7 @@
           <div class="card-panel">
             <div class="panel-header">
               <h6><i class="bi bi-calendar2-check-fill me-2"></i>Permisos pendientes</h6>
-              <a href="#" onclick="navigate('permisos')" class="btn btn-sm btn-outline-secondary">Ver todos</a>
+              <a href="#" onclick="navigate('permisos')" data-sb-label="Permisos" title="Permisos" class="btn btn-sm btn-outline-secondary">Ver todos</a>
             </div>
             <div class="p-0"><table><thead><tr><th>Docente</th><th>Tipo</th><th>Fecha inicio</th></tr></thead>
             <tbody id="dash-permisos"></tbody></table></div>
