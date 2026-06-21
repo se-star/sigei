@@ -463,10 +463,7 @@
     max-width: 110px;
     letter-spacing: .3px;
   }
-  /* Detail panel */
-  #grado-detail-panel {
-    animation: slideDown .2s ease;
-  }
+  /* offcanvasGrado opens with Bootstrap default transition */
   @keyframes slideDown {
     from { opacity: 0; transform: translateY(-6px); }
     to   { opacity: 1; transform: translateY(0); }
@@ -1347,28 +1344,7 @@
       <!-- Grid de tarjetas de grado -->
       <div id="grados-cards" class="row g-3 mb-3"></div>
 
-      <!-- Panel de detalle de secciones (oculto hasta seleccionar un grado) -->
-      <div id="grado-detail-panel" class="card-panel d-none">
-        <div class="panel-header mb-3">
-          <h6 id="grado-detail-title" style="font-weight:700"><i class="bi bi-people-fill me-2"></i>Secciones</h6>
-          <div class="d-flex gap-2">
-            <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="abrirSeccionEnGrado()">
-              <i class="bi bi-plus-lg"></i> Añadir sección
-            </button>
-            <button class="btn btn-sm btn-outline-secondary" onclick="cerrarDetalleGrado()">
-              <i class="bi bi-x-lg"></i>
-            </button>
-          </div>
-        </div>
-        <div class="table-responsive">
-          <table>
-            <thead><tr>
-              <th>Sección</th><th>Turno</th><th>Docente Guía</th><th>Aula</th><th>Capacidad</th><th style="width:90px">Acciones</th>
-            </tr></thead>
-            <tbody id="tabla-secciones"></tbody>
-          </table>
-        </div>
-      </div>
+      <!-- tabla-secciones lives in offcanvasGrado -->
     </div>
 
 
@@ -2143,6 +2119,41 @@
     <div style="padding:16px 20px">
       <p class="text-muted fw-bold mb-2" style="font-size:10px;text-transform:uppercase;letter-spacing:.06em">Horario</p>
       <div id="sec-det-horario"></div>
+    </div>
+
+  </div>
+</div>
+
+<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasGrado" style="width:480px">
+  <div class="offcanvas-header border-bottom" id="oc-grado-header" style="background:var(--slate-900)">
+    <div class="d-flex align-items-center gap-3">
+      <div id="oc-grado-icon" style="width:44px;height:44px;background:rgba(255,255,255,.15);border-radius:12px;
+                display:flex;align-items:center;justify-content:center;font-size:20px;color:#fff">
+        <i class="bi bi-diagram-3-fill"></i>
+      </div>
+      <div>
+        <h6 class="offcanvas-title text-white mb-0" id="oc-grado-title">—</h6>
+        <span id="oc-grado-nivel" style="color:rgba(255,255,255,.7);font-size:12px">—</span>
+      </div>
+    </div>
+    <button class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+  </div>
+  <div class="offcanvas-body p-0" style="overflow-y:auto">
+
+    <!-- Stats row -->
+    <div style="padding:16px 20px;border-bottom:1px solid var(--slate-200);background:#F8FAFC">
+      <div class="row g-3 text-center" id="oc-grado-stats"></div>
+    </div>
+
+    <!-- Secciones list -->
+    <div style="padding:16px 20px">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <p class="text-muted fw-bold mb-0" style="font-size:10px;text-transform:uppercase;letter-spacing:.06em">Secciones</p>
+        <button class="btn btn-sm text-white" style="background:var(--blue-600);font-size:11px" onclick="abrirSeccionEnGrado()">
+          <i class="bi bi-plus-lg"></i> Añadir
+        </button>
+      </div>
+      <div id="oc-grado-secciones"></div>
     </div>
 
   </div>
@@ -3209,61 +3220,86 @@ function renderGrados() {
   }).join('');
 
   // ── Si hay grado seleccionado, actualizar el detalle ─────────────────
-  if (_gradoSeleccionado !== null) {
-    mostrarSeccionesGrado(_gradoSeleccionado, true);
-  }
+  if (_gradoSeleccionado !== null) { mostrarSeccionesGrado(_gradoSeleccionado, true); }
 }
 
-function mostrarSeccionesGrado(gradoId, noScroll) {
+function mostrarSeccionesGrado(gradoId, refresh) {
   _gradoSeleccionado = gradoId;
-  const grados   = DB.get('grados');
+  const grados    = DB.get('grados');
   const secciones = DB.get('secciones');
+  const asignaciones = DB.get('asignaciones') || [];
   const grado = grados.find(function(g){ return g.id == gradoId; });
   if (!grado) return;
 
-  // Update active card
+  // Mark active card
   document.querySelectorAll('.grado-card').forEach(function(c){ c.classList.remove('active'); });
-  const cards = document.querySelectorAll('.grado-card');
   const allGrados = grados;
   const idx = allGrados.findIndex(function(g){ return g.id == gradoId; });
+  const cards = document.querySelectorAll('.grado-card');
   if (idx >= 0 && cards[idx]) cards[idx].classList.add('active');
 
-  // Show detail panel
-  const panel = document.getElementById('grado-detail-panel');
-  panel.classList.remove('d-none');
-
-  // Update title
-  const cfg = NIVEL_CONFIG[grado.nivel] || { color:'#64748b' };
-  document.getElementById('grado-detail-title').innerHTML =
-    '<i class="bi bi-people-fill me-2" style="color:' + cfg.color + '"></i>'
-    + grado.nombre + ' — Secciones';
-
-  // Render secciones table
+  const cfg = NIVEL_CONFIG[grado.nivel] || { color:'#64748b', icon:'bi-diagram-3-fill' };
   const secsGrado = secciones.filter(function(s){ return s.grado_id == gradoId; });
-  const tbS = document.getElementById('tabla-secciones');
-  tbS.innerHTML = secsGrado.length ? secsGrado.map(function(s) {
-    return '<tr>'
-      + '<td><strong>' + s.nombre + '</strong></td>'
-      + '<td>' + (s.turno||'—') + '</td>'
-      + '<td>' + nombreDocente(s.docente_id) + '</td>'
-      + '<td>' + nombreAula(s.aula_id) + '</td>'
-      + '<td>' + (s.capacidad||'—') + '</td>'
-      + '<td>'
-      + '<button class="btn btn-sm btn-outline-primary me-1" onclick="abrirSeccion(' + s.id + ')"><i class="bi bi-pencil-fill"></i></button>'
-      + '<button class="btn btn-sm btn-outline-danger" onclick="eliminarSeccion(' + s.id + ')"><i class="bi bi-trash-fill"></i></button>'
-      + '</td></tr>';
-  }).join('') : emptyRow(6, 'Sin secciones en este grado — añade una con el botón superior.');
 
-  // Scroll to panel
-  if (!noScroll) {
-    setTimeout(function() { panel.scrollIntoView({ behavior:'smooth', block:'start' }); }, 50);
+  // ── Header ──────────────────────────────────────────────────────────────
+  document.getElementById('oc-grado-header').style.background = cfg.color;
+  document.getElementById('oc-grado-icon').innerHTML = '<i class="bi ' + cfg.icon + '"></i>';
+  document.getElementById('oc-grado-title').textContent = grado.nombre;
+  document.getElementById('oc-grado-nivel').textContent = grado.nivel || '—';
+
+  // ── Stats row ────────────────────────────────────────────────────────────
+  var totalAlumnos = secsGrado.reduce(function(acc, s){ return acc + (s.capacidad || 0); }, 0);
+  var docIds = new Set();
+  secsGrado.forEach(function(s){
+    asignaciones.filter(function(a){ return a.seccion_id == s.id; }).forEach(function(a){ docIds.add(a.docente_id); });
+    if (s.docente_id) docIds.add(s.docente_id);
+  });
+  document.getElementById('oc-grado-stats').innerHTML =
+    stat('bi-people-fill', cfg.color, secsGrado.length, 'Secciones') +
+    stat('bi-person-fill', cfg.color, totalAlumnos, 'Cupos') +
+    stat('bi-mortarboard-fill', cfg.color, docIds.size, 'Docentes');
+
+  function stat(icon, color, val, label) {
+    return '<div class="col-4"><div style="background:white;border-radius:12px;padding:12px 8px;border:1px solid #E8ECF2">'
+      + '<i class="bi ' + icon + '" style="color:' + color + ';font-size:18px"></i>'
+      + '<div style="font-size:20px;font-weight:800;color:#0F172A;margin:4px 0 2px">' + val + '</div>'
+      + '<div style="font-size:10px;color:#94A3B8;font-weight:600;text-transform:uppercase;letter-spacing:.5px">' + label + '</div>'
+      + '</div></div>';
   }
+
+  // ── Secciones cards ──────────────────────────────────────────────────────
+  var secHtml = secsGrado.length ? secsGrado.map(function(s) {
+    var docNom = s.docente_id ? nombreDocente(s.docente_id) : '—';
+    var aulaNom = s.aula_id ? nombreAula(s.aula_id) : '—';
+    return '<div style="background:#F8FAFC;border:1px solid #E8ECF2;border-radius:12px;padding:14px 16px;margin-bottom:10px">'
+      + '<div class="d-flex justify-content-between align-items-start">'
+      + '<div>'
+      + '<div style="font-size:18px;font-weight:800;color:' + cfg.color + ';letter-spacing:-.5px">Sección ' + s.nombre + '</div>'
+      + '<div style="font-size:12px;color:#64748B;margin-top:2px">' + (s.turno||'Mañana') + ' &nbsp;·&nbsp; ' + (s.capacidad||30) + ' cupos</div>'
+      + '</div>'
+      + '<div class="d-flex gap-1">'
+      + '<button class="btn btn-sm" style="background:rgba(37,99,235,.1);color:#2563EB;border:none;border-radius:8px;padding:4px 10px" onclick="abrirSeccion(' + s.id + ')"><i class="bi bi-pencil-fill"></i></button>'
+      + '<button class="btn btn-sm" style="background:rgba(239,68,68,.1);color:#EF4444;border:none;border-radius:8px;padding:4px 10px" onclick="eliminarSeccion(' + s.id + ')"><i class="bi bi-trash-fill"></i></button>'
+      + '</div></div>'
+      + '<div style="margin-top:10px;display:flex;gap:16px;flex-wrap:wrap">'
+      + '<div><div style="font-size:10px;color:#94A3B8;font-weight:600;text-transform:uppercase;letter-spacing:.5px">Docente Guía</div>'
+      + '<div style="font-size:13px;font-weight:600;color:#1E293B">' + docNom + '</div></div>'
+      + '<div><div style="font-size:10px;color:#94A3B8;font-weight:600;text-transform:uppercase;letter-spacing:.5px">Aula</div>'
+      + '<div style="font-size:13px;font-weight:600;color:#1E293B">' + aulaNom + '</div></div>'
+      + '</div>'
+      + '</div>';
+  }).join('') : '<div style="text-align:center;padding:32px;color:#94A3B8"><i class="bi bi-people" style="font-size:32px;display:block;margin-bottom:8px;opacity:.4"></i>Sin secciones registradas</div>';
+  document.getElementById('oc-grado-secciones').innerHTML = secHtml;
+
+  // ── Open offcanvas ───────────────────────────────────────────────────────
+  bootstrap.Offcanvas.getOrCreateInstance(document.getElementById('offcanvasGrado')).show();
 }
 
 function cerrarDetalleGrado() {
   _gradoSeleccionado = null;
-  document.getElementById('grado-detail-panel').classList.add('d-none');
   document.querySelectorAll('.grado-card').forEach(function(c){ c.classList.remove('active'); });
+  var oc = bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasGrado'));
+  if (oc) oc.hide();
 }
 
 function abrirSeccionEnGrado() {
