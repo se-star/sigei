@@ -1789,198 +1789,193 @@
 
 
 <!-- Modal Reunión -->
-<div class="modal fade" id="modalReunion" tabindex="-1">
-  <div class="modal-dialog modal-xl">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="modal-reunion-title">Nueva Reunión</h5>
-        <button class="btn-close" data-bs-dismiss="modal"></button>
+<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasReunion" style="width:min(520px,96vw)">
+  <div class="offcanvas-header border-bottom" style="background:var(--slate-900);padding:20px 24px">
+    <div>
+      <h6 class="offcanvas-title text-white mb-0" style="font-weight:700;font-size:15px" id="offcanvasReunion-title">Nueva Reunión</h6>
+      <small class="text-white-50" style="font-size:11px">Reuniones Institucionales</small>
+    </div>
+    <button class="btn-close btn-close-white ms-3" data-bs-dismiss="offcanvas"></button>
+  </div>
+  <div class="offcanvas-body" style="overflow-y:auto;padding:24px">
+    <input type="hidden" id="reunion-id">
+    <div class="row g-3">
+      <div class="col-6">
+        <label class="form-label" style="font-size:12px;font-weight:600">Fecha *</label>
+        <input type="date" class="form-control form-control-sm" id="reunion-fecha">
       </div>
-      <div class="modal-body">
-        <input type="hidden" id="reunion-id">
-        <div class="row g-3">
-          <div class="col-md-4">
-            <label class="form-label">Fecha *</label>
-            <input type="date" class="form-control" id="reunion-fecha">
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Hora</label>
-            <input type="time" class="form-control" id="reunion-hora">
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Tipo *</label>
-            <select class="form-select" id="reunion-tipo">
-              <option value="">Seleccione</option>
-              <option>General</option><option>Por área</option>
-              <option>Directiva</option><option>Capacitación</option><option>Otro</option>
-            </select>
-          </div>
-          <div class="col-md-8">
-            <label class="form-label">Tema / Agenda *</label>
-            <input type="text" class="form-control" id="reunion-tema" placeholder="Ej: Planificación del período académico">
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Lugar</label>
-            <input type="text" class="form-control" id="reunion-lugar" placeholder="Ej: Sala de reuniones">
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Estado</label>
-            <select class="form-select" id="reunion-estado">
-              <option>Programada</option><option>Realizada</option><option>Cancelada</option>
-            </select>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Área / Responsable</label>
-            <input type="text" class="form-control" id="reunion-area">
-          </div>
-          <div class="col-12">
-            <label class="form-label">Compromisos / Acuerdos</label>
-            <textarea class="form-control" id="reunion-compromisos" rows="3" placeholder="Anota los acuerdos y compromisos de la reunión..."></textarea>
-          </div>
-          <div class="col-12">
-            <label class="form-label">Asistentes</label>
-            <div id="reunion-asistentes-wrap" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px;max-height:200px;overflow-y:auto;border:1px solid var(--slate-200);border-radius:8px;padding:10px">
-              <p class="text-muted" style="font-size:12px">Cargando docentes...</p>
-            </div>
-          </div>
-          <div class="col-12">
-            <label class="form-label">Observaciones</label>
-            <textarea class="form-control" id="reunion-obs" rows="2"></textarea>
-          </div>
+      <div class="col-6">
+        <label class="form-label" style="font-size:12px;font-weight:600">Hora</label>
+        <input type="time" class="form-control form-control-sm" id="reunion-hora">
+      </div>
+      <div class="col-6">
+        <label class="form-label" style="font-size:12px;font-weight:600">Tipo *</label>
+        <select class="form-select form-select-sm" id="reunion-tipo">
+          <option value="">Seleccione</option>
+          <option>General</option><option>Por área</option>
+          <option>Directiva</option><option>Capacitación</option><option>Otro</option>
+        </select>
+      </div>
+      <div class="col-6">
+        <label class="form-label" style="font-size:12px;font-weight:600">Estado</label>
+        <select class="form-select form-select-sm" id="reunion-estado">
+          <option>Programada</option><option>Realizada</option><option>Cancelada</option>
+        </select>
+      </div>
+      <div class="col-12">
+        <label class="form-label" style="font-size:12px;font-weight:600">Tema / Agenda *</label>
+        <input type="text" class="form-control form-control-sm" id="reunion-tema" placeholder="Ej: Planificación del período académico">
+      </div>
+      <div class="col-12">
+        <label class="form-label" style="font-size:12px;font-weight:600">Lugar</label>
+        <input type="text" class="form-control form-control-sm" id="reunion-lugar" placeholder="Ej: Sala de reuniones">
+      </div>
+      <div class="col-12">
+        <label class="form-label" style="font-size:12px;font-weight:600">Área / Responsable</label>
+        <input type="text" class="form-control form-control-sm" id="reunion-area">
+      </div>
+      <div class="col-12">
+        <label class="form-label" style="font-size:12px;font-weight:600">Asistentes</label>
+        <div id="reunion-asistentes-wrap" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:6px;max-height:180px;overflow-y:auto;border:1px solid var(--slate-200);border-radius:8px;padding:10px">
+          <p class="text-muted" style="font-size:12px">Cargando docentes...</p>
         </div>
       </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
-        <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="guardarReunion()">
-          <i class="bi bi-save me-1"></i>Guardar
-        </button>
+      <div class="col-12">
+        <label class="form-label" style="font-size:12px;font-weight:600">Compromisos / Acuerdos</label>
+        <textarea class="form-control form-control-sm" id="reunion-compromisos" rows="3" placeholder="Anota los acuerdos..."></textarea>
+      </div>
+      <div class="col-12">
+        <label class="form-label" style="font-size:12px;font-weight:600">Observaciones</label>
+        <textarea class="form-control form-control-sm" id="reunion-obs" rows="2"></textarea>
       </div>
     </div>
+  </div>
+  <div class="border-top p-3 d-flex gap-2 justify-content-end" style="background:#fff">
+    <button class="btn btn-sm btn-secondary" data-bs-dismiss="offcanvas">Cancelar</button>
+    <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="guardarReunion()">
+      <i class="bi bi-save me-1"></i>Guardar
+    </button>
   </div>
 </div>
 
 
 <!-- Modal Usuario -->
-<div class="modal fade" id="modalUsuario" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="modal-usr-title">Nuevo Usuario</h5>
-        <button class="btn-close" data-bs-dismiss="modal"></button>
+<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasUsuario" style="width:min(520px,96vw)">
+  <div class="offcanvas-header border-bottom" style="background:var(--slate-900);padding:20px 24px">
+    <div>
+      <h6 class="offcanvas-title text-white mb-0" style="font-weight:700;font-size:15px" id="offcanvasUsuario-title">Nuevo Usuario</h6>
+      <small class="text-white-50" style="font-size:11px">Gestión de Usuarios</small>
+    </div>
+    <button class="btn-close btn-close-white ms-3" data-bs-dismiss="offcanvas"></button>
+  </div>
+  <div class="offcanvas-body" style="overflow-y:auto;padding:24px">
+    <input type="hidden" id="usr-id">
+    <div class="row g-3">
+      <div class="col-12">
+        <label class="form-label" style="font-size:12px;font-weight:600">Nombre completo *</label>
+        <input type="text" class="form-control form-control-sm" id="usr-nombre" placeholder="Ej: Juan García">
       </div>
-      <div class="modal-body">
-        <input type="hidden" id="usr-id">
-        <div class="row g-3">
-          <div class="col-12">
-            <label class="form-label">Nombre completo *</label>
-            <input type="text" class="form-control" id="usr-nombre" placeholder="Ej: Juan García">
-          </div>
-          <div class="col-12">
-            <label class="form-label">Correo electrónico *</label>
-            <input type="email" class="form-control" id="usr-email" placeholder="correo@institución.edu">
-            <div class="form-text" id="usr-email-hint">Se usará para iniciar sesión en el SIGEI.</div>
-          </div>
-          <div class="col-12" id="usr-pass-wrap">
-            <label class="form-label">Contraseña *</label>
-            <div class="input-group">
-              <input type="password" class="form-control" id="usr-pass" placeholder="Mínimo 6 caracteres">
-              <button class="btn btn-outline-secondary" type="button" onclick="togglePassVis()">
-                <i class="bi bi-eye-fill" id="pass-eye-icon"></i>
-              </button>
-            </div>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Rol *</label>
-            <select class="form-select" id="usr-rol">
-              <option value="">Seleccione</option>
-              <option value="Administrador">Administrador</option>
-              <option value="Coordinador">Coordinador</option>
-              <option value="Docente">Docente</option>
-            </select>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Estado</label>
-            <select class="form-select" id="usr-estado">
-              <option value="Activo">Activo</option>
-              <option value="Inactivo">Inactivo</option>
-            </select>
-          </div>
-          <div class="col-12">
-            <label class="form-label">Notas</label>
-            <textarea class="form-control" id="usr-notas" rows="2" placeholder="Observaciones opcionales..."></textarea>
-          </div>
+      <div class="col-12">
+        <label class="form-label" style="font-size:12px;font-weight:600">Correo electrónico *</label>
+        <input type="email" class="form-control form-control-sm" id="usr-email" placeholder="correo@institución.edu">
+        <div class="form-text" id="usr-email-hint" style="font-size:11px">Se usará para iniciar sesión en el SIGEI.</div>
+      </div>
+      <div class="col-12" id="usr-pass-wrap">
+        <label class="form-label" style="font-size:12px;font-weight:600">Contraseña *</label>
+        <div class="input-group input-group-sm">
+          <input type="password" class="form-control" id="usr-pass" placeholder="Mínimo 6 caracteres">
+          <button class="btn btn-outline-secondary" type="button" onclick="togglePassVis()">
+            <i class="bi bi-eye-fill" id="pass-eye-icon"></i>
+          </button>
         </div>
-        <div id="usr-modal-error" class="alert alert-danger mt-3 d-none" style="font-size:13px"></div>
       </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
-        <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="guardarUsuario()" id="usr-save-btn">
-          <i class="bi bi-save me-1"></i>Guardar
-        </button>
+      <div class="col-6">
+        <label class="form-label" style="font-size:12px;font-weight:600">Rol *</label>
+        <select class="form-select form-select-sm" id="usr-rol">
+          <option value="">Seleccione</option>
+          <option value="Administrador">Administrador</option>
+          <option value="Coordinador">Coordinador</option>
+          <option value="Docente">Docente</option>
+        </select>
+      </div>
+      <div class="col-6">
+        <label class="form-label" style="font-size:12px;font-weight:600">Estado</label>
+        <select class="form-select form-select-sm" id="usr-estado">
+          <option value="Activo">Activo</option>
+          <option value="Inactivo">Inactivo</option>
+        </select>
+      </div>
+      <div class="col-12">
+        <label class="form-label" style="font-size:12px;font-weight:600">Notas</label>
+        <textarea class="form-control form-control-sm" id="usr-notas" rows="2" placeholder="Observaciones opcionales..."></textarea>
       </div>
     </div>
+    <div id="usr-modal-error" class="alert alert-danger mt-3 d-none" style="font-size:13px"></div>
+  </div>
+  <div class="border-top p-3 d-flex gap-2 justify-content-end" style="background:#fff">
+    <button class="btn btn-sm btn-secondary" data-bs-dismiss="offcanvas">Cancelar</button>
+    <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="guardarUsuario()" id="usr-save-btn">
+      <i class="bi bi-save me-1"></i>Guardar
+    </button>
   </div>
 </div>
 
-<!-- Modal Cronograma -->
-<div class="modal fade" id="modalEvento" tabindex="-1">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="modal-evento-title">Nuevo Evento</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<!-- Offcanvas Cronograma -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasEvento" style="width:min(520px,96vw)">
+  <div class="offcanvas-header border-bottom" style="background:var(--slate-900);padding:20px 24px">
+    <div>
+      <h6 class="offcanvas-title text-white mb-0" style="font-weight:700;font-size:15px" id="offcanvasEvento-title">Nuevo Evento</h6>
+      <small class="text-white-50" style="font-size:11px">Cronograma Institucional</small>
+    </div>
+    <button class="btn-close btn-close-white ms-3" data-bs-dismiss="offcanvas"></button>
+  </div>
+  <div class="offcanvas-body" style="overflow-y:auto;padding:24px">
+    <input type="hidden" id="evento-id">
+    <div class="row g-3">
+      <div class="col-12">
+        <label class="form-label" style="font-size:12px;font-weight:600">Actividad *</label>
+        <input type="text" class="form-control form-control-sm" id="evento-actividad" placeholder="Nombre del evento">
       </div>
-      <div class="modal-body">
-        <input type="hidden" id="evento-id">
-        <div class="row g-3">
-          <div class="col-md-6">
-            <label class="form-label">Actividad *</label>
-            <input type="text" class="form-control" id="evento-actividad" placeholder="Nombre del evento">
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Tipo *</label>
-            <select class="form-select" id="evento-tipo">
-              <option value="">Seleccionar tipo...</option>
-              <option>Institucional</option>
-              <option>Académica</option>
-              <option>Formación docente</option>
-              <option>Comunidad</option>
-              <option>Festivo</option>
-              <option>Cultural</option>
-              <option>Deportivo</option>
-              <option>Otro</option>
-            </select>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Fecha inicio *</label>
-            <input type="date" class="form-control" id="evento-fecha-ini">
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Fecha fin</label>
-            <input type="date" class="form-control" id="evento-fecha-fin">
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Área / Responsable</label>
-            <input type="text" class="form-control" id="evento-area" placeholder="Ej: Coordinación Académica">
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Grados</label>
-            <select class="form-select" id="evento-grados" multiple style="height:100px">
-              <option value="all">Todos los grados</option>
-            </select>
-            <div class="form-text">Ctrl+clic para seleccionar varios</div>
-          </div>
-          <div class="col-12">
-            <label class="form-label">Observaciones</label>
-            <textarea class="form-control" id="evento-observaciones" rows="3" placeholder="Notas adicionales..."></textarea>
-          </div>
-        </div>
+      <div class="col-6">
+        <label class="form-label" style="font-size:12px;font-weight:600">Tipo *</label>
+        <select class="form-select form-select-sm" id="evento-tipo">
+          <option value="">Seleccionar tipo...</option>
+          <option>Institucional</option><option>Académica</option>
+          <option>Formación docente</option><option>Comunidad</option>
+          <option>Festivo</option><option>Cultural</option>
+          <option>Deportivo</option><option>Otro</option>
+        </select>
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-primary" onclick="guardarEvento()">Guardar</button>
+      <div class="col-6">
+        <label class="form-label" style="font-size:12px;font-weight:600">Área / Responsable</label>
+        <input type="text" class="form-control form-control-sm" id="evento-area" placeholder="Ej: Coordinación Académica">
+      </div>
+      <div class="col-6">
+        <label class="form-label" style="font-size:12px;font-weight:600">Fecha inicio *</label>
+        <input type="date" class="form-control form-control-sm" id="evento-fecha-ini">
+      </div>
+      <div class="col-6">
+        <label class="form-label" style="font-size:12px;font-weight:600">Fecha fin</label>
+        <input type="date" class="form-control form-control-sm" id="evento-fecha-fin">
+      </div>
+      <div class="col-12">
+        <label class="form-label" style="font-size:12px;font-weight:600">Grados</label>
+        <select class="form-select form-select-sm" id="evento-grados" multiple style="height:90px">
+          <option value="all">Todos los grados</option>
+        </select>
+        <div class="form-text" style="font-size:11px">Ctrl+clic para seleccionar varios</div>
+      </div>
+      <div class="col-12">
+        <label class="form-label" style="font-size:12px;font-weight:600">Observaciones</label>
+        <textarea class="form-control form-control-sm" id="evento-observaciones" rows="3" placeholder="Notas adicionales..."></textarea>
       </div>
     </div>
+  </div>
+  <div class="border-top p-3 d-flex gap-2 justify-content-end" style="background:#fff">
+    <button class="btn btn-sm btn-secondary" data-bs-dismiss="offcanvas">Cancelar</button>
+    <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="guardarEvento()">
+      <i class="bi bi-save me-1"></i>Guardar
+    </button>
   </div>
 </div>
 
@@ -1989,159 +1984,155 @@
 ══════════════════════════════════════ -->
 
 
-<!-- Modal Asignación Académica -->
-<div class="modal fade" id="modalAsignacion" tabindex="-1">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="modal-asig-title">Nueva Asignación</h5>
-        <button class="btn-close" data-bs-dismiss="modal"></button>
+<!-- Offcanvas Asignación Académica -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasAsignacion" style="width:min(640px,96vw)">
+  <div class="offcanvas-header border-bottom" style="background:var(--slate-900);padding:20px 24px">
+    <div>
+      <h6 class="offcanvas-title text-white mb-0" style="font-weight:700;font-size:15px" id="offcanvasAsignacion-title">Nueva Asignación</h6>
+      <small class="text-white-50" style="font-size:11px">Asignación Académica</small>
+    </div>
+    <button class="btn-close btn-close-white ms-3" data-bs-dismiss="offcanvas"></button>
+  </div>
+  <div class="offcanvas-body" style="overflow-y:auto;padding:24px">
+    <input type="hidden" id="asig-id">
+    <div class="row g-3 mb-3">
+      <div class="col-md-6">
+        <label class="form-label" style="font-size:12px;font-weight:600">Docente *</label>
+        <select class="form-select form-select-sm" id="asig-docente" onchange="actualizarResumenHoras()"></select>
       </div>
-      <div class="modal-body">
-        <input type="hidden" id="asig-id">
-        <div class="row g-3 mb-3">
-          <!-- Docente -->
-          <div class="col-md-6">
-            <label class="form-label">Docente *</label>
-            <select class="form-select" id="asig-docente" onchange="actualizarResumenHoras()"></select>
-          </div>
-          <!-- Estado -->
-          <div class="col-md-3">
-            <label class="form-label">Estado</label>
-            <select class="form-select" id="asig-estado">
-              <option value="Activo">Activo</option>
-              <option value="Inactivo">Inactivo</option>
-            </select>
-          </div>
-          <!-- Total horas preview -->
-          <div class="col-md-3 d-flex align-items-end">
-            <div id="asig-total-horas" class="text-muted" style="font-size:12px;padding-bottom:8px;line-height:1.4"></div>
-          </div>
-          <!-- Materia -->
-          <div class="col-md-8">
-            <label class="form-label">Materia *</label>
-            <select class="form-select" id="asig-materia" onchange="toggleOtraMateria()"></select>
-          </div>
-          <div class="col-md-4" id="otra-materia-wrap" style="display:none">
-            <label class="form-label">Especificar materia</label>
-            <input type="text" class="form-control" id="asig-materia-otra" placeholder="Nombre de la materia">
-          </div>
-        </div>
-
-        <label class="form-label fw-semibold" style="font-size:13px">
-          <i class="bi bi-people-fill me-1 text-primary"></i>Grupos asignados *
-        </label>
-        <div id="cursos-container"></div>
-        <button type="button" class="btn btn-outline-primary btn-sm w-100 mt-1" onclick="agregarCursoRow()">
-          <i class="bi bi-plus-lg me-1"></i>Agregar otro grupo
-        </button>
+      <div class="col-md-3">
+        <label class="form-label" style="font-size:12px;font-weight:600">Estado</label>
+        <select class="form-select form-select-sm" id="asig-estado">
+          <option value="Activo">Activo</option>
+          <option value="Inactivo">Inactivo</option>
+        </select>
       </div>
-      <div class="modal-footer">
-        <div id="asig-footer-resumen" class="me-auto text-muted" style="font-size:12px"></div>
-        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
-        <button class="btn btn-success btn-sm" onclick="guardarAsignacion()">
-          <i class="bi bi-check-lg me-1"></i>Guardar y generar horario
-        </button>
+      <div class="col-md-3 d-flex align-items-end">
+        <div id="asig-total-horas" class="text-muted" style="font-size:12px;padding-bottom:6px;line-height:1.4"></div>
+      </div>
+      <div class="col-md-8">
+        <label class="form-label" style="font-size:12px;font-weight:600">Materia *</label>
+        <select class="form-select form-select-sm" id="asig-materia" onchange="toggleOtraMateria()"></select>
+      </div>
+      <div class="col-md-4" id="otra-materia-wrap" style="display:none">
+        <label class="form-label" style="font-size:12px;font-weight:600">Especificar materia</label>
+        <input type="text" class="form-control form-control-sm" id="asig-materia-otra" placeholder="Nombre de la materia">
       </div>
     </div>
+    <label class="form-label fw-semibold" style="font-size:12px">
+      <i class="bi bi-people-fill me-1 text-primary"></i>Grupos asignados *
+    </label>
+    <div id="cursos-container"></div>
+    <button type="button" class="btn btn-outline-primary btn-sm w-100 mt-1" onclick="agregarCursoRow()">
+      <i class="bi bi-plus-lg me-1"></i>Agregar otro grupo
+    </button>
+  </div>
+  <div class="border-top p-3 d-flex gap-2 justify-content-end align-items-center" style="background:#fff">
+    <div id="asig-footer-resumen" class="me-auto text-muted" style="font-size:12px"></div>
+    <button class="btn btn-sm btn-secondary" data-bs-dismiss="offcanvas">Cancelar</button>
+    <button class="btn btn-sm btn-success" onclick="guardarAsignacion()">
+      <i class="bi bi-check-lg me-1"></i>Guardar y generar horario
+    </button>
   </div>
 </div>
 
-<!-- Modal Docente -->
-<div class="modal fade" id="modalDocente" tabindex="-1">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="modal-doc-title">Nuevo Docente</h5>
-        <button class="btn-close" data-bs-dismiss="modal"></button>
+<!-- Offcanvas Docente -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasDocente" style="width:min(580px,96vw)">
+  <div class="offcanvas-header border-bottom" style="background:var(--slate-900);padding:20px 24px">
+    <div>
+      <h6 class="offcanvas-title text-white mb-0" style="font-weight:700;font-size:15px" id="offcanvasDocente-title">Nuevo Docente</h6>
+      <small class="text-white-50" style="font-size:11px">Gestión de Docentes</small>
+    </div>
+    <button class="btn-close btn-close-white ms-3" data-bs-dismiss="offcanvas"></button>
+  </div>
+  <div class="offcanvas-body" style="overflow-y:auto;padding:24px">
+    <input type="hidden" id="doc-id">
+    <p class="text-muted fw-bold mb-3" style="font-size:11px;text-transform:uppercase;letter-spacing:.06em"><i class="bi bi-person-vcard me-1"></i>Datos Personales</p>
+    <div class="row g-3 mb-4">
+      <div class="col-4">
+        <label class="form-label" style="font-size:12px;font-weight:600">Cédula / DNI *</label>
+        <input type="text" class="form-control form-control-sm" id="doc-cedula">
       </div>
-      <div class="modal-body">
-        <input type="hidden" id="doc-id">
-        <div class="row g-3">
-          <div class="col-md-4">
-            <label class="form-label">Cédula / DNI *</label>
-            <input type="text" class="form-control" id="doc-cedula">
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Primer Nombre *</label>
-            <input type="text" class="form-control" id="doc-p-nombre">
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Segundo Nombre</label>
-            <input type="text" class="form-control" id="doc-s-nombre">
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Primer Apellido *</label>
-            <input type="text" class="form-control" id="doc-p-apellido">
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Segundo Apellido</label>
-            <input type="text" class="form-control" id="doc-s-apellido">
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Fecha de Nacimiento</label>
-            <input type="date" class="form-control" id="doc-fecha">
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Género</label>
-            <select class="form-select" id="doc-genero">
-              <option value="">Seleccione</option>
-              <option>Masculino</option><option>Femenino</option><option>Otro</option>
-            </select>
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Teléfono</label>
-            <input type="text" class="form-control" id="doc-telefono">
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Celular</label>
-            <input type="text" class="form-control" id="doc-celular">
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Correo Electrónico</label>
-            <input type="email" class="form-control" id="doc-correo">
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Municipio</label>
-            <input type="text" class="form-control" id="doc-municipio">
-          </div>
-          <div class="col-12">
-            <label class="form-label">Dirección</label>
-            <input type="text" class="form-control" id="doc-direccion">
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Estado</label>
-            <select class="form-select" id="doc-estado">
-              <option>Activo</option><option>Inactivo</option>
-              <option>Licencia</option><option>Retirado</option>
-            </select>
-          </div>
-          <div class="col-12"><hr style="margin:4px 0"><p class="fw-bold text-muted" style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;margin:0">Información Contractual</p></div>
-          <div class="col-md-4">
-            <label class="form-label">Área Principal</label>
-            <input type="text" class="form-control" id="doc-area" placeholder="Ej: Matemáticas, Ciencias...">
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Tipo de Vinculación</label>
-            <select class="form-select" id="doc-tipo-vinc">
-              <option value="">Seleccione</option>
-              <option>Planta</option><option>Provisional</option>
-              <option>Contratista</option><option>Hora cátedra</option><option>Temporal</option>
-            </select>
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Decreto</label>
-            <input type="text" class="form-control" id="doc-decreto" placeholder="Ej: 1278, 2277...">
-          </div>
-        </div>
+      <div class="col-4">
+        <label class="form-label" style="font-size:12px;font-weight:600">Primer Nombre *</label>
+        <input type="text" class="form-control form-control-sm" id="doc-p-nombre">
       </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
-        <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="guardarDocente()">
-          <i class="bi bi-save me-1"></i>Guardar
-        </button>
+      <div class="col-4">
+        <label class="form-label" style="font-size:12px;font-weight:600">Segundo Nombre</label>
+        <input type="text" class="form-control form-control-sm" id="doc-s-nombre">
+      </div>
+      <div class="col-4">
+        <label class="form-label" style="font-size:12px;font-weight:600">Primer Apellido *</label>
+        <input type="text" class="form-control form-control-sm" id="doc-p-apellido">
+      </div>
+      <div class="col-4">
+        <label class="form-label" style="font-size:12px;font-weight:600">Segundo Apellido</label>
+        <input type="text" class="form-control form-control-sm" id="doc-s-apellido">
+      </div>
+      <div class="col-4">
+        <label class="form-label" style="font-size:12px;font-weight:600">Fecha de Nacimiento</label>
+        <input type="date" class="form-control form-control-sm" id="doc-fecha">
+      </div>
+      <div class="col-4">
+        <label class="form-label" style="font-size:12px;font-weight:600">Género</label>
+        <select class="form-select form-select-sm" id="doc-genero">
+          <option value="">Seleccione</option>
+          <option>Masculino</option><option>Femenino</option><option>Otro</option>
+        </select>
+      </div>
+      <div class="col-4">
+        <label class="form-label" style="font-size:12px;font-weight:600">Teléfono</label>
+        <input type="text" class="form-control form-control-sm" id="doc-telefono">
+      </div>
+      <div class="col-4">
+        <label class="form-label" style="font-size:12px;font-weight:600">Celular</label>
+        <input type="text" class="form-control form-control-sm" id="doc-celular">
+      </div>
+      <div class="col-6">
+        <label class="form-label" style="font-size:12px;font-weight:600">Correo Electrónico</label>
+        <input type="email" class="form-control form-control-sm" id="doc-correo">
+      </div>
+      <div class="col-6">
+        <label class="form-label" style="font-size:12px;font-weight:600">Municipio</label>
+        <input type="text" class="form-control form-control-sm" id="doc-municipio">
+      </div>
+      <div class="col-12">
+        <label class="form-label" style="font-size:12px;font-weight:600">Dirección</label>
+        <input type="text" class="form-control form-control-sm" id="doc-direccion">
+      </div>
+      <div class="col-4">
+        <label class="form-label" style="font-size:12px;font-weight:600">Estado</label>
+        <select class="form-select form-select-sm" id="doc-estado">
+          <option>Activo</option><option>Inactivo</option>
+          <option>Licencia</option><option>Retirado</option>
+        </select>
       </div>
     </div>
+    <p class="text-muted fw-bold mb-3" style="font-size:11px;text-transform:uppercase;letter-spacing:.06em"><i class="bi bi-briefcase me-1"></i>Información Contractual</p>
+    <div class="row g-3">
+      <div class="col-4">
+        <label class="form-label" style="font-size:12px;font-weight:600">Área Principal</label>
+        <input type="text" class="form-control form-control-sm" id="doc-area" placeholder="Ej: Matemáticas">
+      </div>
+      <div class="col-4">
+        <label class="form-label" style="font-size:12px;font-weight:600">Tipo de Vinculación</label>
+        <select class="form-select form-select-sm" id="doc-tipo-vinc">
+          <option value="">Seleccione</option>
+          <option>Planta</option><option>Provisional</option>
+          <option>Contratista</option><option>Hora cátedra</option><option>Temporal</option>
+        </select>
+      </div>
+      <div class="col-4">
+        <label class="form-label" style="font-size:12px;font-weight:600">Decreto</label>
+        <input type="text" class="form-control form-control-sm" id="doc-decreto" placeholder="Ej: 1278, 2277...">
+      </div>
+    </div>
+  </div>
+  <div class="border-top p-3 d-flex gap-2 justify-content-end" style="background:#fff">
+    <button class="btn btn-sm btn-secondary" data-bs-dismiss="offcanvas">Cancelar</button>
+    <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="guardarDocente()">
+      <i class="bi bi-save me-1"></i>Guardar
+    </button>
   </div>
 </div>
 
@@ -2370,214 +2361,201 @@
 </div>
 
 <!-- Modal Sección -->
-<div class="modal fade" id="modalSeccion" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="modal-sec-title">Nueva Sección</h5>
-        <button class="btn-close" data-bs-dismiss="modal"></button>
+<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasSeccionForm" style="width:min(520px,96vw)">
+  <div class="offcanvas-header border-bottom" style="background:var(--slate-900);padding:20px 24px">
+    <div>
+      <h6 class="offcanvas-title text-white mb-0" style="font-weight:700;font-size:15px" id="offcanvasSeccionForm-title">Nueva Sección</h6>
+      <small class="text-white-50" style="font-size:11px">Gestión de Secciones / Grupos</small>
+    </div>
+    <button class="btn-close btn-close-white ms-3" data-bs-dismiss="offcanvas"></button>
+  </div>
+  <div class="offcanvas-body" style="overflow-y:auto;padding:24px">
+    <input type="hidden" id="sec-id">
+    <div class="row g-3">
+      <div class="col-6">
+        <label class="form-label" style="font-size:12px;font-weight:600">Grado *</label>
+        <select class="form-select form-select-sm" id="sec-grado"></select>
       </div>
-      <div class="modal-body">
-        <input type="hidden" id="sec-id">
-        <div class="row g-3">
-          <div class="col-md-6">
-            <label class="form-label">Grado *</label>
-            <select class="form-select" id="sec-grado"></select>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Nombre de la Sección *</label>
-            <input type="text" class="form-control" id="sec-nombre" placeholder="Ej: A, B, C">
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Turno</label>
-            <select class="form-select" id="sec-turno">
-              <option>Mañana</option><option>Tarde</option><option>Nocturno</option>
-            </select>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Capacidad máx.</label>
-            <input type="number" class="form-control" id="sec-capacidad" value="30" min="1">
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Docente Guía</label>
-            <select class="form-select" id="sec-docente">
-              <option value="">Sin asignar</option>
-            </select>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Aula</label>
-            <select class="form-select" id="sec-aula">
-              <option value="">Sin asignar</option>
-            </select>
-          </div>
-        </div>
+      <div class="col-6">
+        <label class="form-label" style="font-size:12px;font-weight:600">Nombre de la Sección *</label>
+        <input type="text" class="form-control form-control-sm" id="sec-nombre" placeholder="Ej: A, B, C">
       </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
-        <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="guardarSeccion()">
-          <i class="bi bi-save me-1"></i>Guardar
-        </button>
+      <div class="col-6">
+        <label class="form-label" style="font-size:12px;font-weight:600">Turno</label>
+        <select class="form-select form-select-sm" id="sec-turno">
+          <option>Mañana</option><option>Tarde</option><option>Nocturno</option>
+        </select>
+      </div>
+      <div class="col-6">
+        <label class="form-label" style="font-size:12px;font-weight:600">Capacidad máx.</label>
+        <input type="number" class="form-control form-control-sm" id="sec-capacidad" value="30" min="1">
+      </div>
+      <div class="col-6">
+        <label class="form-label" style="font-size:12px;font-weight:600">Docente Guía</label>
+        <select class="form-select form-select-sm" id="sec-docente">
+          <option value="">Sin asignar</option>
+        </select>
+      </div>
+      <div class="col-6">
+        <label class="form-label" style="font-size:12px;font-weight:600">Aula</label>
+        <select class="form-select form-select-sm" id="sec-aula">
+          <option value="">Sin asignar</option>
+        </select>
       </div>
     </div>
   </div>
-</div>
-
-<!-- Modal Horario -->
-<div class="modal fade" id="modalHorario" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Nuevo Horario</h5>
-        <button class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <input type="hidden" id="hor-id">
-        <div class="row g-3">
-          <div class="col-md-6">
-            <label class="form-label">Sección *</label>
-            <select class="form-select" id="hor-seccion"></select>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Materia *</label>
-            <select class="form-select" id="hor-materia">
-              <option value="">Seleccione</option>
-              <option>Lengua y Literatura</option>
-              <option>Matemáticas</option>
-              <option>Ciencias Naturales</option>
-              <option>Ciencias Sociales</option>
-              <option>Educación Física</option>
-              <option>Arte y Cultura</option>
-              <option>Tecnología</option>
-              <option>Inglés</option>
-              <option>Valores y Ciudadanía</option>
-              <option>Otra</option>
-            </select>
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Día *</label>
-            <select class="form-select" id="hor-dia">
-              <option>Lunes</option><option>Martes</option><option>Miércoles</option>
-              <option>Jueves</option><option>Viernes</option>
-            </select>
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Hora inicio *</label>
-            <input type="time" class="form-control" id="hor-inicio" value="07:00">
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Hora fin *</label>
-            <input type="time" class="form-control" id="hor-fin" value="08:00">
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Docente</label>
-            <select class="form-select" id="hor-docente">
-              <option value="">Sin asignar</option>
-            </select>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Aula</label>
-            <select class="form-select" id="hor-aula">
-              <option value="">Sin asignar</option>
-            </select>
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
-        <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="guardarHorario()">
-          <i class="bi bi-save me-1"></i>Guardar
-        </button>
-      </div>
-    </div>
+  <div class="border-top p-3 d-flex gap-2 justify-content-end" style="background:#fff">
+    <button class="btn btn-sm btn-secondary" data-bs-dismiss="offcanvas">Cancelar</button>
+    <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="guardarSeccion()">
+      <i class="bi bi-save me-1"></i>Guardar
+    </button>
   </div>
 </div>
 
-<!-- Modal Aula -->
-<div class="modal fade" id="modalAula" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="modal-aula-title">Nueva Aula</h5>
-        <button class="btn-close" data-bs-dismiss="modal"></button>
+<!-- Offcanvas Horario -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasHorario" style="width:min(520px,96vw)">
+  <div class="offcanvas-header border-bottom" style="background:var(--slate-900);padding:20px 24px">
+    <div>
+      <h6 class="offcanvas-title text-white mb-0" style="font-weight:700;font-size:15px" id="offcanvasHorario-title">Nuevo Horario</h6>
+      <small class="text-white-50" style="font-size:11px">Gestión de Horarios</small>
+    </div>
+    <button class="btn-close btn-close-white ms-3" data-bs-dismiss="offcanvas"></button>
+  </div>
+  <div class="offcanvas-body" style="overflow-y:auto;padding:24px">
+    <input type="hidden" id="hor-id">
+    <div class="row g-3">
+      <div class="col-12">
+        <label class="form-label" style="font-size:12px;font-weight:600">Sección *</label>
+        <select class="form-select form-select-sm" id="hor-seccion"></select>
       </div>
-      <div class="modal-body">
-        <input type="hidden" id="aula-id">
-        <div class="row g-3">
-          <div class="col-md-6">
-            <label class="form-label">Nombre / Código *</label>
-            <input type="text" class="form-control" id="aula-nombre" placeholder="Ej: Aula 101">
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Capacidad</label>
-            <input type="number" class="form-control" id="aula-capacidad" value="30" min="1">
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Tipo</label>
-            <select class="form-select" id="aula-tipo">
-              <option>Aula regular</option>
-              <option>Laboratorio</option>
-              <option>Sala de cómputo</option>
-              <option>Sala de arte</option>
-              <option>Gimnasio</option>
-              <option>Biblioteca</option>
-              <option>Auditorio</option>
-              <option>Otro</option>
-            </select>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Sede</label>
-            <select class="form-select" id="aula-sede">
-              <option value="">Sin sede</option>
-            </select>
-          </div>
-        </div>
+      <div class="col-12">
+        <label class="form-label" style="font-size:12px;font-weight:600">Materia *</label>
+        <select class="form-select form-select-sm" id="hor-materia">
+          <option value="">Seleccione</option>
+          <option>Lengua y Literatura</option><option>Matemáticas</option>
+          <option>Ciencias Naturales</option><option>Ciencias Sociales</option>
+          <option>Educación Física</option><option>Arte y Cultura</option>
+          <option>Tecnología</option><option>Inglés</option>
+          <option>Valores y Ciudadanía</option><option>Otra</option>
+        </select>
       </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
-        <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="guardarAula()">
-          <i class="bi bi-save me-1"></i>Guardar
-        </button>
+      <div class="col-4">
+        <label class="form-label" style="font-size:12px;font-weight:600">Día *</label>
+        <select class="form-select form-select-sm" id="hor-dia">
+          <option>Lunes</option><option>Martes</option><option>Miércoles</option>
+          <option>Jueves</option><option>Viernes</option>
+        </select>
+      </div>
+      <div class="col-4">
+        <label class="form-label" style="font-size:12px;font-weight:600">Hora inicio *</label>
+        <input type="time" class="form-control form-control-sm" id="hor-inicio" value="07:00">
+      </div>
+      <div class="col-4">
+        <label class="form-label" style="font-size:12px;font-weight:600">Hora fin *</label>
+        <input type="time" class="form-control form-control-sm" id="hor-fin" value="08:00">
+      </div>
+      <div class="col-6">
+        <label class="form-label" style="font-size:12px;font-weight:600">Docente</label>
+        <select class="form-select form-select-sm" id="hor-docente">
+          <option value="">Sin asignar</option>
+        </select>
+      </div>
+      <div class="col-6">
+        <label class="form-label" style="font-size:12px;font-weight:600">Aula</label>
+        <select class="form-select form-select-sm" id="hor-aula">
+          <option value="">Sin asignar</option>
+        </select>
       </div>
     </div>
   </div>
+  <div class="border-top p-3 d-flex gap-2 justify-content-end" style="background:#fff">
+    <button class="btn btn-sm btn-secondary" data-bs-dismiss="offcanvas">Cancelar</button>
+    <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="guardarHorario()">
+      <i class="bi bi-save me-1"></i>Guardar
+    </button>
+  </div>
 </div>
 
-<!-- Modal Sede -->
-<div class="modal fade" id="modalSede" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="modal-sede-title">Nueva Sede</h5>
-        <button class="btn-close" data-bs-dismiss="modal"></button>
+<!-- Offcanvas Aula -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasAula" style="width:min(520px,96vw)">
+  <div class="offcanvas-header border-bottom" style="background:var(--slate-900);padding:20px 24px">
+    <div>
+      <h6 class="offcanvas-title text-white mb-0" style="font-weight:700;font-size:15px" id="offcanvasAula-title">Nueva Aula</h6>
+      <small class="text-white-50" style="font-size:11px">Gestión de Aulas</small>
+    </div>
+    <button class="btn-close btn-close-white ms-3" data-bs-dismiss="offcanvas"></button>
+  </div>
+  <div class="offcanvas-body" style="overflow-y:auto;padding:24px">
+    <input type="hidden" id="aula-id">
+    <div class="row g-3">
+      <div class="col-6">
+        <label class="form-label" style="font-size:12px;font-weight:600">Nombre / Código *</label>
+        <input type="text" class="form-control form-control-sm" id="aula-nombre" placeholder="Ej: Aula 101">
       </div>
-      <div class="modal-body">
-        <input type="hidden" id="sede-id">
-        <div class="row g-3">
-          <div class="col-12">
-            <label class="form-label">Nombre de la Sede *</label>
-            <input type="text" class="form-control" id="sede-nombre" placeholder="Ej: Sede Central">
-          </div>
-          <div class="col-12">
-            <label class="form-label">Dirección</label>
-            <input type="text" class="form-control" id="sede-direccion">
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Teléfono</label>
-            <input type="text" class="form-control" id="sede-telefono">
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Email</label>
-            <input type="email" class="form-control" id="sede-email">
-          </div>
-        </div>
+      <div class="col-6">
+        <label class="form-label" style="font-size:12px;font-weight:600">Capacidad</label>
+        <input type="number" class="form-control form-control-sm" id="aula-capacidad" value="30" min="1">
       </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
-        <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="guardarSede()">
-          <i class="bi bi-save me-1"></i>Guardar
-        </button>
+      <div class="col-6">
+        <label class="form-label" style="font-size:12px;font-weight:600">Tipo</label>
+        <select class="form-select form-select-sm" id="aula-tipo">
+          <option>Aula regular</option><option>Laboratorio</option>
+          <option>Sala de cómputo</option><option>Sala de arte</option>
+          <option>Gimnasio</option><option>Biblioteca</option>
+          <option>Auditorio</option><option>Otro</option>
+        </select>
+      </div>
+      <div class="col-6">
+        <label class="form-label" style="font-size:12px;font-weight:600">Sede</label>
+        <select class="form-select form-select-sm" id="aula-sede">
+          <option value="">Sin sede</option>
+        </select>
       </div>
     </div>
+  </div>
+  <div class="border-top p-3 d-flex gap-2 justify-content-end" style="background:#fff">
+    <button class="btn btn-sm btn-secondary" data-bs-dismiss="offcanvas">Cancelar</button>
+    <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="guardarAula()">
+      <i class="bi bi-save me-1"></i>Guardar
+    </button>
+  </div>
+</div>
+
+<!-- Offcanvas Sede -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasSede" style="width:min(520px,96vw)">
+  <div class="offcanvas-header border-bottom" style="background:var(--slate-900);padding:20px 24px">
+    <div>
+      <h6 class="offcanvas-title text-white mb-0" style="font-weight:700;font-size:15px" id="offcanvasSede-title">Nueva Sede</h6>
+      <small class="text-white-50" style="font-size:11px">Gestión de Sedes</small>
+    </div>
+    <button class="btn-close btn-close-white ms-3" data-bs-dismiss="offcanvas"></button>
+  </div>
+  <div class="offcanvas-body" style="overflow-y:auto;padding:24px">
+    <input type="hidden" id="sede-id">
+    <div class="row g-3">
+      <div class="col-12">
+        <label class="form-label" style="font-size:12px;font-weight:600">Nombre de la Sede *</label>
+        <input type="text" class="form-control form-control-sm" id="sede-nombre" placeholder="Ej: Sede Central">
+      </div>
+      <div class="col-12">
+        <label class="form-label" style="font-size:12px;font-weight:600">Dirección</label>
+        <input type="text" class="form-control form-control-sm" id="sede-direccion">
+      </div>
+      <div class="col-6">
+        <label class="form-label" style="font-size:12px;font-weight:600">Teléfono</label>
+        <input type="text" class="form-control form-control-sm" id="sede-telefono">
+      </div>
+      <div class="col-6">
+        <label class="form-label" style="font-size:12px;font-weight:600">Email</label>
+        <input type="email" class="form-control form-control-sm" id="sede-email">
+      </div>
+    </div>
+  </div>
+  <div class="border-top p-3 d-flex gap-2 justify-content-end" style="background:#fff">
+    <button class="btn btn-sm btn-secondary" data-bs-dismiss="offcanvas">Cancelar</button>
+    <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="guardarSede()">
+      <i class="bi bi-save me-1"></i>Guardar
+    </button>
   </div>
 </div>
 
@@ -3103,7 +3081,7 @@ function renderDocentes() {
 }
 
 function abrirDocente(id=null) {
-  document.getElementById('modal-doc-title').textContent = id ? 'Editar Docente' : 'Nuevo Docente';
+  document.getElementById('offcanvasDocente-title').textContent = id ? 'Editar Docente' : 'Nuevo Docente';
   const campos = ['id','cedula','p-nombre','s-nombre','p-apellido','s-apellido','fecha','genero','telefono','celular','correo','municipio','direccion','estado','area','tipo-vinc','decreto'];
   campos.forEach(c => { const el = document.getElementById('doc-'+c); if(el) el.value = ''; });
   if (id) {
@@ -3124,7 +3102,7 @@ function abrirDocente(id=null) {
     document.getElementById('doc-direccion').value = d.direccion||'';
     document.getElementById('doc-estado').value    = d.estado||'Activo';
   }
-  new bootstrap.Modal(document.getElementById('modalDocente')).show();
+  new bootstrap.Offcanvas(document.getElementById('offcanvasDocente')).show();
 }
 
 function guardarDocente() {
@@ -3179,7 +3157,7 @@ function guardarDocente() {
     toast('Docente actualizado.');
   }
   DB.set('docentes', docs);
-  bootstrap.Modal.getInstance(document.getElementById('modalDocente')).hide();
+  bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasDocente')).hide();
   renderDocentes();
 }
 
@@ -3271,7 +3249,7 @@ function verSeccion(secId) {
     }).join('');
   }
 
-  bootstrap.Offcanvas.getOrCreateInstance(document.getElementById('offcanvasSeccion')).show();
+  bootstrap.Offcanvas.getOrCreateInstance(document.getElementById('offcanvasSeccionForm')).show();
 }
 
 function verDocente(id) {
@@ -3503,7 +3481,7 @@ function abrirSeccionEnGrado() {
 }
 
 function abrirSeccion(id=null) {
-  document.getElementById('modal-sec-title').textContent = id ? 'Editar Sección' : 'Nueva Sección';
+  document.getElementById('offcanvasSeccionForm-title').textContent = id ? 'Editar Sección' : 'Nueva Sección';
   ['sec-id','sec-nombre','sec-capacidad'].forEach(x => { document.getElementById(x).value = x==='sec-capacidad'?'30':''; });
 
   const gSel = document.getElementById('sec-grado');
@@ -3528,7 +3506,7 @@ function abrirSeccion(id=null) {
     document.getElementById('sec-docente').value  = s.docente_id||'';
     document.getElementById('sec-aula').value     = s.aula_id||'';
   }
-  new bootstrap.Modal(document.getElementById('modalSeccion')).show();
+  new bootstrap.Offcanvas(document.getElementById('offcanvasSeccionForm')).show();
 }
 
 function guardarSeccion() {
@@ -3556,7 +3534,7 @@ function guardarSeccion() {
     toast('Sección actualizada.');
   }
   DB.set('secciones', secciones);
-  bootstrap.Modal.getInstance(document.getElementById('modalSeccion')).hide();
+  bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasSeccionForm')).hide();
   renderGrados();
 }
 
@@ -3925,7 +3903,7 @@ function cerrarTablero() {
 function abrirAsignacion(id) {
   migrarAsignaciones();
   id = id || null;
-  document.getElementById('modal-asig-title').textContent = id ? 'Editar Asignación' : 'Nueva Asignación';
+  document.getElementById('offcanvasAsignacion-title').textContent = id ? 'Editar Asignación' : 'Nueva Asignación';
   document.getElementById('asig-id').value = '';
   document.getElementById('asig-estado').value = 'Activo';
   document.getElementById('asig-total-horas').textContent = '';
@@ -3969,7 +3947,7 @@ function abrirAsignacion(id) {
     agregarCursoRow();
   }
 
-  new bootstrap.Modal(document.getElementById('modalAsignacion')).show();
+  new bootstrap.Offcanvas(document.getElementById('offcanvasAsignacion')).show();
 }
 
 function guardarAsignacion() {
@@ -4013,7 +3991,7 @@ function guardarAsignacion() {
   }
   DB.set('asignaciones', asigs);
   sincronizarHorarios(asigId, data);
-  bootstrap.Modal.getInstance(document.getElementById('modalAsignacion')).hide();
+  bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasAsignacion')).hide();
   renderAsignaciones();
   if (document.getElementById('tablero-doc-sel').value == data.docente_id) renderTableroDocente();
 }
@@ -4268,7 +4246,7 @@ function renderCronograma() {
 
 function abrirEvento(id) {
   id = id || null;
-  document.getElementById('modal-evento-title').textContent = id ? 'Editar Evento' : 'Nuevo Evento';
+  document.getElementById('offcanvasEvento-title').textContent = id ? 'Editar Evento' : 'Nuevo Evento';
   document.getElementById('evento-id').value           = '';
   document.getElementById('evento-actividad').value    = '';
   document.getElementById('evento-tipo').value         = '';
@@ -4302,7 +4280,7 @@ function abrirEvento(id) {
     gSel.options[0].selected = true; // default: todos
   }
 
-  new bootstrap.Modal(document.getElementById('modalEvento')).show();
+  new bootstrap.Offcanvas(document.getElementById('offcanvasEvento')).show();
 }
 
 function guardarEvento() {
@@ -4336,7 +4314,7 @@ function guardarEvento() {
     toast('Evento actualizado.');
   }
   DB.set('cronograma', lista);
-  bootstrap.Modal.getInstance(document.getElementById('modalEvento')).hide();
+  bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasEvento')).hide();
   renderCronograma();
   renderDashboard(); // refresh próximo evento
 }
@@ -4815,7 +4793,7 @@ function editarHorario(id) {
     document.getElementById('hor-aula').value     = h.aula_id||'';
   }
   document.querySelector('#modalHorario .modal-title').textContent = id ? 'Editar Horario' : 'Nuevo Horario';
-  new bootstrap.Modal(document.getElementById('modalHorario')).show();
+  new bootstrap.Offcanvas(document.getElementById('offcanvasHorario')).show();
 }
 
 function guardarHorario() {
@@ -4847,7 +4825,7 @@ function guardarHorario() {
     toast('Horario actualizado.');
   }
   DB.set('horarios', horarios);
-  bootstrap.Modal.getInstance(document.getElementById('modalHorario')).hide();
+  bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasHorario')).hide();
   renderHorarios();
 }
 
@@ -4878,7 +4856,7 @@ function renderAulas() {
 }
 
 function abrirAula(id=null) {
-  document.getElementById('modal-aula-title').textContent = id ? 'Editar Aula' : 'Nueva Aula';
+  document.getElementById('offcanvasAula-title').textContent = id ? 'Editar Aula' : 'Nueva Aula';
   ['aula-id','aula-nombre','aula-capacidad'].forEach(x => {
     document.getElementById(x).value = x==='aula-capacidad'?'30':'';
   });
@@ -4895,7 +4873,7 @@ function abrirAula(id=null) {
     document.getElementById('aula-tipo').value     = a.tipo||'Aula regular';
     document.getElementById('aula-sede').value     = a.sede_id||'';
   }
-  new bootstrap.Modal(document.getElementById('modalAula')).show();
+  new bootstrap.Offcanvas(document.getElementById('offcanvasAula')).show();
 }
 
 function guardarAula() {
@@ -4912,7 +4890,7 @@ function guardarAula() {
   if (!idEdit) { aulas.push({ id: DB.nextId('aulas'), ...data }); toast('Aula creada.'); }
   else { const idx=aulas.findIndex(a=>a.id==idEdit); Object.assign(aulas[idx],data); toast('Aula actualizada.'); }
   DB.set('aulas', aulas);
-  bootstrap.Modal.getInstance(document.getElementById('modalAula')).hide();
+  bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasAula')).hide();
   renderAulas();
 }
 
@@ -4943,7 +4921,7 @@ function renderSedes() {
 }
 
 function abrirSede(id=null) {
-  document.getElementById('modal-sede-title').textContent = id ? 'Editar Sede' : 'Nueva Sede';
+  document.getElementById('offcanvasSede-title').textContent = id ? 'Editar Sede' : 'Nueva Sede';
   ['sede-id','sede-nombre','sede-direccion','sede-telefono','sede-email'].forEach(x => {
     document.getElementById(x).value = '';
   });
@@ -4956,7 +4934,7 @@ function abrirSede(id=null) {
     document.getElementById('sede-telefono').value  = s.telefono||'';
     document.getElementById('sede-email').value     = s.email||'';
   }
-  new bootstrap.Modal(document.getElementById('modalSede')).show();
+  new bootstrap.Offcanvas(document.getElementById('offcanvasSede')).show();
 }
 
 function guardarSede() {
@@ -4973,7 +4951,7 @@ function guardarSede() {
   if (!idEdit) { sedes.push({ id: DB.nextId('sedes'), ...data }); toast('Sede creada.'); }
   else { const idx=sedes.findIndex(s=>s.id==idEdit); Object.assign(sedes[idx],data); toast('Sede actualizada.'); }
   DB.set('sedes', sedes);
-  bootstrap.Modal.getInstance(document.getElementById('modalSede')).hide();
+  bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasSede')).hide();
   renderSedes();
 }
 
@@ -5027,7 +5005,8 @@ function renderPermisos() {
     const reemplNom = p.docente_reemplazo_id ? nombreDocente(p.docente_reemplazo_id) : '—';
     const btnAprobar  = '<button class="btn btn-xs btn-success btn-sm me-1" onclick="cambiarEstadoPermiso('+p.id+',\'Aprobado\')" title="Aprobar"><i class="bi bi-check-lg"></i></button>';
     const btnRechazar = '<button class="btn btn-xs btn-danger btn-sm me-1" onclick="cambiarEstadoPermiso('+p.id+',\'Rechazado\')" title="Rechazar"><i class="bi bi-x-lg"></i></button>';
-    return '<tr>'
+    var pid2=p.id;
+  return '<tr style="cursor:pointer" onclick="abrirPermiso('+pid2+')" title="Ver/Editar permiso">'
       + '<td style="white-space:nowrap">' + fmt(p.fecha_novedad||p.fecha_inicio) + '</td>'
       + '<td><strong>' + nombreDocente(p.docente_id) + '</strong></td>'
       + '<td><span style="font-size:11px;background:var(--blue-50);color:var(--blue-600);padding:2px 8px;border-radius:20px">' + (p.tipo||'—') + '</span></td>'
@@ -5296,7 +5275,7 @@ function renderReuniones() {
 }
 
 function abrirReunion(id=null) {
-  document.getElementById('modal-reunion-title').textContent = id ? 'Editar Reunión' : 'Nueva Reunión';
+  document.getElementById('offcanvasReunion-title').textContent = id ? 'Editar Reunión' : 'Nueva Reunión';
   const campos = ['id','fecha','hora','tipo','tema','lugar','estado','area','compromisos','obs'];
   campos.forEach(c => { const el = document.getElementById('reunion-'+c); if(el) el.value=''; });
 
@@ -5320,7 +5299,7 @@ function abrirReunion(id=null) {
       if (cb) cb.checked = true;
     });
   }
-  new bootstrap.Modal(document.getElementById('modalReunion')).show();
+  new bootstrap.Offcanvas(document.getElementById('offcanvasReunion')).show();
 }
 
 function guardarReunion() {
@@ -5352,7 +5331,7 @@ function guardarReunion() {
     toast('Reunión actualizada.');
   }
   DB.set('reuniones', reuniones);
-  bootstrap.Modal.getInstance(document.getElementById('modalReunion')).hide();
+  bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasReunion')).hide();
   renderReuniones();
 }
 
@@ -5600,7 +5579,7 @@ function renderUsuarios() {
 }
 
 function abrirUsuario(id) {
-  document.getElementById('modal-usr-title').textContent = id ? 'Editar Usuario' : 'Nuevo Usuario';
+  document.getElementById('offcanvasUsuario-title').textContent = id ? 'Editar Usuario' : 'Nuevo Usuario';
   ['id','nombre','email','pass','notas'].forEach(function(c){
     var el = document.getElementById('usr-'+c); if(el) el.value='';
   });
@@ -5628,7 +5607,7 @@ function abrirUsuario(id) {
     if (emailHint) emailHint.textContent = 'Se usará para iniciar sesión en el SIGEI.';
     document.getElementById('usr-email').readOnly = false;
   }
-  new bootstrap.Modal(document.getElementById('modalUsuario')).show();
+  new bootstrap.Offcanvas(document.getElementById('offcanvasUsuario')).show();
 }
 
 function togglePassVis() {
@@ -5686,7 +5665,7 @@ function guardarUsuario() {
         usuarios.push(newUser);
         DB.set('usuarios', usuarios);
         secondaryApp.auth().signOut();
-        bootstrap.Modal.getInstance(document.getElementById('modalUsuario')).hide();
+        bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasUsuario')).hide();
         renderUsuarios();
         toast('Usuario creado exitosamente.');
         resetUsrBtn();
@@ -5715,7 +5694,7 @@ function guardarUsuario() {
       var roleEl = document.getElementById('sidebar-role');
       if (roleEl) roleEl.textContent = rol;
     }
-    bootstrap.Modal.getInstance(document.getElementById('modalUsuario')).hide();
+    bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasUsuario')).hide();
     renderUsuarios();
     toast('Usuario actualizado.');
     resetUsrBtn();
