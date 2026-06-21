@@ -4543,7 +4543,7 @@ function renderHorarios() {
       var _docenteLabel = nombreDocente(b.docente_id);
       if (_esAusente) _docenteLabel = '⚠️ ' + _docenteLabel;
       var _reempLabel = _reempId ? '🔄 ' + nombreDocente(_reempId) : '';
-      bodyHtml += '<div class="hv-block ' + cls + _extraCls + '" onclick="abrirHorario(' + b.id + ')"'
+      bodyHtml += '<div class="hv-block ' + cls + _extraCls + '" onclick="abrirHorario(' + b.id + ',\'' + _fechaDia + '\')"'
         + ' style="top:' + top + 'px;height:' + height + 'px;left:calc(' + leftPct + '% + 2px);width:calc(' + widthPct + '% - 4px)">'
         + '<div class="hv-bm">' + _docenteLabel + '</div>'
         + (height > 28 ? '<div class="hv-bs">' + gradoLabel + '</div>' : '')
@@ -4659,7 +4659,7 @@ function filtrarPorDocente(id) {
 }
 
 // ── Ver clase (read-only) ──────────────────────────────────────────────────
-function abrirHorario(id) {
+function abrirHorario(id, fechaDia) {
   if (!id) { editarHorario(null); return; } // new horario → edit mode
   const h = DB.get('horarios').find(function(x){ return x.id == id; });
   if (!h) return;
@@ -4722,12 +4722,9 @@ function abrirHorario(id) {
   if (h.docente_id && h.dia) {
     var permisos = DB.get('permisos').filter(function(p) {
       if (p.estado !== 'Aprobado' || p.docente_id != h.docente_id) return false;
+      // Match only on the EXACT date of the day column clicked
       var fechaBase = p.fecha_novedad || p.fecha_inicio;
-      if (!fechaBase) return false;
-      var parts = fechaBase.split('-');
-      var d = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
-      var diaNom = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'][d.getDay()];
-      return diaNom === h.dia;
+      return fechaDia ? fechaBase === fechaDia : false;
     });
     if (permisos.length) {
       var p = permisos[0];
