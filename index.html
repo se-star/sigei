@@ -2582,105 +2582,121 @@
 </div>
 
 <!-- Modal Permiso -->
-<div class="modal fade" id="modalPermiso" tabindex="-1">
-  <div class="modal-dialog modal-xl">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="modal-perm-title">Nuevo Permiso / Novedad</h5>
-        <button class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <input type="hidden" id="perm-id">
-        <div class="row g-3">
+<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasPermiso" style="width:min(560px,96vw)">
+  <div class="offcanvas-header border-bottom" style="background:var(--slate-900);padding:20px 24px">
+    <div>
+      <h6 class="offcanvas-title text-white mb-0" id="modal-perm-title" style="font-weight:700;font-size:15px">Nueva Novedad / Permiso</h6>
+      <small class="text-white-50" style="font-size:11px">Gestión de Permisos y Licencias</small>
+    </div>
+    <button class="btn-close btn-close-white ms-3" data-bs-dismiss="offcanvas"></button>
+  </div>
+  <div class="offcanvas-body p-0" style="overflow-y:auto">
+    <input type="hidden" id="perm-id">
+    <div class="p-4">
 
-          <!-- Fila 1: Fecha novedad + Docente con novedad + Tipo de novedad -->
-          <div class="col-md-3">
-            <label class="form-label">Fecha Novedad *</label>
-            <input type="date" class="form-control" id="perm-fecha-novedad">
-          </div>
-          <div class="col-md-5">
-            <label class="form-label">Docente con Novedad *</label>
-            <select class="form-select" id="perm-docente" onchange="autoFillPermisoFromDocente()"></select>
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Tipo de Novedad *</label>
-            <select class="form-select" id="perm-tipo">
-              <option value="">Seleccione...</option>
-              <option>Incapacidad médica</option>
-              <option>Permiso médico</option>
-              <option>Permiso personal</option>
-              <option>Licencia de maternidad/paternidad</option>
-              <option>Licencia sindical</option>
-              <option>Comisión de servicio</option>
-              <option>Calamidad doméstica</option>
-              <option>Vacaciones</option>
-              <option>Otro</option>
-            </select>
-          </div>
-
-          <!-- Fila 2: Grados afectados + Horas afectadas -->
-          <div class="col-md-8">
-            <label class="form-label">Grado(s) Afectado(s)</label>
-            <select class="form-select" id="perm-grados" multiple style="height:90px">
-            </select>
-            <div class="form-text">Mantén Ctrl para seleccionar varios grados.</div>
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Horas Afectadas</label>
-            <input type="number" class="form-control" id="perm-horas" min="1" max="40" placeholder="Ej: 4">
-          </div>
-
-          <!-- Fila 3: Docente reemplazo + Fecha reemplazo -->
-          <div class="col-md-6">
-            <label class="form-label">Docente Reemplazo</label>
-            <select class="form-select" id="perm-reemplazo">
-              <option value="">— Sin reemplazo asignado —</option>
-            </select>
-          </div>
-          <div class="col-md-3">
-            <label class="form-label">Fecha Reemplazo</label>
-            <input type="date" class="form-control" id="perm-fecha-reemplazo">
-          </div>
-          <div class="col-md-3">
-            <label class="form-label">Estado Resolución</label>
-            <select class="form-select" id="perm-estado">
-              <option value="Pendiente">Pendiente</option>
-              <option value="Aprobado">Aprobado</option>
-              <option value="Rechazado">Rechazado</option>
-              <option value="En trámite">En trámite</option>
-            </select>
-          </div>
-
-          <!-- Fila 4: Autorizado por + Radicado -->
-          <div class="col-md-6">
-            <label class="form-label">Autorizado por</label>
-            <select class="form-select" id="perm-autorizado">
-              <option value="">— Seleccione —</option>
-              <option value="Rectoría">Rectoría</option>
-              <option value="Coordinador Académico">Coordinador Académico</option>
-              <option value="Coordinador de Convivencia">Coordinador de Convivencia</option>
-            </select>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Radicado / N° Documento</label>
-            <input type="text" class="form-control" id="perm-radicado" placeholder="Ej: RAD-2024-001">
-          </div>
-
-          <!-- Observaciones -->
-          <div class="col-12">
-            <label class="form-label">Observaciones</label>
-            <textarea class="form-control" id="perm-motivo" rows="2" placeholder="Detalles adicionales..."></textarea>
-          </div>
-
+      <!-- Sección 1: Datos de la novedad -->
+      <p class="text-muted fw-bold mb-3" style="font-size:11px;text-transform:uppercase;letter-spacing:.06em">
+        <i class="bi bi-calendar-event me-1"></i>Datos de la Novedad
+      </p>
+      <div class="row g-3 mb-4">
+        <div class="col-6">
+          <label class="form-label" style="font-size:12px;font-weight:600">Fecha Novedad *</label>
+          <input type="date" class="form-control form-control-sm" id="perm-fecha-novedad">
+        </div>
+        <div class="col-6">
+          <label class="form-label" style="font-size:12px;font-weight:600">Tipo de Novedad *</label>
+          <select class="form-select form-select-sm" id="perm-tipo">
+            <option value="">Seleccione...</option>
+            <option>Incapacidad médica</option>
+            <option>Permiso médico</option>
+            <option>Permiso personal</option>
+            <option>Licencia de maternidad/paternidad</option>
+            <option>Licencia sindical</option>
+            <option>Comisión de servicio</option>
+            <option>Calamidad doméstica</option>
+            <option>Vacaciones</option>
+            <option>Otro</option>
+          </select>
+        </div>
+        <div class="col-12">
+          <label class="form-label" style="font-size:12px;font-weight:600">Docente con Novedad *</label>
+          <select class="form-select form-select-sm" id="perm-docente" onchange="autoFillPermisoFromDocente()"></select>
         </div>
       </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
-        <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="guardarPermiso()">
-          <i class="bi bi-save me-1"></i>Guardar
-        </button>
+
+      <!-- Sección 2: Grados y horas -->
+      <p class="text-muted fw-bold mb-3" style="font-size:11px;text-transform:uppercase;letter-spacing:.06em">
+        <i class="bi bi-mortarboard me-1"></i>Grados y Horas
+      </p>
+      <div class="row g-3 mb-4">
+        <div class="col-8">
+          <label class="form-label" style="font-size:12px;font-weight:600">Grado(s) Afectado(s)</label>
+          <select class="form-select form-select-sm" id="perm-grados" multiple style="height:88px"></select>
+          <div class="form-text" style="font-size:11px">Ctrl + clic para varios</div>
+        </div>
+        <div class="col-4">
+          <label class="form-label" style="font-size:12px;font-weight:600">Horas Afectadas</label>
+          <input type="number" class="form-control form-control-sm" id="perm-horas" min="1" max="40" placeholder="Ej: 4">
+        </div>
+      </div>
+
+      <!-- Sección 3: Reemplazo -->
+      <p class="text-muted fw-bold mb-3" style="font-size:11px;text-transform:uppercase;letter-spacing:.06em">
+        <i class="bi bi-person-fill-check me-1"></i>Docente Reemplazo
+      </p>
+      <div class="row g-3 mb-4">
+        <div class="col-12">
+          <label class="form-label" style="font-size:12px;font-weight:600">Docente Reemplazo</label>
+          <select class="form-select form-select-sm" id="perm-reemplazo">
+            <option value="">— Sin reemplazo asignado —</option>
+          </select>
+        </div>
+        <div class="col-6">
+          <label class="form-label" style="font-size:12px;font-weight:600">Fecha Reemplazo</label>
+          <input type="date" class="form-control form-control-sm" id="perm-fecha-reemplazo">
+        </div>
+        <div class="col-6">
+          <label class="form-label" style="font-size:12px;font-weight:600">Estado Resolución</label>
+          <select class="form-select form-select-sm" id="perm-estado">
+            <option value="Pendiente">Pendiente</option>
+            <option value="Aprobado">Aprobado</option>
+            <option value="Rechazado">Rechazado</option>
+            <option value="En trámite">En trámite</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Sección 4: Autorización -->
+      <p class="text-muted fw-bold mb-3" style="font-size:11px;text-transform:uppercase;letter-spacing:.06em">
+        <i class="bi bi-shield-check me-1"></i>Autorización
+      </p>
+      <div class="row g-3">
+        <div class="col-12">
+          <label class="form-label" style="font-size:12px;font-weight:600">Autorizado por</label>
+          <select class="form-select form-select-sm" id="perm-autorizado">
+            <option value="">— Seleccione —</option>
+            <option value="Rectoría">Rectoría</option>
+            <option value="Coordinador Académico">Coordinador Académico</option>
+            <option value="Coordinador de Convivencia">Coordinador de Convivencia</option>
+          </select>
+        </div>
+        <div class="col-12">
+          <label class="form-label" style="font-size:12px;font-weight:600">Radicado / N° Documento</label>
+          <input type="text" class="form-control form-control-sm" id="perm-radicado" placeholder="Ej: RAD-2024-001">
+        </div>
+        <div class="col-12">
+          <label class="form-label" style="font-size:12px;font-weight:600">Observaciones</label>
+          <textarea class="form-control form-control-sm" id="perm-motivo" rows="3" placeholder="Detalles adicionales..."></textarea>
+        </div>
       </div>
     </div>
+  </div>
+  <!-- Footer sticky -->
+  <div class="border-top p-3 d-flex gap-2 justify-content-end" style="background:#fff">
+    <button class="btn btn-sm btn-secondary" data-bs-dismiss="offcanvas">Cancelar</button>
+    <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="guardarPermiso()">
+      <i class="bi bi-save me-1"></i>Guardar
+    </button>
   </div>
 </div>
 
@@ -5073,7 +5089,7 @@ function abrirPermiso(id) {
     const gAfect = p.grados_afectados || [];
     Array.from(gradSel.options).forEach(o => { o.selected = gAfect.includes(parseInt(o.value)); });
   }
-  new bootstrap.Modal(document.getElementById('modalPermiso')).show();
+  new bootstrap.Offcanvas(document.getElementById('offcanvasPermiso')).show();
 }
 
 
@@ -5176,7 +5192,7 @@ function guardarPermiso() {
   if (!idEdit) { perms.push({ id: DB.nextId('permisos'), ...data }); toast('Novedad registrada.'); }
   else { const idx = perms.findIndex(p => p.id == idEdit); Object.assign(perms[idx], data); toast('Novedad actualizada.'); }
   DB.set('permisos', perms);
-  bootstrap.Modal.getInstance(document.getElementById('modalPermiso')).hide();
+  bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasPermiso')).hide();
   renderPermisos();
   if (document.getElementById('page-horarios') && !document.getElementById('page-horarios').classList.contains('d-none')) renderHorarios();
   else { /* cache-bust so next open of horarios reflects change */ }
@@ -6042,8 +6058,4 @@ _auth.onAuthStateChanged(async function(user) {
     </button>
 
     <div style="text-align:center;margin-top:24px">
-      <span style="font-size:11px;color:rgba(255,255,255,.25)">© 2025 ALFATIC · Todos los derechos reservados</span>
-    </div>
-
-  </div>
-</div>
+      <span style="font-
