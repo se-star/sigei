@@ -2882,11 +2882,15 @@ function renderDashboard() {
   const tbPerm = document.getElementById('dash-permisos');
   const pending = perms.filter(p => p.estado === 'Pendiente').slice(0,5);
   tbPerm.innerHTML = pending.length
-    ? pending.map(p => '<tr style="cursor:pointer" onclick="navigate('permisos');setTimeout(()=>abrirPermiso(' + p.id + '),300)" title="Ver permiso">'
+    ? pending.map(function(p){
+      var pid=p.id;
+      return '<tr style="cursor:pointer" title="Ver permiso" '
+        + 'onclick="navigate(\'permisos\');setTimeout(function(){abrirPermiso(' + pid + ')},300)">'
         + '<td>' + nombreDocente(p.docente_id) + '</td>'
         + '<td>' + p.tipo + '</td>'
         + '<td>' + fmt(p.fecha_inicio) + '</td>'
-        + '</tr>').join('')
+        + '</tr>';
+    }).join('')
     : emptyRow(3, 'Sin permisos pendientes');
 
   // ── Clases de hoy ───────────────────────────────────────────────────
