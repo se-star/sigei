@@ -372,6 +372,92 @@
   .hv-bd { font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .hv-bt { font-size: 9px; opacity: .6; margin-top: auto; }
 
+  /* ── GRADO CARDS ─────────────────────────────── */
+  .grado-card {
+    background: var(--gb, #f1f5f9);
+    border: 2px solid transparent;
+    border-radius: 16px;
+    padding: 18px 16px 14px;
+    cursor: pointer;
+    transition: all .2s;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: relative;
+    overflow: hidden;
+  }
+  .grado-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: var(--gc, #64748b);
+    border-radius: 16px 16px 0 0;
+  }
+  .grado-card:hover, .grado-card.active {
+    border-color: var(--gc, #64748b);
+    box-shadow: 0 6px 20px rgba(0,0,0,.13);
+    transform: translateY(-3px);
+  }
+  .grado-card.active { box-shadow: 0 6px 24px rgba(0,0,0,.18); }
+  .grado-card-icon {
+    width: 42px; height: 42px;
+    background: white;
+    border-radius: 11px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    color: var(--gc, #64748b);
+    box-shadow: 0 2px 8px rgba(0,0,0,.09);
+  }
+  .grado-card-nombre {
+    font-weight: 700;
+    font-size: 14px;
+    color: #1e293b;
+    line-height: 1.2;
+  }
+  .grado-card-nivel {
+    font-size: 10px;
+    color: var(--gc, #64748b);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .6px;
+  }
+  .grado-card-secs {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 2px;
+  }
+  .grado-card-secs .gc-badge {
+    background: white;
+    color: var(--gc, #64748b);
+    border: 1.5px solid var(--gc, #64748b);
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 8px;
+  }
+  .grado-card-secs .gc-names {
+    font-size: 10px;
+    color: #64748b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100px;
+  }
+  /* Detail panel */
+  #grado-detail-panel {
+    animation: slideDown .2s ease;
+  }
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  body.dark-mode .grado-card-nombre { color: #f1f5f9; }
+  body.dark-mode .grado-card-icon   { background: rgba(255,255,255,.08); }
+  body.dark-mode .grado-card-secs .gc-badge { background: rgba(255,255,255,.05); }
+
   .empty-state { text-align: center; padding: 48px 20px; color: var(--slate-400); }
   .empty-state i { font-size: 36px; display: block; margin-bottom: 10px; opacity: .5; }
   .empty-state p { font-size: 13px; margin: 0; }
@@ -1221,38 +1307,40 @@
 
     <!-- ── GRADOS Y SECCIONES ────────────── -->
     <div id="page-grados" class="d-none">
-      <div class="row g-3">
-        <div class="col-md-4">
-          <div class="card-panel">
-            <div class="panel-header">
-              <h6><i class="bi bi-diagram-3-fill me-2"></i>Grados</h6>
-            </div>
-            <div class="table-responsive">
-              <table>
-                <thead><tr><th>#</th><th>Grado</th><th>Nivel</th><th>Secciones</th></tr></thead>
-                <tbody id="tabla-grados"></tbody>
-              </table>
-            </div>
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div>
+          <h5 style="font-weight:700;color:var(--slate-800);margin:0"><i class="bi bi-diagram-3-fill me-2 text-primary"></i>Grados y Secciones</h5>
+          <small class="text-muted">Selecciona un grado para ver sus secciones</small>
+        </div>
+        <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="abrirSeccion()">
+          <i class="bi bi-plus-lg"></i> Nueva sección
+        </button>
+      </div>
+
+      <!-- Grid de tarjetas de grado -->
+      <div id="grados-cards" class="row g-3 mb-3"></div>
+
+      <!-- Panel de detalle de secciones (oculto hasta seleccionar un grado) -->
+      <div id="grado-detail-panel" class="card-panel d-none">
+        <div class="panel-header mb-3">
+          <h6 id="grado-detail-title" style="font-weight:700"><i class="bi bi-people-fill me-2"></i>Secciones</h6>
+          <div class="d-flex gap-2">
+            <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="abrirSeccionEnGrado()">
+              <i class="bi bi-plus-lg"></i> Añadir sección
+            </button>
+            <button class="btn btn-sm btn-outline-secondary" onclick="cerrarDetalleGrado()">
+              <i class="bi bi-x-lg"></i>
+            </button>
           </div>
         </div>
-        <div class="col-md-8">
-          <div class="card-panel">
-            <div class="panel-header">
-              <h6><i class="bi bi-people-fill me-2"></i>Secciones</h6>
-              <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="abrirSeccion()">
-                <i class="bi bi-plus-lg"></i> Nueva sección
-              </button>
-            </div>
-            <div class="table-responsive">
-              <table>
-                <thead><tr>
-                  <th>Grado</th><th>Sección</th><th>Turno</th>
-                  <th>Docente guía</th><th>Aula</th><th style="width:90px">Acciones</th>
-                </tr></thead>
-                <tbody id="tabla-secciones"></tbody>
-              </table>
-            </div>
-          </div>
+        <div class="table-responsive">
+          <table>
+            <thead><tr>
+              <th>Sección</th><th>Turno</th><th>Docente Guía</th><th>Aula</th><th>Capacidad</th><th style="width:90px">Acciones</th>
+            </tr></thead>
+            <tbody id="tabla-secciones"></tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -3058,39 +3146,109 @@ function eliminarDocente(id) {
 // ══════════════════════════════════════════════
 //  GRADOS Y SECCIONES
 // ══════════════════════════════════════════════
+// Nivel config for grado cards
+const NIVEL_CONFIG = {
+  'Primaria':     { color:'#16a34a', bg:'#dcfce7', icon:'bi-mortarboard-fill' },
+  'Secundaria':   { color:'#d97706', bg:'#fef3c7', icon:'bi-book-fill' },
+  'Bachillerato': { color:'#2563eb', bg:'#dbeafe', icon:'bi-award-fill' },
+};
+
+var _gradoSeleccionado = null;
+
 function renderGrados() {
   const grados   = DB.get('grados');
   const secciones = DB.get('secciones');
 
-  const NIVEL_BADGE = {
-    'Primaria':     'bg-success bg-opacity-10 text-success',
-    'Secundaria':   'bg-warning bg-opacity-10 text-warning',
-    'Bachillerato': 'bg-info bg-opacity-10 text-info',
-  };
-  const tbG = document.getElementById('tabla-grados');
-  tbG.innerHTML = grados.map(g => {
-    const cnt  = secciones.filter(s => s.grado_id == g.id).length;
-    const nBadge = NIVEL_BADGE[g.nivel] || 'bg-secondary bg-opacity-10 text-secondary';
-    return `<tr>
-      <td>${g.id}</td>
-      <td><strong>${g.nombre}</strong></td>
-      <td><span class="badge ${nBadge}">${g.nivel||'—'}</span></td>
-      <td><span class="badge bg-primary bg-opacity-10 text-primary">${cnt} secc.</span></td>
-    </tr>`;
+  // ── Render tarjetas de grado ─────────────────────────────────────────
+  const container = document.getElementById('grados-cards');
+  if (!container) return;
+  container.innerHTML = grados.map(function(g) {
+    const secsGrado = secciones.filter(function(s){ return s.grado_id == g.id; });
+    const cfg = NIVEL_CONFIG[g.nivel] || { color:'#64748b', bg:'#f1f5f9', icon:'bi-circle-fill' };
+    const secNames = secsGrado.map(function(s){ return s.nombre; }).join(' · ') || 'Sin secciones';
+    const isActive = _gradoSeleccionado == g.id ? ' active' : '';
+    return '<div class="col-6 col-md-4 col-lg-3">'
+      + '<div class="grado-card' + isActive + '" onclick="mostrarSeccionesGrado(' + g.id + ')"'
+      + ' style="--gc:' + cfg.color + ';--gb:' + cfg.bg + '">'
+      + '<div class="grado-card-icon"><i class="bi ' + cfg.icon + '"></i></div>'
+      + '<div>'
+      + '<div class="grado-card-nombre">' + g.nombre + '</div>'
+      + '<div class="grado-card-nivel">' + (g.nivel||'—') + '</div>'
+      + '</div>'
+      + '<div class="grado-card-secs">'
+      + '<span class="gc-badge">' + secsGrado.length + ' secc.</span>'
+      + '<span class="gc-names">' + secNames + '</span>'
+      + '</div>'
+      + '</div></div>';
   }).join('');
 
+  // ── Si hay grado seleccionado, actualizar el detalle ─────────────────
+  if (_gradoSeleccionado !== null) {
+    mostrarSeccionesGrado(_gradoSeleccionado, true);
+  }
+}
+
+function mostrarSeccionesGrado(gradoId, noScroll) {
+  _gradoSeleccionado = gradoId;
+  const grados   = DB.get('grados');
+  const secciones = DB.get('secciones');
+  const grado = grados.find(function(g){ return g.id == gradoId; });
+  if (!grado) return;
+
+  // Update active card
+  document.querySelectorAll('.grado-card').forEach(function(c){ c.classList.remove('active'); });
+  const cards = document.querySelectorAll('.grado-card');
+  const allGrados = grados;
+  const idx = allGrados.findIndex(function(g){ return g.id == gradoId; });
+  if (idx >= 0 && cards[idx]) cards[idx].classList.add('active');
+
+  // Show detail panel
+  const panel = document.getElementById('grado-detail-panel');
+  panel.classList.remove('d-none');
+
+  // Update title
+  const cfg = NIVEL_CONFIG[grado.nivel] || { color:'#64748b' };
+  document.getElementById('grado-detail-title').innerHTML =
+    '<i class="bi bi-people-fill me-2" style="color:' + cfg.color + '"></i>'
+    + grado.nombre + ' — Secciones';
+
+  // Render secciones table
+  const secsGrado = secciones.filter(function(s){ return s.grado_id == gradoId; });
   const tbS = document.getElementById('tabla-secciones');
-  tbS.innerHTML = secciones.length ? secciones.map(s => `<tr>
-    <td>${nombreGrado(s.grado_id)}</td>
-    <td><strong>${s.nombre}</strong></td>
-    <td>${s.turno||'—'}</td>
-    <td>${nombreDocente(s.docente_id)}</td>
-    <td>${nombreAula(s.aula_id)}</td>
-    <td>
-      <button class="btn btn-sm btn-outline-primary me-1" onclick="abrirSeccion(${s.id})"><i class="bi bi-pencil-fill"></i></button>
-      <button class="btn btn-sm btn-outline-danger" onclick="eliminarSeccion(${s.id})"><i class="bi bi-trash-fill"></i></button>
-    </td>
-  </tr>`).join('') : emptyRow(6, 'No hay secciones registradas');
+  tbS.innerHTML = secsGrado.length ? secsGrado.map(function(s) {
+    return '<tr>'
+      + '<td><strong>' + s.nombre + '</strong></td>'
+      + '<td>' + (s.turno||'—') + '</td>'
+      + '<td>' + nombreDocente(s.docente_id) + '</td>'
+      + '<td>' + nombreAula(s.aula_id) + '</td>'
+      + '<td>' + (s.capacidad||'—') + '</td>'
+      + '<td>'
+      + '<button class="btn btn-sm btn-outline-primary me-1" onclick="abrirSeccion(' + s.id + ')"><i class="bi bi-pencil-fill"></i></button>'
+      + '<button class="btn btn-sm btn-outline-danger" onclick="eliminarSeccion(' + s.id + ')"><i class="bi bi-trash-fill"></i></button>'
+      + '</td></tr>';
+  }).join('') : emptyRow(6, 'Sin secciones en este grado — añade una con el botón superior.');
+
+  // Scroll to panel
+  if (!noScroll) {
+    setTimeout(function() { panel.scrollIntoView({ behavior:'smooth', block:'start' }); }, 50);
+  }
+}
+
+function cerrarDetalleGrado() {
+  _gradoSeleccionado = null;
+  document.getElementById('grado-detail-panel').classList.add('d-none');
+  document.querySelectorAll('.grado-card').forEach(function(c){ c.classList.remove('active'); });
+}
+
+function abrirSeccionEnGrado() {
+  // Open new section modal pre-filled with selected grado
+  abrirSeccion();
+  if (_gradoSeleccionado !== null) {
+    setTimeout(function() {
+      const gSel = document.getElementById('sec-grado');
+      if (gSel) gSel.value = _gradoSeleccionado;
+    }, 50);
+  }
 }
 
 function abrirSeccion(id=null) {
