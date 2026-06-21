@@ -2097,6 +2097,18 @@
       <div id="oc-clase-aula-chip"  class="oc-chip"><i class="bi bi-door-open me-1"></i><span></span></div>
     </div>
 
+    <!-- Asignatura -->
+    <div style="padding:16px 20px;border-bottom:1px solid #F1F4F8">
+      <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#94A3B8;margin-bottom:10px">Asignatura</p>
+      <div id="oc-clase-asignatura" style="display:flex;align-items:center;gap:12px">
+        <div id="oc-clase-asig-icon" style="width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">📚</div>
+        <div>
+          <div id="oc-clase-asig-nombre" style="font-weight:700;font-size:15px;color:#0F172A">—</div>
+          <div id="oc-clase-asig-sub"    style="font-size:11px;color:#94A3B8;font-weight:600;margin-top:1px"></div>
+        </div>
+      </div>
+    </div>
+
     <!-- Docente titular -->
     <div style="padding:16px 20px;border-bottom:1px solid #F1F4F8">
       <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#94A3B8;margin-bottom:10px">Docente Titular</p>
@@ -2110,7 +2122,7 @@
     </div>
 
     <!-- Novedad / Reemplazo (hidden by default) -->
-    <div id="oc-clase-novedad-section" style="padding:16px 20px;border-bottom:1px solid #F1F4F8;display:none">
+    <div id="oc-clase-novedad-section" style="padding:16px 20px;display:none">
       <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#EF4444;margin-bottom:10px">
         <i class="bi bi-exclamation-triangle-fill me-1"></i>Novedad Activa
       </p>
@@ -2125,14 +2137,6 @@
           <div style="font-size:11px;color:#16A34A;font-weight:600">Docente de reemplazo</div>
         </div>
       </div>
-    </div>
-
-    <!-- Footer actions -->
-    <div style="padding:16px 20px">
-      <button class="btn btn-sm w-100" id="oc-clase-edit-btn"
-        style="background:#F1F5F9;color:#475569;border:1px solid #E2E8F0;border-radius:10px;padding:10px;font-weight:600">
-        <i class="bi bi-pencil-fill me-2"></i>Editar clase
-      </button>
     </div>
 
   </div>
@@ -4552,6 +4556,23 @@ function abrirHorario(id) {
   document.querySelector('#oc-clase-hora-chip span').textContent = (h.hora_inicio||'') + ' – ' + (h.hora_fin||'');
   document.querySelector('#oc-clase-aula-chip span').textContent = aula ? aula.nombre : 'Sin aula';
 
+  // Asignatura section
+  var asigIcons = {
+    'block-mat':'🔢','block-esp':'📖','block-cn':'🔬',
+    'block-soc':'🌍','block-ing':'🗣️','block-art':'🎨',
+    'block-tec':'💻','block-otros':'📚'
+  };
+  var asigAreaLabels = {
+    'block-mat':'Matemáticas y Ciencias Exactas','block-esp':'Lenguaje y Comunicación',
+    'block-cn':'Ciencias Naturales','block-soc':'Ciencias Sociales',
+    'block-ing':'Idiomas','block-art':'Artes y Cultura',
+    'block-tec':'Tecnología e Informática','block-otros':'Área General'
+  };
+  document.getElementById('oc-clase-asig-icon').textContent = asigIcons[cls] || '📚';
+  document.getElementById('oc-clase-asig-icon').style.background = hColor + '18';
+  document.getElementById('oc-clase-asig-nombre').textContent = h.materia || '—';
+  document.getElementById('oc-clase-asig-sub').textContent   = asigAreaLabels[cls] || '';
+
   // Docente titular
   if (doc) {
     var ini = ((doc.p_nombre||'')[0]||'') + ((doc.p_apellido||'')[0]||'');
@@ -4605,12 +4626,6 @@ function abrirHorario(id) {
       document.getElementById('oc-clase-doc-estado').style.color = '#16A34A';
     }
   }
-
-  // Edit button
-  document.getElementById('oc-clase-edit-btn').onclick = function() {
-    bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasClase')).hide();
-    setTimeout(function(){ editarHorario(id); }, 250);
-  };
 
   bootstrap.Offcanvas.getOrCreateInstance(document.getElementById('offcanvasClase')).show();
 }
