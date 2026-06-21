@@ -4294,23 +4294,8 @@ function renderHorarios() {
     var _ausentes   = _ausenciasPorDia[dia]   || new Set();
     var _reemplazos = _reemplazosPorDia[dia]  || {};
 
-    // Add virtual replacement blocks for this day
-    var _virtualBlocks = [];
-    diaBlocks.forEach(function(b) {
-      var reempId = _reemplazos[String(b.docente_id)];
-      if (reempId) {
-        _virtualBlocks.push(Object.assign({}, b, {
-          docente_id: reempId,
-          _es_reemplazo: true,
-          _docente_original: b.docente_id,
-          id: b.id + '_r'
-        }));
-      }
-    });
-    var allBlocks = diaBlocks.concat(_virtualBlocks);
-
     // Sort by start time
-    const sorted = allBlocks.slice().sort(function(a, b) {
+    const sorted = diaBlocks.slice().sort(function(a, b) {
       return timeToMins(a.hora_inicio) - timeToMins(b.hora_inicio);
     });
 
@@ -4356,18 +4341,17 @@ function renderHorarios() {
       var secLabel = sec ? sec.nombre : '';
 
       var gradoLabel = grado ? grado.nombre : '';
-      var _esAusente   = _ausentes.has(String(b.docente_id)) && !b._es_reemplazo;
-      var _esReemplazo = b._es_reemplazo;
-      var _extraCls = _esAusente ? ' hv-block-ausente' : (_esReemplazo ? ' hv-block-reemplazo' : '');
-      var _clickAction = (b._es_reemplazo || !b.id || String(b.id).indexOf('_') > -1)
-        ? '' : 'onclick="abrirHorario(' + b.id + ')"';
+      var _esAusente  = _ausentes.has(String(b.docente_id));
+      var _reempId    = _esAusente ? _reemplazos[String(b.docente_id)] : null;
+      var _extraCls   = _esAusente ? ' hv-block-ausente' : '';
       var _docenteLabel = nombreDocente(b.docente_id);
       if (_esAusente) _docenteLabel = '⚠️ ' + _docenteLabel;
-      if (_esReemplazo) _docenteLabel = '🔄 ' + _docenteLabel;
-      bodyHtml += '<div class="hv-block ' + cls + _extraCls + '" ' + _clickAction
+      var _reempLabel = _reempId ? '🔄 ' + nombreDocente(_reempId) : '';
+      bodyHtml += '<div class="hv-block ' + cls + _extraCls + '" onclick="abrirHorario(' + b.id + ')"'
         + ' style="top:' + top + 'px;height:' + height + 'px;left:calc(' + leftPct + '% + 2px);width:calc(' + widthPct + '% - 4px)">'
         + '<div class="hv-bm">' + _docenteLabel + '</div>'
-        + (height > 28 ? '<div class="hv-bs">' + gradoLabel + (_esReemplazo ? ' (reemplazo)' : '') + '</div>' : '')
+        + (height > 28 ? '<div class="hv-bs">' + gradoLabel + '</div>' : '')
+        + (_reempLabel && height > 40 ? '<div class="hv-bs" style="color:inherit;font-weight:700;margin-top:2px">' + _reempLabel + '</div>' : '')
         + '</div>';
     });
 
