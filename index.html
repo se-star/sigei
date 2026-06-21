@@ -363,6 +363,9 @@
     cursor: pointer; box-sizing: border-box; border: 1.5px solid rgba(0,0,0,.08);
     transition: filter .15s, transform .15s; display: flex; flex-direction: column; gap: 1px; }
   .hv-block:hover { filter: brightness(.93); transform: scale(1.02); z-index: 10; }
+  .hv-block-ausente { opacity: 0.45; border: 2px dashed #EF4444 !important; filter: grayscale(60%); }
+  .hv-block-ausente:hover { opacity: 0.55; }
+  .hv-block-reemplazo { background: linear-gradient(135deg,#D1FAE5,#A7F3D0) !important; border: 2px solid #10B981 !important; }
   .hv-bm { font-weight: 700; font-size: 11px; line-height: 1.2; white-space: nowrap;
     overflow: hidden; text-overflow: ellipsis; }
   .hv-bs { font-size: 10px; opacity: .75; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -4012,6 +4015,26 @@ function renderHorarios() {
   // Dias visibles
   const diasVis = filtroDia ? [filtroDia] : DIAS;
 
+  // ── Permisos activos para hoy (ausentes y reemplazos) ─────────────────────
+  const _todayDate = new Date().toISOString().slice(0, 10);
+  const _permisosHoy = DB.get('permisos').filter(function(p) {
+    return p.estado === 'Aprobado' && (
+      p.fecha_novedad === _todayDate ||
+      p.fecha_inicio === _todayDate ||
+      (p.fecha_inicio && p.fecha_fin && p.fecha_inicio <= _todayDate && p.fecha_fin >= _todayDate)
+    );
+  });
+  const _docentesAusentes = new Set(_permisosHoy.map(function(p){ return String(p.docente_id); }));
+  const _reemplazosHoy = {};
+  _permisosHoy.forEach(function(p) {
+    if (p.docente_reemplazo_id) {
+      var fechaReemplazo = p.fecha_reemplazo || p.fecha_novedad;
+      if (!fechaReemplazo || fechaReemplazo === _todayDate) {
+        _reemplazosHoy[String(p.docente_id)] = p.docente_reemplazo_id;
+      }
+    }
+  });
+
   // ── CALENDAR VISUAL LAYOUT ────────────────────────────────────────────
   const PX_H = 64; // px per hour
   const DAY_START = 7 * 60; // 7:00 in minutes
@@ -4038,8 +4061,23 @@ function renderHorarios() {
   diasVis.forEach(function(dia) {
     const diaBlocks = horarios.filter(function(h) { return h.dia === dia; });
 
+    // Add virtual replacement blocks for today's permisos
+    var _virtualBlocks = [];
+    diaBlocks.forEach(function(b) {
+      var reempId = _reemplazosHoy[String(b.docente_id)];
+      if (reempId) {
+        _virtualBlocks.push(Object.assign({}, b, {
+          docente_id: reempId,
+          _es_reemplazo: true,
+          _docente_original: b.docente_id,
+          id: b.id + '_r'
+        }));
+      }
+    });
+    var allBlocks = diaBlocks.concat(_virtualBlocks);
+
     // Sort by start time
-    const sorted = diaBlocks.slice().sort(function(a, b) {
+    const sorted = allBlocks.slice().sort(function(a, b) {
       return timeToMins(a.hora_inicio) - timeToMins(b.hora_inicio);
     });
 
@@ -4085,10 +4123,18 @@ function renderHorarios() {
       var secLabel = sec ? sec.nombre : '';
 
       var gradoLabel = grado ? grado.nombre : '';
-      bodyHtml += '<div class="hv-block ' + cls + '" onclick="abrirHorario(' + b.id + ')"'
+      var _esAusente   = _docentesAusentes.has(String(b.docente_id)) && !b._es_reemplazo;
+      var _esReemplazo = b._es_reemplazo;
+      var _extraCls = _esAusente ? ' hv-block-ausente' : (_esReemplazo ? ' hv-block-reemplazo' : '');
+      var _clickAction = (b._es_reemplazo || !b.id || String(b.id).indexOf('_') > -1)
+        ? '' : 'onclick="abrirHorario(' + b.id + ')"';
+      var _docenteLabel = nombreDocente(b.docente_id);
+      if (_esAusente) _docenteLabel = '⚠️ ' + _docenteLabel;
+      if (_esReemplazo) _docenteLabel = '🔄 ' + _docenteLabel;
+      bodyHtml += '<div class="hv-block ' + cls + _extraCls + '" ' + _clickAction
         + ' style="top:' + top + 'px;height:' + height + 'px;left:calc(' + leftPct + '% + 2px);width:calc(' + widthPct + '% - 4px)">'
-        + '<div class="hv-bm">' + nombreDocente(b.docente_id) + '</div>'
-        + (height > 28 ? '<div class="hv-bs">' + gradoLabel + '</div>' : '')
+        + '<div class="hv-bm">' + _docenteLabel + '</div>'
+        + (height > 28 ? '<div class="hv-bs">' + gradoLabel + (_esReemplazo ? ' (reemplazo)' : '') + '</div>' : '')
         + '</div>';
     });
 
@@ -4135,7 +4181,11 @@ function renderDocentesDisponibles(dia, horariosActivos) {
 
   // Docentes con permiso aprobado que cubre hoy
   const permisos   = DB.get('permisos').filter(p =>
-    p.estado === 'Aprobado' && p.fecha_inicio <= today && p.fecha_fin >= today
+    p.estado === 'Aprobado' && (
+      p.fecha_novedad === today ||
+      p.fecha_inicio === today ||
+      (p.fecha_inicio && p.fecha_fin && p.fecha_inicio <= today && p.fecha_fin >= today)
+    )
   );
   const enPermiso  = new Set(permisos.map(p => String(p.docente_id)));
   const ocupados   = new Set(horariosActivos.map(h => String(h.docente_id)).filter(Boolean));
