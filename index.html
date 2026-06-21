@@ -2877,7 +2877,7 @@ function renderDashboard() {
   const tbPerm = document.getElementById('dash-permisos');
   const pending = perms.filter(p => p.estado === 'Pendiente').slice(0,5);
   tbPerm.innerHTML = pending.length
-    ? pending.map(p => '<tr>'
+    ? pending.map(p => '<tr style="cursor:pointer" onclick="navigate('permisos');setTimeout(()=>abrirPermiso(' + p.id + '),300)" title="Ver permiso">'
         + '<td>' + nombreDocente(p.docente_id) + '</td>'
         + '<td>' + p.tipo + '</td>'
         + '<td>' + fmt(p.fecha_inicio) + '</td>'
