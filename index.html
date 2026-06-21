@@ -4801,6 +4801,13 @@ function guardarPermiso() {
   DB.set('permisos', perms);
   bootstrap.Modal.getInstance(document.getElementById('modalPermiso')).hide();
   renderPermisos();
+  if (document.getElementById('page-horarios') && !document.getElementById('page-horarios').classList.contains('d-none')) renderHorarios();
+  else { /* cache-bust so next open of horarios reflects change */ }
+  // Always refresh horarios data so it's ready when user switches tab
+  setTimeout(function() {
+    var hp = document.getElementById('page-horarios');
+    if (hp) renderHorarios();
+  }, 0);
 }
 
 function cambiarEstadoPermiso(id, estado) {
@@ -4811,6 +4818,7 @@ function cambiarEstadoPermiso(id, estado) {
   DB.set('permisos', perms);
   toast('Permiso ' + estado.toLowerCase() + '.', estado === 'Aprobado');
   renderPermisos();
+  setTimeout(function() { renderHorarios(); }, 0);
 }
 
 function eliminarPermiso(id) {
@@ -4818,6 +4826,7 @@ function eliminarPermiso(id) {
   DB.set('permisos', DB.get('permisos').filter(p => p.id !== id));
   toast('Permiso eliminado.');
   renderPermisos();
+  setTimeout(function() { renderHorarios(); }, 0);
 }
 
 // ══════════════════════════════════════════════
