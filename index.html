@@ -1392,17 +1392,7 @@
         </div>
       </div>
 
-      <!-- Tablero docente — se activa al hacer clic en un docente -->
-      <div class="card-panel d-none" id="tablero-docente-panel">
-        <div class="panel-header mb-3" id="tablero-header">
-          <h6><i class="bi bi-bar-chart-fill me-2"></i>Tablero de Carga Académica</h6>
-          <button class="btn btn-sm btn-outline-secondary" onclick="cerrarTablero()">
-            <i class="bi bi-x-lg"></i> Cerrar
-          </button>
-        </div>
-        <div id="tablero-contenido"></div>
-      </div>
-      <!-- selector oculto requerido por renderTableroDocente -->
+      <!-- tablero-doc-sel y tablero-contenido viven en offcanvasTablero -->
       <select id="tablero-doc-sel" class="d-none" onchange="renderTableroDocente()"></select>
     </div>
 
@@ -2078,6 +2068,24 @@
 <!-- Offcanvas Detalle Docente -->
 
 <!-- Offcanvas Sección / Grupo -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasTablero" style="width:min(680px,95vw)">
+  <div class="offcanvas-header border-bottom" style="background:var(--slate-900);padding:20px">
+    <div class="d-flex align-items-center gap-3" style="flex:1;min-width:0">
+      <div id="oc-tablero-avatar" class="user-avatar" style="width:46px;height:46px;font-size:17px;flex-shrink:0">?</div>
+      <div style="min-width:0">
+        <h6 class="offcanvas-title text-white mb-0" id="oc-tablero-nombre" style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">—</h6>
+        <span style="color:rgba(255,255,255,.65);font-size:12px"><i class="bi bi-bar-chart-fill me-1"></i>Tablero de Carga Académica</span>
+      </div>
+    </div>
+    <button class="btn-close btn-close-white ms-3" data-bs-dismiss="offcanvas" onclick="cerrarTablero()"></button>
+  </div>
+  <div class="offcanvas-body p-0" style="overflow-y:auto">
+    <div style="padding:20px">
+      <div id="tablero-contenido"></div>
+    </div>
+  </div>
+</div>
+
 <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasClase" style="width:400px">
   <div class="offcanvas-header border-bottom" id="oc-clase-header" style="background:var(--slate-900);padding:20px">
     <div style="flex:1;min-width:0">
@@ -3786,16 +3794,22 @@ function renderAsignaciones() {
 }
 
 function verTableroDocente(docId) {
-  const panel = document.getElementById('tablero-docente-panel');
-  panel.classList.remove('d-none');
   document.getElementById('tablero-doc-sel').value = docId;
+  // Update offcanvas header with docente name/avatar
+  var doc = DB.get('docentes').find(function(d){ return d.id == docId; });
+  if (doc) {
+    var ini = ((doc.p_nombre||'')[0]||'') + ((doc.p_apellido||'')[0]||'');
+    document.getElementById('oc-tablero-avatar').textContent = ini.toUpperCase();
+    document.getElementById('oc-tablero-nombre').textContent = (doc.p_nombre||'') + ' ' + (doc.p_apellido||'');
+  }
   renderTableroDocente();
-  panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  bootstrap.Offcanvas.getOrCreateInstance(document.getElementById('offcanvasTablero')).show();
 }
 
 function cerrarTablero() {
-  document.getElementById('tablero-docente-panel').classList.add('d-none');
   document.getElementById('tablero-doc-sel').value = '';
+  var oc = bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasTablero'));
+  if (oc) oc.hide();
 }
 
 // ── Modal open/save ─────────────────────────────────────────────────────
@@ -3951,19 +3965,19 @@ function renderTableroDocente() {
     { icon:'bi-book-fill',   color:'#8b5cf6', val: totalMats,                      lbl:'Materias' },
     { icon:'bi-people-fill', color:'#10b981', val: totalGrupos,                    lbl:'Grupos' },
   ].forEach(c => {
-    html += '<div class="col-md-3"><div class="card-panel text-center py-3">'
-      + '<i class="bi ' + c.icon + '" style="font-size:24px;color:' + c.color + '"></i>'
-      + '<div style="font-size:22px;font-weight:700;margin:4px 0">' + c.val + '</div>'
-      + '<div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px">' + c.lbl + '</div>'
+    html += '<div class="col-4"><div style="background:#F8FAFC;border:1px solid #E8ECF2;border-radius:12px;padding:14px;text-align:center">'
+      + '<i class="bi ' + c.icon + '" style="font-size:22px;color:' + c.color + '"></i>'
+      + '<div style="font-size:20px;font-weight:800;margin:4px 0;color:#0F172A">' + c.val + '</div>'
+      + '<div style="font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;font-weight:600">' + c.lbl + '</div>'
       + '</div></div>';
   });
-  html += '<div class="col-md-3"><div class="card-panel py-3">'
+  html += '<div class="col-12"><div style="background:#F8FAFC;border:1px solid #E8ECF2;border-radius:12px;padding:14px">'
     + '<div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Carga horaria</div>'
     + '<div class="carga-bar-wrap mb-2"><div class="carga-bar carga-' + carga.cls + '" style="width:' + pct + '%"></div></div>'
     + '<div class="d-flex justify-content-between align-items-center">'
     + '<span style="font-size:12px;color:#64748b">' + totalHoras.toFixed(1) + ' / ' + CARGA_CONFIG.alta + ' h</span>'
     + '<span class="carga-badge ' + carga.cls + '">' + carga.nivel + '</span>'
-    + '</div></div></div>';
+    + '</div></div>';
   html += '</div>';
 
   if (!asigs.length) {
@@ -3973,7 +3987,7 @@ function renderTableroDocente() {
     asigs.forEach(a => {
       const horasA = calcHorasAsig(a).toFixed(1);
       const cargaA = nivelCarga(parseFloat(horasA));
-      html += '<div class="col-md-6"><div class="card-panel">'
+      html += '<div class="col-12"><div style="background:#F8FAFC;border:1px solid #E8ECF2;border-radius:12px;padding:16px">'
         + '<div class="d-flex align-items-center justify-content-between mb-2">'
         + '<span style="font-weight:700;font-size:14px">' + a.materia + '</span>'
         + '<span class="carga-badge ' + cargaA.cls + '">' + horasA + ' h/sem</span>'
@@ -5890,16 +5904,4 @@ _auth.onAuthStateChanged(async function(user) {
 
     <!-- Password -->
     <div style="margin-bottom:28px">
-      <label style="font-size:11px;font-weight:700;color:rgba(255,255,255,.7);display:block;margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em">Contraseña</label>
-      <div style="position:relative">
-        <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:15px;opacity:.6">🔒</span>
-        <input type="password" id="login-pass" placeholder="••••••••"
-          style="width:100%;padding:12px 14px 12px 42px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:12px;font-size:14px;outline:none;box-sizing:border-box;color:#fff;transition:border-color .2s"
-          onfocus="this.style.borderColor='rgba(147,197,253,.7)';this.style.background='rgba(255,255,255,.15)'"
-          onblur="this.style.borderColor='rgba(255,255,255,.2)';this.style.background='rgba(255,255,255,.1)'"
-          onkeydown="if(event.key==='Enter')loginSubmit()">
-      </div>
-    </div>
-
-    <button onclick="loginSubmit()" id="login-btn"
-      style="width:100%;padding:14px;background:linear-gr
+      <label styl
