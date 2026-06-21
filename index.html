@@ -352,10 +352,20 @@
     transform: translateY(-50%); white-space: nowrap; font-weight: 500; }
   .hv-days { display: flex; flex: 1; gap: 0; }
   .hv-day { flex: 1; min-width: 100px; border-left: 1px solid var(--slate-100); }
-  .hv-day-hdr { height: 40px; display: flex; align-items: center; justify-content: center;
-    font-size: 11px; font-weight: 700; color: var(--slate-600); text-transform: uppercase;
-    letter-spacing: .04em; border-bottom: 2px solid var(--slate-200);
+  .hv-day-hdr { height: 52px; display: flex; flex-direction:column; align-items: center; justify-content: center; gap:2px;
+    border-bottom: 2px solid var(--slate-200);
     background: var(--slate-50); position: sticky; top: 0; z-index: 2; }
+  .hv-day-nombre { font-size: 11px; font-weight: 700; color: var(--slate-600); text-transform: uppercase; letter-spacing:.04em; }
+  .hv-day-fecha  { font-size: 11px; font-weight: 500; color: var(--slate-400); }
+  .hv-day-hdr-hoy { background: #EFF6FF; border-bottom-color:#2563EB; }
+  .hv-day-hdr-hoy .hv-day-nombre { color:#2563EB; }
+  .hv-day-hdr-hoy .hv-day-fecha  { color:#60A5FA; }
+  .hv-semana-nav { display:flex; align-items:center; justify-content:center; gap:12px; padding:10px 0 12px; }
+  .hv-semana-btn { background:#fff; border:1.5px solid #E2E8F0; border-radius:8px; padding:4px 12px; cursor:pointer; font-size:13px; color:#475569; transition:border-color .15s,color .15s; }
+  .hv-semana-btn:hover { border-color:#2563EB; color:#2563EB; }
+  .hv-semana-lbl { font-size:14px; font-weight:700; color:#1E293B; min-width:180px; text-align:center; }
+  .hv-semana-hoy { background:#EFF6FF; border:1.5px solid #BFDBFE; border-radius:8px; padding:3px 14px; cursor:pointer; font-size:12px; font-weight:700; color:#2563EB; transition:background .15s; }
+  .hv-semana-hoy:hover { background:#DBEAFE; }
   .hv-body { position: relative; }
   .hv-hline { position: absolute; left: 0; right: 0; border-top: 1px solid var(--slate-100); pointer-events: none; }
   .hv-hline.full { border-color: var(--slate-200); }
@@ -1487,6 +1497,12 @@
       <div class="row g-3">
         <div class="col-lg-9" style="min-width:0">
           <div class="card-panel h-100">
+            <div class="hv-semana-nav">
+              <button class="hv-semana-btn" onclick="_semanaNav(-1)"><i class="bi bi-chevron-left"></i></button>
+              <span id="semana-label" class="hv-semana-lbl">—</span>
+              <button class="hv-semana-btn" onclick="_semanaNav(1)"><i class="bi bi-chevron-right"></i></button>
+              <button class="hv-semana-hoy" onclick="_semanaHoy()">Hoy</button>
+            </div>
             <div id="horario-visual-container" style="overflow-x:auto;padding:8px 4px"></div>
           </div>
         </div>
@@ -4244,6 +4260,22 @@ function eliminarEvento(id) {
 //  HORARIOS
 // ══════════════════════════════════════════════
 const DIAS  = ['Lunes','Martes','Miércoles','Jueves','Viernes'];
+
+// ── Semana navigation ──────────────────────────────────────────────────────
+var _horarioSemanaOffset = 0;
+
+function _getLunesSemana(offset) {
+  var hoy = new Date(); hoy.setHours(0,0,0,0);
+  var dow = hoy.getDay();
+  var toMon = (dow === 0) ? -6 : 1 - dow;
+  var lunes = new Date(hoy);
+  lunes.setDate(hoy.getDate() + toMon + (offset * 7));
+  return lunes;
+}
+
+function _semanaNav(delta) { _horarioSemanaOffset += delta; renderHorarios(); }
+function _semanaHoy()      { _horarioSemanaOffset  = 0;     renderHorarios(); }
+
 const HORAS = ['07:00','07:30','08:00','08:30','09:00','09:30','10:00','10:30',
                '11:00','11:30','12:00','12:30','13:00','13:30','14:00','14:30'];
 
@@ -4309,6 +4341,24 @@ function renderHorarios() {
   const filtroDoc   = fDoc.value;
   const filtroDia   = document.getElementById('filtro-horario-dia').value;
 
+  // ── Compute week dates ──────────────────────────────────────────────────
+  var _todayISO = new Date().toISOString().slice(0,10);
+  var _lunesSem = _getLunesSemana(_horarioSemanaOffset);
+  var _DIAS_IDX = {'Lunes':0,'Martes':1,'Miércoles':2,'Jueves':3,'Viernes':4};
+  var _fechasPorDia = {};
+  DIAS.forEach(function(d) {
+    var fecha = new Date(_lunesSem);
+    fecha.setDate(_lunesSem.getDate() + _DIAS_IDX[d]);
+    _fechasPorDia[d] = fecha.getFullYear() + '-' + String(fecha.getMonth()+1).padStart(2,'0') + '-' + String(fecha.getDate()).padStart(2,'0');
+  });
+  // Update week label
+  var _mesesCorto = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  var _viernes = new Date(_lunesSem); _viernes.setDate(_lunesSem.getDate() + 4);
+  var _lunesStr = _lunesSem.getDate() + ' ' + _mesesCorto[_lunesSem.getMonth()];
+  var _viernesStr = _viernes.getDate() + ' ' + _mesesCorto[_viernes.getMonth()] + ' ' + _viernes.getFullYear();
+  var _semLabel = document.getElementById('semana-label');
+  if (_semLabel) _semLabel.textContent = _lunesStr + ' — ' + _viernesStr;
+
   // Filter horarios
   let horarios = DB.get('horarios');
   if (filtroGrado) {
@@ -4321,32 +4371,20 @@ function renderHorarios() {
   // Dias visibles
   const diasVis = filtroDia ? [filtroDia] : DIAS;
 
-  // ── Permisos: mapas por día de semana ────────────────────────────────────
-  function _fechaToDiaNombre(fechaStr) {
-    if (!fechaStr) return null;
-    var p = fechaStr.split('-');
-    if (p.length < 3) return null;
-    var d = new Date(parseInt(p[0]), parseInt(p[1])-1, parseInt(p[2]));
-    return ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'][d.getDay()];
-  }
-  // _ausenciasPorDia[dia] = Set of String(docente_id)
-  // _reemplazosPorDia[dia][String(docente_id)] = reemplazo_id
-  var _ausenciasPorDia = {};
-  var _reemplazosPorDia = {};
+  // ── Permisos: mapas por fecha exacta (según semana visible) ────────────
+  // _ausenciasPorFecha['2026-06-23'] = Set of String(docente_id)
+  // _reemplazosPorFecha['2026-06-23'][String(docente_id)] = reemplazo_id
+  var _ausenciasPorFecha = {};
+  var _reemplazosPorFecha = {};
   DB.get('permisos').filter(function(p){ return p.estado === 'Aprobado'; }).forEach(function(p) {
     var fechaBase = p.fecha_novedad || p.fecha_inicio;
-    var diaNov = _fechaToDiaNombre(fechaBase);
-    if (!diaNov || diaNov === 'Domingo' || diaNov === 'Sábado') return;
-    // Mark absence on the day of the novedad
-    if (!_ausenciasPorDia[diaNov]) _ausenciasPorDia[diaNov] = new Set();
-    _ausenciasPorDia[diaNov].add(String(p.docente_id));
-    // Mark replacement on the day of the reemplazo (fallback: same day as absence)
+    if (!fechaBase) return;
+    if (!_ausenciasPorFecha[fechaBase]) _ausenciasPorFecha[fechaBase] = new Set();
+    _ausenciasPorFecha[fechaBase].add(String(p.docente_id));
     if (p.docente_reemplazo_id) {
-      var diaRemp = _fechaToDiaNombre(p.fecha_reemplazo) || diaNov;
-      if (diaRemp !== 'Domingo' && diaRemp !== 'Sábado') {
-        if (!_reemplazosPorDia[diaRemp]) _reemplazosPorDia[diaRemp] = {};
-        _reemplazosPorDia[diaRemp][String(p.docente_id)] = p.docente_reemplazo_id;
-      }
+      var fechaRemp = p.fecha_reemplazo || fechaBase;
+      if (!_reemplazosPorFecha[fechaRemp]) _reemplazosPorFecha[fechaRemp] = {};
+      _reemplazosPorFecha[fechaRemp][String(p.docente_id)] = p.docente_reemplazo_id;
     }
   });
 
@@ -4368,7 +4406,7 @@ function renderHorarios() {
   let timesHtml = '';
   for (let m = DAY_START; m <= DAY_END; m += 60) {
     const h = String(Math.floor(m / 60)).padStart(2, '0');
-    timesHtml += '<div class="hv-time-lbl" style="top:' + (40 + minToTop(m)) + 'px">' + h + ':00</div>';
+    timesHtml += '<div class="hv-time-lbl" style="top:' + (52 + minToTop(m)) + 'px">' + h + ':00</div>';
   }
 
   // Build each day column
@@ -4376,9 +4414,10 @@ function renderHorarios() {
   diasVis.forEach(function(dia) {
     const diaBlocks = horarios.filter(function(h) { return h.dia === dia; });
 
-    // Per-day absence/replacement lookup
-    var _ausentes   = _ausenciasPorDia[dia]   || new Set();
-    var _reemplazos = _reemplazosPorDia[dia]  || {};
+    // Per-day absence/replacement lookup using exact date
+    var _fechaDia   = _fechasPorDia[dia] || '';
+    var _ausentes   = _ausenciasPorFecha[_fechaDia]   || new Set();
+    var _reemplazos = _reemplazosPorFecha[_fechaDia]  || {};
 
     // Sort by start time
     const sorted = diaBlocks.slice().sort(function(a, b) {
@@ -4441,8 +4480,17 @@ function renderHorarios() {
         + '</div>';
     });
 
+    var _fDia  = _fechasPorDia[dia] || '';
+    var _fDate = _fDia ? new Date(_fDia + 'T00:00:00') : null;
+    var _dayNum = _fDate ? _fDate.getDate() : '';
+    var _dayMes = _fDate ? _mesesCorto[_fDate.getMonth()] : '';
+    var _isHoy  = _fDia && _fDia === _todayISO;
+    var _hdrCls = 'hv-day-hdr' + (_isHoy ? ' hv-day-hdr-hoy' : '');
     daysHtml += '<div class="hv-day">'
-      + '<div class="hv-day-hdr">' + dia + '</div>'
+      + '<div class="' + _hdrCls + '">'
+      + '<span class="hv-day-nombre">' + dia + '</span>'
+      + '<span class="hv-day-fecha">' + _dayNum + ' ' + _dayMes + '</span>'
+      + '</div>'
       + '<div class="hv-body" style="height:' + TOTAL_PX + 'px">' + bodyHtml + '</div>'
       + '</div>';
   });
