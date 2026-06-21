@@ -4575,7 +4575,7 @@ function renderHorarios() {
     + '<div class="hv-days">' + daysHtml + '</div></div>';
 
   // Available teachers panel
-  renderDocentesDisponibles(filtroDia, horarios);
+  renderDocentesDisponibles(filtroDia, horarios, _fechasPorDia);
 
   // Lista
   const tbL = document.getElementById('tabla-horarios-lista');
@@ -4597,60 +4597,155 @@ function renderHorarios() {
   }).join('') : emptyRow(8, 'No hay horarios registrados');
 }
 
-function renderDocentesDisponibles(dia, horariosActivos) {
-  const today    = new Date().toISOString().slice(0, 10);
-  const docentes = DB.get('docentes').filter(d => d.estado === 'Activo');
+function renderDocentesDisponibles(dia, horariosTodos, fechasPorDia) {
+  fechasPorDia = fechasPorDia || {};
 
-  // Docentes con permiso aprobado que cubre hoy
-  const permisos   = DB.get('permisos').filter(p =>
-    p.estado === 'Aprobado' && (
-      p.fecha_novedad === today ||
-      p.fecha_inicio === today ||
-      (p.fecha_inicio && p.fecha_fin && p.fecha_inicio <= today && p.fecha_fin >= today)
-    )
-  );
-  const enPermiso  = new Set(permisos.map(p => String(p.docente_id)));
-  const ocupados   = new Set(horariosActivos.map(h => String(h.docente_id)).filter(Boolean));
+  // ── Fecha exacta del día visible ──────────────────────────────────────
+  var todayISO = new Date().toISOString().slice(0,10);
+  var fechaDia = dia ? (fechasPorDia[dia] || todayISO) : todayISO;
 
-  const disponibles = docentes.filter(d => !enPermiso.has(String(d.id)) && !ocupados.has(String(d.id)));
-  const conClase    = docentes.filter(d => ocupados.has(String(d.id)) && !enPermiso.has(String(d.id)));
-  const conPermiso  = docentes.filter(d => enPermiso.has(String(d.id)));
+  // ── Hora actual en minutos (para saber quién está en clase AHORA) ─────
+  var esHoy    = fechaDia === todayISO;
+  var now      = new Date();
+  var ahoraMin = now.getHours() * 60 + now.getMinutes();
 
-  let html = '';
+  var docentes = DB.get('docentes').filter(function(d){ return d.estado === 'Activo'; });
 
-  const card = (cls, icon, color, d, extra) =>
-    '<div class="disp-card ' + cls + '" onclick="' + (cls !== 'disp-permiso' ? 'filtrarPorDocente(' + d.id + ')' : '') + '">'
-    + '<i class="bi ' + icon + '" style="color:' + color + ';font-size:14px"></i>'
-    + '<div style="line-height:1.3">'
-    + '<span style="font-weight:600">' + d.p_nombre + ' ' + d.p_apellido + '</span>'
-    + (extra ? '<br><span style="font-size:10px;opacity:.7">' + extra + '</span>' : '')
-    + '</div></div>';
+  // ── Permisos aprobados para la fecha exacta ──────────────────────────
+  var permisos = DB.get('permisos').filter(function(p) {
+    if (p.estado !== 'Aprobado') return false;
+    var fb = p.fecha_novedad || p.fecha_inicio;
+    return fb === fechaDia;
+  });
+  var enPermiso = new Set(permisos.map(function(p){ return String(p.docente_id); }));
 
-  if (disponibles.length) {
-    html += '<p class="text-muted" style="font-size:10px;font-weight:700;margin:4px 0 2px;text-transform:uppercase;letter-spacing:.5px">'
-          + '✅ Disponibles (' + disponibles.length + ')</p>';
-    html += disponibles.map(d => card('disp-disponible','bi-person-check-fill','#16a34a', d, '')).join('');
+  // ── Horarios del día filtrado ─────────────────────────────────────────
+  var horariosDelDia = dia ? horariosTodos.filter(function(h){ return h.dia === dia; }) : horariosTodos;
+
+  // Mapa docente → sus clases del día
+  var docenteHorarios = {};
+  horariosDelDia.forEach(function(h) {
+    if (!h.docente_id) return;
+    var key = String(h.docente_id);
+    if (!docenteHorarios[key]) docenteHorarios[key] = [];
+    docenteHorarios[key].push(h);
+  });
+  var enClase = new Set(Object.keys(docenteHorarios));
+
+  // Quién está en clase AHORA MISMO (solo si viendo el día de hoy)
+  var enClaseAhora = new Set();
+  if (esHoy) {
+    Object.keys(docenteHorarios).forEach(function(key) {
+      var activa = docenteHorarios[key].some(function(h) {
+        return ahoraMin >= timeToMins(h.hora_inicio) && ahoraMin < timeToMins(h.hora_fin);
+      });
+      if (activa) enClaseAhora.add(key);
+    });
   }
 
-  if (conClase.length) {
-    const label = dia ? 'Con clase el ' + dia : 'Con clase asignada';
-    html += '<p class="text-muted" style="font-size:10px;font-weight:700;margin:8px 0 2px;text-transform:uppercase;letter-spacing:.5px">'
-          + '📚 ' + label + ' (' + conClase.length + ')</p>';
-    html += conClase.map(d => card('disp-ocupado','bi-person-fill','#2563eb', d, '')).join('');
+  // ── Categorías ──────────────────────────────────────────────────────
+  var disponibles = docentes.filter(function(d){ return !enPermiso.has(String(d.id)) && !enClase.has(String(d.id)); });
+  var conClase    = docentes.filter(function(d){ return enClase.has(String(d.id)) && !enPermiso.has(String(d.id)); });
+  var conPermiso  = docentes.filter(function(d){ return enPermiso.has(String(d.id)); });
+
+  // ── Helpers ──────────────────────────────────────────────────────────
+  function fmtHora(h) { return h.hora_inicio + '–' + h.hora_fin; }
+  function iniciales(d) { return ((d.p_nombre||'')[0]||'') + ((d.p_apellido||'')[0]||''); }
+
+  function card(cat, d, extra, badge) {
+    var colors  = { disponible:'#16a34a', clase:'#2563EB', ahora:'#7C3AED', permiso:'#D97706' };
+    var icons   = { disponible:'bi-person-check-fill', clase:'bi-person-fill', ahora:'bi-person-video2', permiso:'bi-person-x-fill' };
+    var bgClr   = { disponible:'#F0FDF4', clase:'#EFF6FF', ahora:'#F5F3FF', permiso:'#FFFBEB' };
+    var c = colors[cat], ic = icons[cat], bg = bgClr[cat];
+    var clickable = cat !== 'permiso';
+    return '<div class="disp-card" onclick="' + (clickable ? 'filtrarPorDocente('+d.id+')' : '') + '"'
+      + ' style="background:'+bg+';border-radius:8px;margin-bottom:4px;padding:7px 9px;cursor:'+(clickable?'pointer':'default')+';display:flex;align-items:center;gap:8px">'
+      + '<div style="width:30px;height:30px;border-radius:50%;background:'+c+'22;display:flex;align-items:center;justify-content:center;flex-shrink:0">'
+      + '<i class="bi '+ic+'" style="color:'+c+';font-size:13px"></i></div>'
+      + '<div style="min-width:0;flex:1">'
+      + '<div style="font-size:12px;font-weight:700;color:#0F172A;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'
+      + d.p_nombre + ' ' + d.p_apellido + '</div>'
+      + (extra ? '<div style="font-size:10px;color:#64748B;margin-top:1px">'+extra+'</div>' : '')
+      + '</div>'
+      + (badge ? '<span style="font-size:9px;font-weight:700;background:'+c+';color:#fff;padding:2px 6px;border-radius:20px;flex-shrink:0">'+badge+'</span>' : '')
+      + '</div>';
   }
 
+  function secLabel(dia) {
+    return dia ? 'el ' + dia : 'esta semana';
+  }
+
+  var html = '';
+
+  // Fecha / hora indicator
+  var meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  var dFecha = new Date(fechaDia + 'T12:00:00');
+  var fechaLabel = dFecha.getDate() + ' ' + meses[dFecha.getMonth()];
+  var horaLabel  = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+
+  html += '<div style="background:#F8FAFC;border-radius:8px;padding:7px 10px;margin-bottom:10px;font-size:11px;color:#475569;display:flex;align-items:center;justify-content:space-between">'
+        + '<span><i class="bi bi-calendar3 me-1"></i>' + (dia||'Semana') + ' ' + fechaLabel + '</span>'
+        + '<span' + (esHoy ? ' style="color:#7C3AED;font-weight:700"' : '') + '><i class="bi bi-clock me-1"></i>' + horaLabel + (esHoy ? ' · AHORA' : '') + '</span>'
+        + '</div>';
+
+  // ── EN CLASE AHORA (solo si es hoy) ─────────────────────────────────
+  if (esHoy && enClaseAhora.size > 0) {
+    html += '<p style="font-size:10px;font-weight:700;margin:0 0 4px;text-transform:uppercase;letter-spacing:.5px;color:#7C3AED">'
+          + '🟣 En clase ahora (' + enClaseAhora.size + ')</p>';
+    conClase.filter(function(d){ return enClaseAhora.has(String(d.id)); }).forEach(function(d) {
+      var claseAhora = docenteHorarios[String(d.id)].find(function(h){
+        return ahoraMin >= timeToMins(h.hora_inicio) && ahoraMin < timeToMins(h.hora_fin);
+      });
+      html += card('ahora', d, claseAhora ? claseAhora.materia + ' · ' + fmtHora(claseAhora) : '', 'AHORA');
+    });
+  }
+
+  // ── CON CLASE (no en este momento) ──────────────────────────────────
+  var conClaseNoAhora = conClase.filter(function(d){ return !enClaseAhora.has(String(d.id)); });
+  if (conClaseNoAhora.length) {
+    var claseLabel = dia ? 'Con clase ' + secLabel(dia) : 'Con clase asignada';
+    html += '<p style="font-size:10px;font-weight:700;margin:8px 0 4px;text-transform:uppercase;letter-spacing:.5px;color:#2563EB">'
+          + '📚 ' + claseLabel + ' (' + conClaseNoAhora.length + ')</p>';
+    conClaseNoAhora.forEach(function(d) {
+      var clases = docenteHorarios[String(d.id)] || [];
+      var extra = clases.map(fmtHora).join(' · ');
+      html += card('clase', d, extra, '');
+    });
+  }
+
+  // ── CON PERMISO / NOVEDAD ────────────────────────────────────────────
   if (conPermiso.length) {
-    html += '<p class="text-muted" style="font-size:10px;font-weight:700;margin:8px 0 2px;text-transform:uppercase;letter-spacing:.5px">'
-          + '⚠️ En permiso/licencia (' + conPermiso.length + ')</p>';
-    html += conPermiso.map(d => {
-      const p = permisos.find(pp => String(pp.docente_id) === String(d.id));
-      const extra = p ? p.tipo + ' hasta ' + (p.fecha_fin || '') : '';
-      return card('disp-permiso','bi-person-x-fill','#d97706', d, extra);
-    }).join('');
+    html += '<p style="font-size:10px;font-weight:700;margin:8px 0 4px;text-transform:uppercase;letter-spacing:.5px;color:#D97706">'
+          + '⚠️ Con novedad (' + conPermiso.length + ')</p>';
+    conPermiso.forEach(function(d) {
+      var p = permisos.find(function(pp){ return String(pp.docente_id) === String(d.id); });
+      var extra = p ? p.tipo : 'Permiso aprobado';
+      html += card('permiso', d, extra, 'PERMISO');
+    });
   }
 
-  if (!html) html = '<p class="text-muted small text-center mt-3">No hay docentes activos registrados.</p>';
+  // ── DISPONIBLES ──────────────────────────────────────────────────────
+  if (disponibles.length) {
+    html += '<p style="font-size:10px;font-weight:700;margin:8px 0 4px;text-transform:uppercase;letter-spacing:.5px;color:#16a34a">'
+          + '✅ Disponibles (' + disponibles.length + ')</p>';
+    disponibles.forEach(function(d) {
+      html += card('disponible', d, '', '');
+    });
+  }
+
+  if (!html || html.indexOf('disp-card') === -1) {
+    html += '<p class="text-muted small text-center mt-3">No hay docentes activos registrados.</p>';
+  }
+
   document.getElementById('docentes-disponibles').innerHTML = html;
+}
+
+// Auto-refresh panel every 60 s when horarios page is visible
+if (!window._docentesPanelTimer) {
+  window._docentesPanelTimer = setInterval(function() {
+    var page = document.getElementById('page-horarios');
+    if (page && !page.classList.contains('d-none')) renderHorarios();
+  }, 60000);
 }
 
 function filtrarPorDocente(id) {
@@ -6034,4 +6129,4 @@ _auth.onAuthStateChanged(async function(user) {
     </button>
 
     <div style="text-align:center;margin-top:24px">
-      <span style="font-
+      <span style="font- 
