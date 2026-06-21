@@ -120,7 +120,7 @@
   }
 
   /* ══ MAIN ════════════════════════════════════════════════════════════ */
-  #main { margin-left: var(--sidebar-w); min-height: 100vh; }
+  #main { margin-left: var(--sidebar-w); min-height: 100vh; background: linear-gradient(145deg,#e8f0fe 0%,#dbeafe 45%,#ede9fe 100%); }
 
   .topbar {
     background: var(--white);
@@ -710,6 +710,101 @@
   body.dark-mode .rol-coordinador   { background:#1c1507; color:#FCD34D; }
   body.dark-mode .rol-docente       { background:#052e16; color:#4ADE80; }
 
+
+  /* ══ GLASS MORPHISM ══════════════════════════════════════════════════ */
+  .stat-card {
+    background: rgba(255,255,255,0.55) !important;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.75) !important;
+    box-shadow: 0 4px 24px rgba(99,120,200,.10), inset 0 1px 0 rgba(255,255,255,.8) !important;
+  }
+  .stat-card:hover {
+    background: rgba(255,255,255,0.72) !important;
+    box-shadow: 0 8px 32px rgba(99,120,200,.18), inset 0 1px 0 rgba(255,255,255,.9) !important;
+  }
+  .card-panel {
+    background: rgba(255,255,255,0.52) !important;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.70) !important;
+    box-shadow: 0 4px 24px rgba(99,120,200,.10), inset 0 1px 0 rgba(255,255,255,.8) !important;
+  }
+  .modal-content {
+    background: rgba(255,255,255,0.75) !important;
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255,255,255,0.6) !important;
+    box-shadow: 0 16px 56px rgba(30,50,120,.18) !important;
+  }
+  .offcanvas {
+    background: rgba(248,250,255,0.82) !important;
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-left: 1px solid rgba(255,255,255,0.5) !important;
+  }
+  .offcanvas-header {
+    background: rgba(240,246,255,0.7) !important;
+    border-bottom: 1px solid rgba(200,215,255,0.4) !important;
+  }
+  .offcanvas-body {
+    background: transparent !important;
+  }
+  #sidebar {
+    background: rgba(15,23,42,0.82) !important;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-right: 1px solid rgba(255,255,255,0.07) !important;
+  }
+  .table-responsive, .table > thead {
+    background: transparent !important;
+  }
+  .table {
+    background: rgba(255,255,255,0.4) !important;
+  }
+  .table > thead > tr > th {
+    background: rgba(241,245,255,0.7) !important;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  .table > tbody > tr:hover > td {
+    background: rgba(219,234,254,0.55) !important;
+  }
+
+  /* Dark mode glass overrides */
+  body.dark-mode .stat-card {
+    background: rgba(26,43,60,0.7) !important;
+    border-color: rgba(255,255,255,0.08) !important;
+    box-shadow: 0 4px 24px rgba(0,0,0,.25) !important;
+  }
+  body.dark-mode .card-panel {
+    background: rgba(26,43,60,0.7) !important;
+    border-color: rgba(255,255,255,0.07) !important;
+  }
+  body.dark-mode .modal-content {
+    background: rgba(17,31,46,0.88) !important;
+    border-color: rgba(255,255,255,0.1) !important;
+  }
+  body.dark-mode .offcanvas {
+    background: rgba(17,31,46,0.90) !important;
+    border-color: rgba(255,255,255,0.08) !important;
+  }
+  body.dark-mode .offcanvas-header {
+    background: rgba(10,20,30,0.6) !important;
+  }
+  body.dark-mode #sidebar {
+    background: rgba(8,14,26,0.88) !important;
+    border-color: rgba(255,255,255,0.05) !important;
+  }
+  body.dark-mode .table {
+    background: rgba(26,43,60,0.4) !important;
+  }
+  body.dark-mode .table > thead > tr > th {
+    background: rgba(17,31,46,0.7) !important;
+  }
+  body.dark-mode #main {
+    background: linear-gradient(135deg,#0a1628 0%,#0f2044 50%,#130f2e 100%) !important;
+  }
 </style>
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
