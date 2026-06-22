@@ -3029,7 +3029,7 @@ function navigate(page) {
   var pageEl = document.getElementById('page-' + page);
   if (!pageEl) return false;
   pageEl.classList.remove('d-none');
-  document.getElementById('page-title').textContent = PAGE_TITLES[page] || page;
+  document.getElementById('page-title').innerHTML = PAGE_TITLES[page] || page;
   const iconEl = document.getElementById('topbar-icon');
   if (iconEl) iconEl.innerHTML = '<i class="bi ' + (PAGE_ICONS[page] || 'bi-circle') + '"></i>';
   document.querySelectorAll('#sidebar nav a').forEach(a => {
