@@ -5387,7 +5387,7 @@ function importarAsignacionesExcel() {
         var iMat = hdrs.findIndex(function(h){ return h.indexOf('MATERIA')   >= 0; });
         var iGrd = hdrs.findIndex(function(h){ return h.indexOf('GRADO')     >= 0; });
         var iSec = hdrs.findIndex(function(h){ return h.indexOf('SECCI')     >= 0; });
-        var iDia = hdrs.findIndex(function(h){ return h.indexOf('D')         >= 0 && h.indexOf('A') >= 0 && h.length <= 5; });
+        var iDia = hdrs.findIndex(function(h){ return h === 'DÍA' || h === 'DIA' || h === 'DIA' || /^D[IÍ]A$/.test(h); });
         var iHi  = hdrs.findIndex(function(h){ return h.indexOf('INICIO')    >= 0; });
         var iHf  = hdrs.findIndex(function(h){ return h.indexOf('FIN')       >= 0; });
 
@@ -5418,17 +5418,23 @@ function importarAsignacionesExcel() {
           var estado = 'OK';
           var warns  = [];
 
-          // Buscar docente por nombre (flexible: primer nombre + primer apellido)
+          // Buscar docente: 1) nombre completo exacto, 2) nombre + inicio apellido, 3) solo primer nombre
+          var _nomL = docenteNom.toLowerCase();
+          var _parts = _nomL.split(' ');
           var docMatch = docentes.find(function(d){
             var full = ((d.p_nombre||'') + ' ' + (d.p_apellido||'')).toLowerCase().trim();
-            return full === docenteNom.toLowerCase();
+            return full === _nomL;
           });
-          if (!docMatch) {
-            // Intento parcial: primer token como nombre
-            var parts = docenteNom.toLowerCase().split(' ');
+          if (!docMatch && _parts.length >= 2) {
             docMatch = docentes.find(function(d){
-              return (d.p_nombre||'').toLowerCase() === parts[0]
-                  && parts.slice(1).join(' ') && (d.p_apellido||'').toLowerCase().startsWith(parts[1]||'');
+              return (d.p_nombre||'').toLowerCase() === _parts[0]
+                  && (d.p_apellido||'').toLowerCase().startsWith(_parts[1]);
+            });
+          }
+          if (!docMatch) {
+            // Solo primer nombre (ej. Excel tiene "Jhon" y docente se llama "Jhon Perez")
+            docMatch = docentes.find(function(d){
+              return (d.p_nombre||'').toLowerCase() === _nomL;
             });
           }
           if (!docMatch) { warns.push('Docente no encontrado: "' + docenteNom + '"'); estado = 'ERROR'; }
