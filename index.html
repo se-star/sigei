@@ -381,6 +381,7 @@
   .hv-block:hover { filter: brightness(.93); transform: scale(1.02); z-index: 10; }
   .hv-block-ausente { opacity: 0.45; border: 2px dashed #EF4444 !important; filter: grayscale(60%); }
   .hv-block-ausente:hover { opacity: 0.55; }
+  .hv-block-asig { border-left: 3px solid rgba(255,255,255,0.6) !important; }
   .hv-block-reemplazo { background: linear-gradient(135deg,#D1FAE5,#A7F3D0) !important; border: 2px solid #10B981 !important; }
   .hv-bm { font-weight: 700; font-size: 11px; line-height: 1.2; white-space: nowrap;
     overflow: hidden; text-overflow: ellipsis; }
@@ -1710,6 +1711,9 @@
             </select>
             <button class="btn btn-sm btn-outline-secondary" onclick="imprimirHorario()" title="Imprimir horario">
               <i class="bi bi-printer-fill"></i> Imprimir
+            </button>
+            <button class="btn btn-sm btn-outline-danger" onclick="limpiarHorarios()" title="Eliminar todos los horarios cargados manualmente">
+              <i class="bi bi-trash3-fill"></i> Limpiar horarios
             </button>
           </div>
         </div>
@@ -4653,8 +4657,31 @@ function renderHorarios() {
   var _semLabel = document.getElementById('semana-label');
   if (_semLabel) _semLabel.textContent = _lunesStr + ' — ' + _viernesStr;
 
-  // Filter horarios
-  let horarios = DB.get('horarios');
+  // ── Build horarios: manual entries + derived from asignaciones ─────────
+  let horarios = DB.get('horarios').slice();
+
+  // Derive virtual horario entries from asignaciones activas
+  DB.get('asignaciones').filter(function(a){ return a.estado === 'Activo'; }).forEach(function(asig) {
+    (asig.cursos || []).forEach(function(curso) {
+      (curso.dias || []).forEach(function(d) {
+        if (!d.dia || !d.hora_inicio || !d.hora_fin) return;
+        horarios.push({
+          id:            'asig_' + asig.id + '_' + curso.seccion_id + '_' + d.dia + '_' + d.hora_inicio,
+          docente_id:    asig.docente_id,
+          seccion_id:    curso.seccion_id,
+          materia:       curso.materia || '',
+          dia:           d.dia,
+          hora_inicio:   d.hora_inicio,
+          hora_fin:      d.hora_fin,
+          aula_id:       null,
+          asignacion_id: asig.id,
+          _fromAsig:     true,
+        });
+      });
+    });
+  });
+
+  // Apply filters
   if (filtroGrado) {
     const secIds = secciones.filter(s => s.grado_id == filtroGrado).map(s => s.id);
     horarios = horarios.filter(h => secIds.includes(h.seccion_id));
@@ -4766,7 +4793,10 @@ function renderHorarios() {
       var _docenteLabel = nombreDocente(b.docente_id);
       if (_esAusente) _docenteLabel = '⚠️ ' + _docenteLabel;
       var _reempLabel = _reempId ? '🔄 ' + nombreDocente(_reempId) : '';
-      bodyHtml += '<div class="hv-block ' + cls + _extraCls + '" onclick="abrirHorario(' + b.id + ',\'' + _fechaDia + '\')"'
+      var _clickFn = b._fromAsig
+        ? 'abrirAsignacion(' + b.asignacion_id + ')'
+        : 'abrirHorario(' + b.id + ',\'' + _fechaDia + '\')';
+      bodyHtml += '<div class="hv-block ' + cls + _extraCls + (b._fromAsig ? ' hv-block-asig' : '') + '" onclick="' + _clickFn + '"'
         + ' style="top:' + top + 'px;height:' + height + 'px;left:calc(' + leftPct + '% + 2px);width:calc(' + widthPct + '% - 4px)">'
         + '<div class="hv-bm">' + _docenteLabel + '</div>'
         + (height > 28 ? '<div class="hv-bs">' + gradoLabel + '</div>' : '')
@@ -5148,6 +5178,13 @@ function eliminarHorario(id) {
   if (!confirmar('¿Eliminar este horario?')) return;
   DB.set('horarios', DB.get('horarios').filter(h=>h.id!==id));
   toast('Horario eliminado.');
+  renderHorarios();
+}
+
+function limpiarHorarios() {
+  if (!confirmar('¿Eliminar TODOS los horarios cargados manualmente? Los horarios derivados de asignaciones académicas seguirán mostrándose.')) return;
+  DB.set('horarios', []);
+  toast('Horarios eliminados. El calendario ahora muestra solo asignaciones académicas.');
   renderHorarios();
 }
 
