@@ -1711,10 +1711,6 @@
             <button class="btn btn-sm btn-outline-secondary" onclick="imprimirHorario()" title="Imprimir horario">
               <i class="bi bi-printer-fill"></i> Imprimir
             </button>
-            <button class="btn btn-sm btn-outline-success" onclick="document.getElementById('xlsxHorarioInput').click()" title="Importar horario desde Excel">
-              <i class="bi bi-file-earmark-excel-fill"></i> Importar Excel
-            </button>
-            <input type="file" id="xlsxHorarioInput" accept=".xlsx,.xls" class="d-none" onchange="importarHorarioExcel(event)">
           </div>
         </div>
       </div>
@@ -2928,42 +2924,6 @@
   </div>
 </div>
 
-<!-- Modal Importar Horario desde Excel -->
-<div class="modal fade" id="modalImportHorario" tabindex="-1">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header" style="background:var(--blue-600)">
-        <h5 class="modal-title text-white"><i class="bi bi-file-earmark-excel-fill me-2"></i>Importar Horario Semanal desde Excel</h5>
-        <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <div class="alert alert-info p-2 mb-3" style="font-size:12px">
-          <i class="bi bi-info-circle me-1"></i>
-          Formato esperado: fila de encabezado con nombre del docente en columna 2, luego columnas para cada período de cada día (Lunes–Viernes, 7 períodos de 07:00 a 14:00). Cada celda debe contener el código de sección (ej: <strong>9C</strong>, <strong>11A</strong>).
-        </div>
-        <div id="horario-import-preview" class="mb-3"></div>
-        <div class="d-flex align-items-center gap-3">
-          <div class="form-check form-check-inline mb-0">
-            <input class="form-check-input" type="radio" name="horarioImportMode" id="hor-mode-add" value="add" checked>
-            <label class="form-check-label" for="hor-mode-add" style="font-size:12px">Agregar (conservar existentes)</label>
-          </div>
-          <div class="form-check form-check-inline mb-0">
-            <input class="form-check-input" type="radio" name="horarioImportMode" id="hor-mode-replace" value="replace">
-            <label class="form-check-label" for="hor-mode-replace" style="font-size:12px">Reemplazar todos los horarios</label>
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <div id="horario-import-stats" class="me-auto text-muted" style="font-size:12px"></div>
-        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
-        <button class="btn btn-success btn-sm" onclick="confirmarImportHorario()">
-          <i class="bi bi-check-lg me-1"></i>Confirmar importación
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- Toast -->
 <div id="toast-container"></div>
 
@@ -3065,7 +3025,7 @@ function navigate(page) {
   var pageEl = document.getElementById('page-' + page);
   if (!pageEl) return false;
   pageEl.classList.remove('d-none');
-  document.getElementById('page-title').innerHTML = PAGE_TITLES[page] || page;
+  document.getElementById('page-title').textContent = PAGE_TITLES[page] || page;
   const iconEl = document.getElementById('topbar-icon');
   if (iconEl) iconEl.innerHTML = '<i class="bi ' + (PAGE_ICONS[page] || 'bi-circle') + '"></i>';
   document.querySelectorAll('#sidebar nav a').forEach(a => {
@@ -5192,170 +5152,6 @@ function eliminarHorario(id) {
 }
 
 // ══════════════════════════════════════════════
-//  IMPORTAR HORARIO DESDE EXCEL
-// ══════════════════════════════════════════════
-// Columna layout: col0=N°, col1=DOCENTE, then 5 days × 7 periods = 35 cols
-// Days: Lunes(2-8), Martes(9-15), Miércoles(16-22), Jueves(23-29), Viernes(30-36)
-const _HOR_DIAS   = ['Lunes','Martes','Miércoles','Jueves','Viernes'];
-const _HOR_HORAS  = ['07:00','08:00','09:00','10:00','11:00','12:00','13:00','14:00'];
-// _horImportRows stores parsed import data before confirmation
-var _horImportRows = [];
-
-function importarHorarioExcel(ev) {
-  const file = ev.target.files[0];
-  if (!file) return;
-  ev.target.value = '';
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    try {
-      const wb   = XLSX.read(e.target.result, {type:'binary'});
-      const ws   = wb.Sheets[wb.SheetNames[0]];
-      const data = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
-      if (!data || data.length < 2) { toast('El archivo está vacío o no tiene datos.', false); return; }
-
-      // Find the header row: first row where col1 contains "DOCENTE" (case-insensitive)
-      var headerIdx = 0;
-      for (var i = 0; i < Math.min(data.length, 6); i++) {
-        var cell = String(data[i][1]||'').trim().toUpperCase();
-        if (cell === 'DOCENTE' || cell.includes('DOCENTE')) { headerIdx = i; break; }
-      }
-      var rows = data.slice(headerIdx + 1).filter(function(r) {
-        return String(r[1]||'').trim() !== '' && !/docente/i.test(String(r[1]||''));
-      });
-
-      // Build sections lookup: key = normalized code (e.g. "9C") → seccion object
-      var secciones = DB.get('secciones');
-      var grados    = DB.get('grados');
-      var secByCode = {};
-      secciones.forEach(function(s) {
-        var g = grados.find(function(x){ return x.id == s.grado_id; });
-        if (!g) return;
-        // Grado nombre like "9°" → extract digits: "9"
-        var gradoNum = g.nombre.replace(/[^\d]/g,'');
-        var secNom   = s.nombre.replace(/\s/g,'').toUpperCase();
-        // Keys: "9C", "09C", "9 C", etc.
-        secByCode[gradoNum + secNom] = s;
-        if (gradoNum.length === 1) secByCode['0' + gradoNum + secNom] = s;
-      });
-
-      // Build docentes lookup: normalized name → docente
-      var docentes = DB.get('docentes');
-      function normName(s) { return String(s||'').toUpperCase().replace(/\s+/g,' ').trim(); }
-      var docByName = {};
-      docentes.forEach(function(d) {
-        var full = normName(d.p_nombre + ' ' + (d.s_nombre||'') + ' ' + d.p_apellido + ' ' + (d.s_apellido||''));
-        full = full.replace(/\s+/g,' ').trim();
-        docByName[full] = d;
-        // Also index by p_apellido + p_nombre (reversed)
-        var rev = normName(d.p_apellido + ' ' + d.p_nombre);
-        docByName[rev] = d;
-        // Index by p_nombre + p_apellido only
-        var short = normName(d.p_nombre + ' ' + d.p_apellido);
-        docByName[short] = d;
-      });
-
-      // Parse rows into import entries
-      _horImportRows = [];
-      var warnings = [];
-      rows.forEach(function(row) {
-        var docenteRaw = String(row[1]||'').trim();
-        if (!docenteRaw) return;
-        var docenteNorm = normName(docenteRaw);
-        var docente = docByName[docenteNorm];
-        // Fuzzy: try matching by last name
-        if (!docente) {
-          var parts = docenteNorm.split(' ');
-          docente = docentes.find(function(d) {
-            return parts.some(function(p){ return p.length > 3 && normName(d.p_apellido).includes(p); });
-          });
-        }
-        if (!docente) { warnings.push('Docente no encontrado: ' + docenteRaw); }
-
-        _HOR_DIAS.forEach(function(dia, dIdx) {
-          for (var p = 0; p < 7; p++) {
-            var colIdx = 2 + dIdx * 7 + p;
-            var cell   = String(row[colIdx]||'').trim().toUpperCase().replace(/\s/g,'');
-            if (!cell) continue;
-            var seccion = secByCode[cell];
-            if (!seccion) { warnings.push('Sección no encontrada: ' + cell + ' (docente: ' + docenteRaw + ')'); }
-            _horImportRows.push({
-              docente_id:  docente ? docente.id : null,
-              docente_nom: docenteRaw,
-              seccion_id:  seccion ? seccion.id : null,
-              seccion_cod: cell,
-              dia:         dia,
-              hora_inicio: _HOR_HORAS[p],
-              hora_fin:    _HOR_HORAS[p+1],
-              materia:     '',
-              ok:          !!(docente && seccion),
-            });
-          }
-        });
-      });
-
-      // Build preview table
-      var validRows   = _horImportRows.filter(function(r){ return r.ok; });
-      var invalidRows = _horImportRows.filter(function(r){ return !r.ok; });
-      var warnUniq    = [...new Set(warnings)].slice(0, 8);
-      var previewHtml = '';
-      if (warnUniq.length) {
-        previewHtml += '<div class="alert alert-warning p-2 mb-2" style="font-size:11px"><strong>Advertencias:</strong><ul class="mb-0 ps-3">'
-          + warnUniq.map(function(w){ return '<li>' + w + '</li>'; }).join('')
-          + (warnings.length > 8 ? '<li>...y ' + (warnings.length-8) + ' más</li>' : '')
-          + '</ul></div>';
-      }
-      previewHtml += '<div class="table-responsive" style="max-height:280px;overflow-y:auto"><table class="table table-sm table-bordered" style="font-size:11px">'
-        + '<thead class="table-light"><tr><th>Docente</th><th>Sección</th><th>Día</th><th>Hora inicio</th><th>Hora fin</th><th>Estado</th></tr></thead><tbody>'
-        + _horImportRows.slice(0,40).map(function(r){
-            var cls = r.ok ? '' : 'table-danger';
-            return '<tr class="' + cls + '"><td>' + r.docente_nom + '</td><td>' + r.seccion_cod
-              + '</td><td>' + r.dia + '</td><td>' + r.hora_inicio + '</td><td>' + r.hora_fin
-              + '</td><td>' + (r.ok ? '<span class="text-success">✓</span>' : '<span class="text-danger">✗ no encontrado</span>') + '</td></tr>';
-          }).join('')
-        + (_horImportRows.length > 40 ? '<tr><td colspan="6" class="text-center text-muted">... y ' + (_horImportRows.length - 40) + ' entradas más</td></tr>' : '')
-        + '</tbody></table></div>';
-
-      document.getElementById('horario-import-preview').innerHTML = previewHtml;
-      document.getElementById('horario-import-stats').textContent =
-        _horImportRows.length + ' entradas totales · ' + validRows.length + ' válidas · ' + invalidRows.length + ' con errores';
-
-      new bootstrap.Modal(document.getElementById('modalImportHorario')).show();
-    } catch(err) { toast('Error al leer el archivo: ' + err.message, false); }
-  };
-  reader.readAsBinaryString(file);
-}
-
-function confirmarImportHorario() {
-  var mode    = document.querySelector('input[name="horarioImportMode"]:checked').value;
-  var validRows = _horImportRows.filter(function(r){ return r.ok; });
-  if (!validRows.length) { toast('No hay entradas válidas para importar.', false); return; }
-
-  var horarios = mode === 'replace' ? [] : DB.get('horarios');
-  var added = 0;
-  var nextId = horarios.length ? Math.max.apply(null, horarios.map(function(h){ return h.id||0; })) + 1 : 1;
-
-  validRows.forEach(function(r) {
-    horarios.push({
-      id:          nextId++,
-      docente_id:  r.docente_id,
-      seccion_id:  r.seccion_id,
-      dia:         r.dia,
-      hora_inicio: r.hora_inicio,
-      hora_fin:    r.hora_fin,
-      materia:     r.materia || '',
-      aula_id:     null,
-    });
-    added++;
-  });
-
-  DB.set('horarios', horarios);
-  bootstrap.Modal.getInstance(document.getElementById('modalImportHorario')).hide();
-  _horImportRows = [];
-  toast(added + ' horarios importados correctamente.');
-  renderHorarios();
-}
-
-// ══════════════════════════════════════════════
 //  AULAS
 // ══════════════════════════════════════════════
 function renderAulas() {
@@ -6626,4 +6422,11 @@ _auth.onAuthStateChanged(async function(user) {
     </button>
 
     <div style="text-align:center;margin-top:24px">
-      <span style="fo
+      <span style="font-size:11px;color:rgba(255,255,255,.25)">IER SANTANDERCITO &middot; ALFATIC &middot; &copy; 2026</span>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>
