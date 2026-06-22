@@ -1881,6 +1881,7 @@
         </div>
       </div>
     </div>
+    </div><!-- /page-reuniones -->
 
 
     <!-- ── ACTIVIDAD ────────────────────── -->
@@ -3015,12 +3016,15 @@ const PAGE_ICONS = {
 };
 
 function navigate(page) {
-  document.querySelectorAll('.content > [id^="page-"]').forEach(el => el.classList.add('d-none'));
+  // Hide all page sections (use explicit list to avoid matching page-title)
+  ['dashboard','docentes','grados','asignaciones','horarios','cronograma','reuniones',
+   'actividad','usuarios','aulas','sedes','permisos'].forEach(function(p) {
+    var el = document.getElementById('page-' + p);
+    if (el) el.classList.add('d-none');
+  });
   var pageEl = document.getElementById('page-' + page);
+  if (!pageEl) return false;
   pageEl.classList.remove('d-none');
-  pageEl.classList.remove('page-animate');
-  void pageEl.offsetWidth; // reflow para reiniciar animación
-  pageEl.classList.add('page-animate');
   document.getElementById('page-title').textContent = PAGE_TITLES[page] || page;
   const iconEl = document.getElementById('topbar-icon');
   if (iconEl) iconEl.innerHTML = '<i class="bi ' + (PAGE_ICONS[page] || 'bi-circle') + '"></i>';
