@@ -3015,7 +3015,7 @@ const PAGE_ICONS = {
 };
 
 function navigate(page) {
-  document.querySelectorAll('[id^="page-"]').forEach(el => el.classList.add('d-none'));
+  document.querySelectorAll('.content > [id^="page-"]').forEach(el => el.classList.add('d-none'));
   var pageEl = document.getElementById('page-' + page);
   pageEl.classList.remove('d-none');
   pageEl.classList.remove('page-animate');
@@ -5913,6 +5913,11 @@ function limpiarActividad() {
 //  GESTIÓN DE USUARIOS
 // ════════════════════════════════════════════════
 function renderUsuarios() {
+  // Seed current user in cache if not yet registered
+  var _curEmail = (firebase.auth().currentUser||{}).email||'';
+  if (_curEmail && !DB.get('usuarios').find(function(u){ return u.email===_curEmail; })) {
+    cargarRolUsuario();
+  }
   var filtroRol = (document.getElementById('filtro-usr-rol')||{}).value || '';
   var users = (DB.get('usuarios') || []).slice();
   if (filtroRol) users = users.filter(function(u){ return u.rol === filtroRol; });
