@@ -4812,7 +4812,7 @@ function renderHorarios() {
       if (_esAusente) _docenteLabel = '⚠️ ' + _docenteLabel;
       var _reempLabel = _reempId ? '🔄 ' + nombreDocente(_reempId) : '';
       var _clickFn = b._fromAsig
-        ? 'abrirAsignacion(' + b.asignacion_id + ')'
+        ? 'verClaseAsig(\'' + b.asignacion_id + '\',\'' + b.seccion_id + '\',\'' + b.dia + '\',\'' + (b.hora_inicio||'') + '\',\'' + (b.hora_fin||'') + '\',\'' + _fechaDia + '\')'
         : 'abrirHorario(' + b.id + ',\'' + _fechaDia + '\')';
       bodyHtml += '<div class="hv-block ' + cls + _extraCls + (b._fromAsig ? ' hv-block-asig' : '') + '" onclick="' + _clickFn + '"'
         + ' style="top:' + top + 'px;height:' + height + 'px;left:calc(' + leftPct + '% + 2px);width:calc(' + widthPct + '% - 4px)">'
@@ -5120,6 +5120,90 @@ function abrirHorario(id, fechaDia) {
     } else {
       document.getElementById('oc-clase-doc-estado').textContent = 'Disponible';
       document.getElementById('oc-clase-doc-estado').style.color = '#16A34A';
+    }
+  }
+
+  bootstrap.Offcanvas.getOrCreateInstance(document.getElementById('offcanvasClase')).show();
+}
+
+// ── Ver clase desde asignación académica (solo lectura) ────────────────────
+function verClaseAsig(asigId, seccionId, dia, horaInicio, horaFin, fechaDia) {
+  var asig  = DB.get('asignaciones').find(function(a){ return String(a.id) === String(asigId); });
+  if (!asig) return;
+  var sec   = DB.get('secciones').find(function(s){ return String(s.id) === String(seccionId); });
+  var grado = sec ? DB.get('grados').find(function(g){ return g.id == sec.grado_id; }) : null;
+  var doc   = asig.docente_id ? DB.get('docentes').find(function(d){ return d.id == asig.docente_id; }) : null;
+
+  var headerColors = {
+    'block-mat':'#2563EB','block-esp':'#7C3AED','block-cn':'#16A34A',
+    'block-soc':'#D97706','block-ing':'#0891B2','block-art':'#DB2777',
+    'block-tec':'#0D9488','block-otros':'#475569'
+  };
+  var cls    = materiaBlockClass(asig.materia || '');
+  var hColor = headerColors[cls] || '#1E293B';
+
+  document.getElementById('oc-clase-header').style.background  = hColor;
+  document.getElementById('oc-clase-materia-badge').textContent = cls.replace('block-','').toUpperCase();
+  document.getElementById('oc-clase-materia').textContent       = asig.materia || '—';
+  document.getElementById('oc-clase-seccion').textContent       =
+    (grado ? grado.nombre : '—') + (sec ? ' — Sección ' + sec.nombre : '');
+
+  document.querySelector('#oc-clase-dia-chip span').textContent  = dia || '—';
+  document.querySelector('#oc-clase-hora-chip span').textContent = (horaInicio||'') + ' – ' + (horaFin||'');
+  document.querySelector('#oc-clase-aula-chip span').textContent = 'Sin aula asignada';
+
+  var asigIcons = { 'block-mat':'🔢','block-esp':'📖','block-cn':'🔬','block-soc':'🌍','block-ing':'🗣️','block-art':'🎨','block-tec':'💻','block-otros':'📚' };
+  var asigAreas = { 'block-mat':'Matemáticas y Ciencias Exactas','block-esp':'Lenguaje y Comunicación','block-cn':'Ciencias Naturales','block-soc':'Ciencias Sociales','block-ing':'Idiomas','block-art':'Artes y Cultura','block-tec':'Tecnología e Informática','block-otros':'Área General' };
+  document.getElementById('oc-clase-asig-icon').textContent      = asigIcons[cls] || '📚';
+  document.getElementById('oc-clase-asig-icon').style.background = hColor + '18';
+  document.getElementById('oc-clase-asig-nombre').textContent    = asig.materia || '—';
+  document.getElementById('oc-clase-asig-sub').textContent       = asigAreas[cls] || '';
+
+  // Docente titular
+  document.getElementById('oc-clase-doc-estado').style.color = '#16A34A';
+  if (doc) {
+    var ini = ((doc.p_nombre||'')[0]||'') + ((doc.p_apellido||'')[0]||'');
+    document.getElementById('oc-clase-doc-avatar').textContent = ini.toUpperCase();
+    document.getElementById('oc-clase-doc-nombre').textContent = (doc.p_nombre||'') + ' ' + (doc.p_apellido||'');
+    document.getElementById('oc-clase-doc-estado').textContent = 'Disponible';
+  } else {
+    document.getElementById('oc-clase-doc-avatar').textContent = '?';
+    document.getElementById('oc-clase-doc-nombre').textContent = 'Sin docente asignado';
+    document.getElementById('oc-clase-doc-estado').textContent = '';
+  }
+
+  // Novedades / reemplazos
+  var novSection = document.getElementById('oc-clase-novedad-section');
+  novSection.style.display = 'none';
+  document.getElementById('oc-clase-reemplazo').style.display = 'none';
+  if (asig.docente_id && fechaDia) {
+    var permisos = DB.get('permisos').filter(function(p) {
+      if (p.estado !== 'Aprobado' || p.docente_id != asig.docente_id) return false;
+      var fb = p.fecha_novedad || p.fecha_inicio;
+      return fb === fechaDia;
+    });
+    if (permisos.length) {
+      var perm = permisos[0];
+      novSection.style.display = '';
+      document.getElementById('oc-clase-doc-estado').textContent  = '⚠️ Ausente — ' + (perm.tipo||'Novedad');
+      document.getElementById('oc-clase-doc-estado').style.color  = '#EF4444';
+      document.getElementById('oc-clase-novedad-info').innerHTML  =
+        '<strong>' + (perm.tipo||'Novedad') + '</strong>'
+        + (perm.fecha_novedad ? ' · ' + perm.fecha_novedad : '')
+        + (perm.motivo ? '<br>' + perm.motivo : '')
+        + (perm.autorizado_por ? '<br><span style="opacity:.8">Autorizado por: ' + perm.autorizado_por + '</span>' : '');
+      if (perm.docente_reemplazo_id) {
+        var remp = DB.get('docentes').find(function(d){ return d.id == perm.docente_reemplazo_id; });
+        if (remp) {
+          var rIni = ((remp.p_nombre||'')[0]||'') + ((remp.p_apellido||'')[0]||'');
+          document.getElementById('oc-clase-remp-avatar').textContent = rIni.toUpperCase();
+          document.getElementById('oc-clase-remp-nombre').textContent = (remp.p_nombre||'') + ' ' + (remp.p_apellido||'');
+          document.getElementById('oc-clase-reemplazo').style.display = 'flex';
+        }
+      } else {
+        document.getElementById('oc-clase-novedad-info').innerHTML +=
+          '<br><span style="opacity:.75;font-style:italic">Sin docente de reemplazo asignado</span>';
+      }
     }
   }
 
