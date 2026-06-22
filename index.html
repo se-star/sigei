@@ -1603,6 +1603,53 @@
             <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="abrirAsignacion()">
               <i class="bi bi-plus-lg"></i> Nueva asignación
             </button>
+            <button class="btn btn-sm btn-outline-secondary" onclick="importarAsignacionesExcel()" title="Cargar asignaciones desde plantilla Excel">
+              <i class="bi bi-file-earmark-arrow-up-fill me-1"></i> Importar Excel
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal importar asignaciones Excel -->
+      <div class="modal fade" id="modalImportAsig" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header" style="background:var(--slate-900)">
+              <h6 class="modal-title text-white"><i class="bi bi-file-earmark-excel-fill me-2 text-success"></i>Importar Asignaciones desde Excel</h6>
+              <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              <div class="alert alert-info d-flex gap-2 align-items-start mb-3" style="font-size:13px">
+                <i class="bi bi-info-circle-fill mt-1 flex-shrink-0"></i>
+                <div>Use la plantilla <strong>Plantilla_Asignaciones_SIGEI.xlsx</strong>. Una fila por bloque de horario.<br>
+                El sistema agrupará automáticamente por docente, materia y sección.</div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold" style="font-size:13px">Seleccionar archivo Excel</label>
+                <input type="file" class="form-control" id="import-asig-file" accept=".xlsx,.xls">
+              </div>
+              <div id="import-asig-preview" style="display:none">
+                <p class="fw-semibold mb-2" style="font-size:13px">Vista previa — <span id="import-asig-count"></span></p>
+                <div class="table-responsive" style="max-height:300px;overflow-y:auto">
+                  <table class="sigei-table" style="font-size:12px">
+                    <thead>
+                      <tr>
+                        <th>#</th><th>Docente</th><th>Materia</th><th>Grado</th>
+                        <th>Sección</th><th>Día</th><th>Hora inicio</th><th>Hora fin</th><th>Estado</th>
+                      </tr>
+                    </thead>
+                    <tbody id="import-asig-tbody"></tbody>
+                  </table>
+                </div>
+              </div>
+              <div id="import-asig-errors" style="display:none" class="alert alert-warning mt-2" style="font-size:12px"></div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+              <button class="btn btn-success btn-sm" id="btn-confirmar-import-asig" style="display:none" onclick="confirmarImportAsig()">
+                <i class="bi bi-check2-circle me-1"></i> Importar asignaciones
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -2997,14 +3044,14 @@ const DB = {
 //  NAVEGACIÓN
 // ══════════════════════════════════════════════
 const PAGE_TITLES = {
-  dashboard: '<i class="bi bi-grid-1x2-fill me-2"></i>Dashboard',
-  docentes:  '<i class="bi bi-person-badge-fill me-2"></i>Docentes',
-  grados:    '<i class="bi bi-diagram-3-fill me-2"></i>Grados y Secciones',
-  asignaciones: '<i class="bi bi-journal-bookmark-fill me-2"></i>Asignación Académica',
-  horarios:  '<i class="bi bi-clock-fill me-2"></i>Horarios de Clase',
-  aulas:     '<i class="bi bi-door-open-fill me-2"></i>Aulas',
-  sedes:     '<i class="bi bi-building-fill me-2"></i>Sedes',
-  permisos:  '<i class="bi bi-calendar2-check-fill me-2"></i>Permisos y Licencias',
+  dashboard:    'Dashboard',
+  docentes:     'Docentes',
+  grados:       'Grados y Secciones',
+  asignaciones: 'Asignación Académica',
+  horarios:     'Horarios de Clase',
+  aulas:        'Aulas',
+  sedes:        'Sedes',
+  permisos:     'Permisos y Licencias',
 };
 
 const PAGE_ICONS = {
@@ -3029,7 +3076,7 @@ function navigate(page) {
   var pageEl = document.getElementById('page-' + page);
   if (!pageEl) return false;
   pageEl.classList.remove('d-none');
-  document.getElementById('page-title').innerHTML = PAGE_TITLES[page] || page;
+  document.getElementById('page-title').textContent = PAGE_TITLES[page] || page;
   const iconEl = document.getElementById('topbar-icon');
   if (iconEl) iconEl.innerHTML = '<i class="bi ' + (PAGE_ICONS[page] || 'bi-circle') + '"></i>';
   document.querySelectorAll('#sidebar nav a').forEach(a => {
@@ -5288,6 +5335,247 @@ function limpiarHorarios() {
   DB.set('horarios', []);
   toast('Horarios eliminados. El calendario ahora muestra solo asignaciones académicas.');
   renderHorarios();
+}
+
+// ══════════════════════════════════════════════
+//  IMPORTAR ASIGNACIONES EXCEL
+// ══════════════════════════════════════════════
+var _asigImportRows = [];
+
+function importarAsignacionesExcel() {
+  document.getElementById('import-asig-file').value = '';
+  document.getElementById('import-asig-preview').style.display = 'none';
+  document.getElementById('import-asig-errors').style.display  = 'none';
+  document.getElementById('btn-confirmar-import-asig').style.display = 'none';
+  document.getElementById('import-asig-tbody').innerHTML = '';
+  _asigImportRows = [];
+
+  var modal = new bootstrap.Modal(document.getElementById('modalImportAsig'));
+  modal.show();
+
+  document.getElementById('import-asig-file').onchange = function(e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      try {
+        var wb  = XLSX.read(ev.target.result, { type: 'binary' });
+        var ws  = wb.Sheets[wb.SheetNames[0]];
+        var raw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+
+        // Buscar fila de cabecera (contiene "DOCENTE")
+        var headerRow = -1;
+        for (var i = 0; i < Math.min(raw.length, 10); i++) {
+          if (raw[i].join('').toUpperCase().indexOf('DOCENTE') >= 0) { headerRow = i; break; }
+        }
+        if (headerRow < 0) {
+          mostrarErrorImportAsig('No se encontró la fila de encabezado. Usa la plantilla oficial.');
+          return;
+        }
+
+        var hdrs = raw[headerRow].map(function(h){ return String(h).toUpperCase().trim(); });
+        var iDoc = hdrs.findIndex(function(h){ return h.indexOf('DOCENTE')   >= 0; });
+        var iMat = hdrs.findIndex(function(h){ return h.indexOf('MATERIA')   >= 0; });
+        var iGrd = hdrs.findIndex(function(h){ return h.indexOf('GRADO')     >= 0; });
+        var iSec = hdrs.findIndex(function(h){ return h.indexOf('SECCI')     >= 0; });
+        var iDia = hdrs.findIndex(function(h){ return h.indexOf('D')         >= 0 && h.indexOf('A') >= 0 && h.length <= 5; });
+        var iHi  = hdrs.findIndex(function(h){ return h.indexOf('INICIO')    >= 0; });
+        var iHf  = hdrs.findIndex(function(h){ return h.indexOf('FIN')       >= 0; });
+
+        if ([iDoc,iMat,iGrd,iSec,iDia,iHi,iHf].some(function(x){ return x < 0; })) {
+          mostrarErrorImportAsig('Columnas no reconocidas. Verifique que usa la plantilla oficial (DOCENTE, MATERIA, GRADO, SECCIÓN, DÍA, HORA INICIO, HORA FIN).');
+          return;
+        }
+
+        var docentes  = DB.get('docentes');
+        var secciones = DB.get('secciones');
+        var grados    = DB.get('grados');
+        var rows = [];
+        var errores = [];
+        var diasValidos = ['Lunes','Martes','Miércoles','Jueves','Viernes'];
+
+        for (var r = headerRow + 1; r < raw.length; r++) {
+          var row = raw[r];
+          var docenteNom = String(row[iDoc]||'').trim();
+          var materia    = String(row[iMat]||'').trim();
+          var gradoNom   = String(row[iGrd]||'').trim();
+          var secNom     = String(row[iSec]||'').trim();
+          var dia        = String(row[iDia]||'').trim();
+          var horaIni    = String(row[iHi]||'').trim();
+          var horaFin    = String(row[iHf]||'').trim();
+
+          if (!docenteNom && !materia && !gradoNom) continue; // fila vacía
+
+          var estado = 'OK';
+          var warns  = [];
+
+          // Buscar docente por nombre (flexible: primer nombre + primer apellido)
+          var docMatch = docentes.find(function(d){
+            var full = ((d.p_nombre||'') + ' ' + (d.p_apellido||'')).toLowerCase().trim();
+            return full === docenteNom.toLowerCase();
+          });
+          if (!docMatch) {
+            // Intento parcial: primer token como nombre
+            var parts = docenteNom.toLowerCase().split(' ');
+            docMatch = docentes.find(function(d){
+              return (d.p_nombre||'').toLowerCase() === parts[0]
+                  && parts.slice(1).join(' ') && (d.p_apellido||'').toLowerCase().startsWith(parts[1]||'');
+            });
+          }
+          if (!docMatch) { warns.push('Docente no encontrado: "' + docenteNom + '"'); estado = 'ERROR'; }
+
+          // Buscar grado
+          var gradoMatch = grados.find(function(g){
+            return g.nombre.toLowerCase().replace(/\s/g,'') === gradoNom.toLowerCase().replace(/\s/g,'');
+          });
+          if (!gradoMatch) { warns.push('Grado no encontrado: "' + gradoNom + '"'); estado = 'ERROR'; }
+
+          // Buscar sección dentro del grado
+          var secMatch = gradoMatch
+            ? secciones.find(function(s){ return s.grado_id == gradoMatch.id && s.nombre.toLowerCase() === secNom.toLowerCase(); })
+            : null;
+          if (gradoMatch && !secMatch) { warns.push('Sección "' + secNom + '" no existe en ' + gradoNom); estado = 'ERROR'; }
+
+          // Validar día
+          if (!diasValidos.includes(dia)) { warns.push('Día inválido: "' + dia + '"'); estado = 'ERROR'; }
+
+          // Validar horas
+          var reHora = /^\d{1,2}:\d{2}$/;
+          if (!reHora.test(horaIni)) { warns.push('Hora inicio inválida: "' + horaIni + '"'); estado = 'ERROR'; }
+          if (!reHora.test(horaFin)) { warns.push('Hora fin inválida: "' + horaFin + '"'); estado = 'ERROR'; }
+
+          if (estado === 'ERROR') errores.push('Fila ' + (r+1) + ': ' + warns.join('; '));
+
+          rows.push({
+            fila:       r + 1,
+            docenteNom: docenteNom,
+            docente_id: docMatch ? docMatch.id : null,
+            materia:    materia,
+            gradoNom:   gradoNom,
+            secNom:     secNom,
+            seccion_id: secMatch ? secMatch.id : null,
+            dia:        dia,
+            hora_inicio:horaIni,
+            hora_fin:   horaFin,
+            estado:     estado,
+          });
+        }
+
+        _asigImportRows = rows;
+        var okCount  = rows.filter(function(x){ return x.estado === 'OK'; }).length;
+        var errCount = rows.filter(function(x){ return x.estado === 'ERROR'; }).length;
+        document.getElementById('import-asig-count').textContent =
+          rows.length + ' filas leídas — ' + okCount + ' válidas, ' + errCount + ' con error';
+
+        var tbody = document.getElementById('import-asig-tbody');
+        tbody.innerHTML = rows.map(function(x, i){
+          var bg = x.estado === 'ERROR' ? 'background:#FEF2F2' : '';
+          return '<tr style="' + bg + '">'
+            + '<td>' + x.fila + '</td>'
+            + '<td>' + x.docenteNom + '</td>'
+            + '<td>' + x.materia + '</td>'
+            + '<td>' + x.gradoNom + '</td>'
+            + '<td>' + x.secNom + '</td>'
+            + '<td>' + x.dia + '</td>'
+            + '<td>' + x.hora_inicio + '</td>'
+            + '<td>' + x.hora_fin + '</td>'
+            + '<td><span class="carga-badge ' + (x.estado === 'OK' ? 'badge-baja' : 'badge-alta') + '">' + x.estado + '</span></td>'
+            + '</tr>';
+        }).join('');
+
+        document.getElementById('import-asig-preview').style.display = '';
+
+        if (errores.length) {
+          var errEl = document.getElementById('import-asig-errors');
+          errEl.innerHTML = '<strong>Advertencias:</strong><ul class="mb-0 mt-1">'
+            + errores.slice(0, 15).map(function(e){ return '<li style="font-size:11px">' + e + '</li>'; }).join('')
+            + (errores.length > 15 ? '<li>...y ' + (errores.length-15) + ' más</li>' : '')
+            + '</ul>';
+          errEl.style.display = '';
+        } else {
+          document.getElementById('import-asig-errors').style.display = 'none';
+        }
+
+        if (okCount > 0) {
+          document.getElementById('btn-confirmar-import-asig').style.display = '';
+          document.getElementById('btn-confirmar-import-asig').textContent = '';
+          document.getElementById('btn-confirmar-import-asig').innerHTML =
+            '<i class="bi bi-check2-circle me-1"></i>Importar ' + okCount + ' registros válidos';
+        }
+
+      } catch(ex) {
+        mostrarErrorImportAsig('Error leyendo el archivo: ' + ex.message);
+      }
+    };
+    reader.readAsBinaryString(file);
+  };
+}
+
+function mostrarErrorImportAsig(msg) {
+  var el = document.getElementById('import-asig-errors');
+  el.textContent = msg;
+  el.style.display = '';
+  document.getElementById('btn-confirmar-import-asig').style.display = 'none';
+  document.getElementById('import-asig-preview').style.display = 'none';
+}
+
+function confirmarImportAsig() {
+  var okRows = _asigImportRows.filter(function(r){ return r.estado === 'OK'; });
+  if (!okRows.length) return;
+
+  // Agrupar por docente_id + materia + seccion_id → una asignación con varios días
+  var mapa = {};
+  okRows.forEach(function(r) {
+    var key = r.docente_id + '|' + r.materia + '|' + r.seccion_id;
+    if (!mapa[key]) mapa[key] = { docente_id: r.docente_id, materia: r.materia, seccion_id: r.seccion_id, dias: [] };
+    mapa[key].dias.push({ dia: r.dia, hora_inicio: r.hora_inicio, hora_fin: r.hora_fin });
+  });
+
+  var asignaciones = DB.get('asignaciones');
+  var nextId = (asignaciones.reduce(function(m, a){ return Math.max(m, a.id||0); }, 0)) + 1;
+  var nuevas = 0;
+  var actualizadas = 0;
+
+  Object.values(mapa).forEach(function(grupo) {
+    // Buscar si ya existe asignación activa para ese docente+materia
+    var existing = asignaciones.find(function(a){
+      return a.docente_id == grupo.docente_id && a.materia === grupo.materia && a.estado === 'Activo';
+    });
+    if (existing) {
+      // Añadir o actualizar curso dentro de la asignación existente
+      var cursos = existing.cursos || [];
+      var cursoIdx = cursos.findIndex(function(c){ return String(c.seccion_id) === String(grupo.seccion_id); });
+      if (cursoIdx >= 0) {
+        // Combinar días sin duplicar
+        var diasExist = cursos[cursoIdx].dias || [];
+        grupo.dias.forEach(function(nd){
+          if (!diasExist.some(function(d){ return d.dia===nd.dia && d.hora_inicio===nd.hora_inicio; }))
+            diasExist.push(nd);
+        });
+        cursos[cursoIdx].dias = diasExist;
+      } else {
+        cursos.push({ seccion_id: grupo.seccion_id, materia: grupo.materia, dias: grupo.dias });
+      }
+      existing.cursos = cursos;
+      actualizadas++;
+    } else {
+      // Crear nueva asignación
+      asignaciones.push({
+        id:         nextId++,
+        docente_id: grupo.docente_id,
+        materia:    grupo.materia,
+        estado:     'Activo',
+        cursos:     [{ seccion_id: grupo.seccion_id, materia: grupo.materia, dias: grupo.dias }],
+      });
+      nuevas++;
+    }
+  });
+
+  DB.set('asignaciones', asignaciones);
+  bootstrap.Modal.getInstance(document.getElementById('modalImportAsig')).hide();
+  toast('Importación completada: ' + nuevas + ' asignaciones nuevas, ' + actualizadas + ' actualizadas.');
+  renderAsignaciones();
+  _asigImportRows = [];
 }
 
 // ══════════════════════════════════════════════
