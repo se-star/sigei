@@ -1532,8 +1532,8 @@
             <div><h5>Docentes</h5><p>Gestión del personal docente activo</p></div>
           </div>
           <div class="module-header-actions">
-            <div class="mh-stat"><strong id="cnt-docentes">0</strong><span>Activos</span></div>
-            <div class="mh-stat"><strong id="cnt-inactivos">0</strong><span>Inactivos</span></div>
+            <div class="mh-stat"><strong id="doc-mh-activos">0</strong><span>Activos</span></div>
+            <div class="mh-stat"><strong id="doc-mh-inactivos">0</strong><span>Inactivos</span></div>
             <button class="btn btn-sm text-white" style="background:#2563EB" onclick="abrirDocente()">
               <i class="bi bi-plus-lg me-1"></i>Nuevo docente
             </button>
@@ -3275,6 +3275,11 @@ function renderDashboard() {
 function renderDocentes() {
   const q      = (document.getElementById('buscar-docente').value||'').toLowerCase();
   const estado = document.getElementById('filtro-estado-doc').value;
+  // Update module header stats
+  const allDocs = DB.get('docentes');
+  var setMH = function(id, v) { var el = document.getElementById(id); if(el) el.textContent = v; };
+  setMH('doc-mh-activos',   allDocs.filter(function(d){ return d.estado==='Activo'; }).length);
+  setMH('doc-mh-inactivos', allDocs.filter(function(d){ return d.estado!=='Activo'; }).length);
   let rows = DB.get('docentes').filter(d => {
     const txt = `${d.cedula} ${d.p_nombre} ${d.s_nombre||''} ${d.p_apellido} ${d.s_apellido||''}`.toLowerCase();
     return (!q || txt.includes(q)) && (!estado || d.estado === estado);
