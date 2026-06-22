@@ -1617,7 +1617,7 @@
                 <th>Materias</th>
                 <th>Horas/semana</th>
                 <th>Carga</th>
-                <th style="width:50px"></th>
+                <th style="width:110px">Acciones</th>
               </tr>
             </thead>
             <tbody id="tabla-asignaciones"></tbody>
@@ -4097,12 +4097,17 @@ function renderAsignaciones() {
       ? materias.slice(0,2).join(', ') + ' +' + (materias.length - 2) + ' más'
       : materias.join(', ');
 
-    return '<tr style="cursor:pointer" onclick="verTableroDocente(' + docId + ')" title="Ver tablero de carga">'
-      + '<td><strong>' + nombreDocente(docId) + '</strong></td>'
-      + '<td style="font-size:13px;color:#475569">' + materiasStr + '</td>'
-      + '<td><span class="carga-badge ' + carga.cls + '">' + totalHoras.toFixed(1) + ' h/sem</span></td>'
-      + '<td><span class="carga-badge ' + carga.cls + '">' + carga.nivel + '</span>' + (totalHoras >= CARGA_CONFIG.alta ? ' <i class="bi bi-exclamation-triangle-fill text-danger" title="Sobrecarga: supera ' + CARGA_CONFIG.alta + ' h/sem"></i>' : '') + '</td>'
-      + '<td class="text-center"><i class="bi bi-chevron-right" style="color:#94a3b8"></i></td>'
+    var idsSerialized = JSON.stringify(listaAsigs.map(function(a){ return a.id; }));
+    return '<tr>'
+      + '<td style="cursor:pointer" onclick="verTableroDocente(' + docId + ')" title="Ver tablero de carga"><strong>' + nombreDocente(docId) + '</strong></td>'
+      + '<td style="font-size:13px;color:#475569;cursor:pointer" onclick="verTableroDocente(' + docId + ')">' + materiasStr + '</td>'
+      + '<td style="cursor:pointer" onclick="verTableroDocente(' + docId + ')"><span class="carga-badge ' + carga.cls + '">' + totalHoras.toFixed(1) + ' h/sem</span></td>'
+      + '<td style="cursor:pointer" onclick="verTableroDocente(' + docId + ')"><span class="carga-badge ' + carga.cls + '">' + carga.nivel + '</span>' + (totalHoras >= CARGA_CONFIG.alta ? ' <i class="bi bi-exclamation-triangle-fill text-danger" title="Sobrecarga: supera ' + CARGA_CONFIG.alta + ' h/sem"></i>' : '') + '</td>'
+      + '<td class="text-center">'
+      + '<button class="btn btn-sm btn-outline-primary me-1" title="Editar" onclick="verTableroDocente(' + docId + ')"><i class="bi bi-pencil-fill"></i></button>'
+      + '<button class="btn btn-sm btn-outline-danger" title="Eliminar todas las asignaciones de este docente" onclick="eliminarAsignacionesDocente(' + docId + ',this)">'
+      + '<i class="bi bi-trash-fill"></i></button>'
+      + '</td>'
       + '</tr>';
   }).join('');
 }
@@ -4245,10 +4250,23 @@ function sincronizarHorarios(asigId, data) {
 }
 
 function eliminarAsignacion(id) {
-  if (!confirmar('Eliminar esta asignación y sus horarios generados?')) return;
+  if (!confirmar('¿Eliminar esta asignación y sus horarios generados?')) return;
   DB.set('asignaciones', DB.get('asignaciones').filter(a => a.id !== id));
   DB.set('horarios',     DB.get('horarios').filter(h => h.asignacion_id !== id));
   toast('Asignación eliminada.');
+  renderAsignaciones();
+  renderTableroDocente();
+}
+
+function eliminarAsignacionesDocente(docId, btn) {
+  var asigs = DB.get('asignaciones').filter(function(a){ return a.docente_id == docId; });
+  var n = asigs.length;
+  var nombre = nombreDocente(docId);
+  if (!confirmar('¿Eliminar ' + (n === 1 ? 'la asignación' : 'las ' + n + ' asignaciones') + ' de ' + nombre + '?')) return;
+  var ids = asigs.map(function(a){ return a.id; });
+  DB.set('asignaciones', DB.get('asignaciones').filter(function(a){ return a.docente_id != docId; }));
+  DB.set('horarios',     DB.get('horarios').filter(function(h){ return !ids.includes(h.asignacion_id); }));
+  toast((n === 1 ? '1 asignación eliminada' : n + ' asignaciones eliminadas') + ' para ' + nombre + '.');
   renderAsignaciones();
 }
 
