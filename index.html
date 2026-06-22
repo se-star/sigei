@@ -4230,6 +4230,15 @@ function abrirAsignacion(id) {
 }
 
 function guardarAsignacion() {
+  // Guard against double-click / double submission
+  var btnGuardar = document.querySelector('#offcanvasAsignacion .btn-success');
+  if (btnGuardar && btnGuardar.disabled) return;
+  if (btnGuardar) { btnGuardar.disabled = true; btnGuardar.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Guardando…'; }
+
+  function _reactivarBtn() {
+    if (btnGuardar) { btnGuardar.disabled = false; btnGuardar.innerHTML = '<i class="bi bi-check-lg me-1"></i>Guardar y generar horario'; }
+  }
+
   migrarAsignaciones();
   const docente_id = document.getElementById('asig-docente').value;
   let   materia    = document.getElementById('asig-materia').value;
@@ -4237,17 +4246,17 @@ function guardarAsignacion() {
 
   const cursos = leerCursosModal();
 
-  if (!docente_id)    { toast('Seleccione un docente.', false);  return; }
-  if (!materia)       { toast('Seleccione o escriba la materia.', false); return; }
-  if (!cursos.length) { toast('Agregue al menos un grupo.', false); return; }
+  if (!docente_id)    { toast('Seleccione un docente.', false);  _reactivarBtn(); return; }
+  if (!materia)       { toast('Seleccione o escriba la materia.', false); _reactivarBtn(); return; }
+  if (!cursos.length) { toast('Agregue al menos un grupo.', false); _reactivarBtn(); return; }
 
   for (const c of cursos) {
-    if (!c.seccion_id)    { toast('Seleccione sección en cada grupo.', false); return; }
-    if (!c.dias.length)   { toast('Active al menos un día en cada grupo.', false); return; }
+    if (!c.seccion_id)    { toast('Seleccione sección en cada grupo.', false); _reactivarBtn(); return; }
+    if (!c.dias.length)   { toast('Active al menos un día en cada grupo.', false); _reactivarBtn(); return; }
     for (const d of c.dias) {
-      if (!d.hora_inicio || !d.hora_fin) { toast('Complete los horarios de todos los días.', false); return; }
+      if (!d.hora_inicio || !d.hora_fin) { toast('Complete los horarios de todos los días.', false); _reactivarBtn(); return; }
       if (timeToMins(d.hora_fin) <= timeToMins(d.hora_inicio)) {
-        toast('Hora fin debe ser posterior a hora inicio (' + d.dia + ').', false); return;
+        toast('Hora fin debe ser posterior a hora inicio (' + d.dia + ').', false); _reactivarBtn(); return;
       }
     }
   }
