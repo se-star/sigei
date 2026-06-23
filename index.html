@@ -3005,12 +3005,31 @@ const _fs   = firebase.firestore();
 // ── In-memory cache + DB API ────────────────────────────────────────────
 let _cache = {};
 
+const RENDER_BY_KEY = {
+  docentes: 'renderDocentes', grados: 'renderGrados', asignaciones: 'renderAsignaciones',
+  horarios: 'renderHorarios', aulas: 'renderAulas', sedes: 'renderSedes',
+  permisos: 'renderPermisos', cronograma: 'renderCronograma', reuniones: 'renderReuniones',
+  usuarios: 'renderUsuarios', actividad: 'renderActividad'
+};
+
 const DB = {
   get(key)       { return _cache[key] || []; },
   set(key, data) {
     _cache[key] = data;
     _fs.collection('sigei').doc(key).set({ items: data })
-      .catch(err => console.error('Firestore write error [' + key + ']:', err));
+      .catch(err => {
+        console.error('Firestore write error [' + key + ']:', err);
+        toast(err.code === 'permission-denied'
+          ? 'No tienes permisos para guardar este cambio. Se descartó.'
+          : 'Error al guardar: ' + (err.message || err.code), false);
+        // El cambio no se persistió: recargar el dato real del servidor para
+        // que la pantalla no muestre algo que en realidad no se guardó.
+        _fs.collection('sigei').doc(key).get().then(snap => {
+          _cache[key] = snap.exists ? (snap.data().items || []) : [];
+          const fn = window[RENDER_BY_KEY[key]];
+          if (typeof fn === 'function') fn();
+        });
+      });
     if (key !== 'actividad') { try { logAct(key, data); } catch(e) {} }
   },
   nextId(key) {
@@ -6491,6 +6510,7 @@ function guardarUsuario() {
         };
         usuarios.push(newUser);
         DB.set('usuarios', usuarios);
+        syncRoleDoc(newUser);
         secondaryApp.auth().signOut();
         bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasUsuario')).hide();
         renderUsuarios();
@@ -6515,6 +6535,7 @@ function guardarUsuario() {
       usuarios[idx].notas   = notas;
     }
     DB.set('usuarios', usuarios);
+    if (idx !== -1) syncRoleDoc(usuarios[idx]);
     // Update sidebar role if editing current user
     var currentEmail = (firebase.auth().currentUser||{}).email||'';
     if (email === currentEmail) {
@@ -6539,25 +6560,71 @@ function resetUsrBtn() {
 
 function eliminarUsuario(id) {
   if (!confirmar('¿Eliminar este usuario? Solo se elimina del registro, la cuenta de Firebase sigue activa.')) return;
+  var borrado = (DB.get('usuarios')||[]).find(function(u){ return u.id===id; });
   var usuarios = (DB.get('usuarios')||[]).filter(function(u){ return u.id!==id; });
   DB.set('usuarios', usuarios);
+  if (borrado && borrado.uid) {
+    _fs.collection('roles').doc(borrado.uid).delete().catch(function(err){ console.error('Error eliminando rol:', err); });
+  }
   renderUsuarios();
   toast('Usuario eliminado del registro.');
+}
+
+// ── Sincroniza /roles/{uid} en Firestore para que las reglas de seguridad
+//    puedan validar el rol de cada usuario sin depender del array 'usuarios'.
+function syncRoleDoc(usuario) {
+  if (!usuario || !usuario.uid) return;
+  _fs.collection('roles').doc(usuario.uid).set({
+    rol:    usuario.rol    || 'Docente',
+    estado: usuario.estado || 'Activo',
+    email:  usuario.email  || ''
+  }).catch(function(err){ console.error('Error sincronizando rol:', err); });
+}
+
+// ── Migración única: crea /roles/{uid} para todos los usuarios que ya tienen
+//    uid guardado. Ejecutar manualmente desde la consola (migrarRoles()) ANTES
+//    de activar reglas de Firestore restrictivas, o quedarán bloqueados.
+function migrarRoles() {
+  var usuarios = DB.get('usuarios') || [];
+  var meEmail  = (firebase.auth().currentUser||{}).email || '';
+  var meUid    = (firebase.auth().currentUser||{}).uid || '';
+  var changed  = false;
+  usuarios.forEach(function(u) {
+    if (!u.uid && u.email === meEmail && meUid) { u.uid = meUid; changed = true; }
+  });
+  if (changed) DB.set('usuarios', usuarios);
+  usuarios.forEach(function(u){ if (u.uid) syncRoleDoc(u); });
+  var conUid = usuarios.filter(function(u){ return u.uid; }).length;
+  console.log('Migración de roles: ' + conUid + ' de ' + usuarios.length + ' usuarios sincronizados.');
+  return conUid + '/' + usuarios.length;
 }
 
 // ── On login: load current user's role from usuarios collection ─────────────
 function cargarRolUsuario() {
   var email = (firebase.auth().currentUser||{}).email || '';
+  var uid   = (firebase.auth().currentUser||{}).uid || '';
   var usuarios = DB.get('usuarios') || [];
   var yo = usuarios.find(function(u){ return u.email === email; });
   var roleEl = document.getElementById('sidebar-role');
-  if (roleEl && yo) roleEl.textContent = yo.rol || 'Administrador';
-  // Seed current user if not in list
-  if (!yo && email) {
-    var newEntry = { id: DB.nextId('usuarios'), nombre: email.split('@')[0],
+  if (yo) {
+    if (!yo.uid && uid) { yo.uid = uid; DB.set('usuarios', usuarios); }
+    syncRoleDoc(yo);
+    if (roleEl) roleEl.textContent = yo.rol || 'Docente';
+    return;
+  }
+  if (!email) return;
+  if (usuarios.length === 0) {
+    // Primera cuenta del sistema: arranque inicial como Administrador.
+    var newEntry = { id: DB.nextId('usuarios'), uid: uid, nombre: email.split('@')[0],
       email: email, rol: 'Administrador', estado: 'Activo', creado: new Date().toISOString() };
     usuarios.push(newEntry);
     DB.set('usuarios', usuarios);
+    syncRoleDoc(newEntry);
+    if (roleEl) roleEl.textContent = 'Administrador';
+  } else {
+    // Cuenta autenticada pero no registrada como usuario del sistema: sin acceso.
+    toast('Tu cuenta no está autorizada en SIGEI. Contacta a un administrador.');
+    _auth.signOut();
   }
 }
 
