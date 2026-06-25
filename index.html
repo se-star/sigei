@@ -5727,6 +5727,22 @@ function confirmarImportAsig() {
 // ══════════════════════════════════════════════
 //  AULAS
 // ══════════════════════════════════════════════
+function renderSedes() {
+  const sedes = DB.get('sedes');
+  const tb = document.getElementById('tabla-sedes');
+  tb.innerHTML = sedes.length ? sedes.map((s,i) => `<tr>
+    <td>${i+1}</td>
+    <td><strong>${s.nombre}</strong></td>
+    <td>${s.direccion||'—'}</td>
+    <td>${s.telefono||'—'}</td>
+    <td>${s.email||'—'}</td>
+    <td>
+      <button class="btn btn-sm btn-outline-primary me-1" onclick="abrirSede(${s.id})"><i class="bi bi-pencil-fill"></i></button>
+      <button class="btn btn-sm btn-outline-danger" onclick="eliminarSede(${s.id})"><i class="bi bi-trash-fill"></i></button>
+    </td>
+  </tr>`).join('') : emptyRow(6, 'No hay sedes registradas');
+}
+
 function abrirSede(id=null) {
   document.getElementById('offcanvasSede-title').textContent = id ? 'Editar Sede' : 'Nueva Sede';
   ['sede-id','sede-nombre','sede-direccion','sede-telefono','sede-email'].forEach(x => {
