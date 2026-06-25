@@ -3180,12 +3180,12 @@ function emptyState(icon, title, desc, btnLabel, btnFn) {
         + '<i class="bi bi-plus-lg me-1"></i>'+btnLabel+'</button>' : '')
     + '</div>';
 }
-function toast(msg, ok=true) {
+function toast(msg, ok=true, ms=3500) {
   const el = document.createElement('div');
   el.className = `toast-msg ${ok?'ok':'err'}`;
   el.innerHTML = `<i class="bi bi-${ok?'check-circle-fill text-success':'x-circle-fill text-danger'}"></i>${msg}`;
   document.getElementById('toast-container').appendChild(el);
-  setTimeout(() => el.remove(), 3500);
+  setTimeout(() => el.remove(), ms);
 }
 function confirmar(msg) { return confirm(msg); }
 
@@ -4369,6 +4369,34 @@ function guardarAsignacion() {
   }
 
   const idEdit = document.getElementById('asig-id').value;
+
+  // ── Validar conflictos de horario para el mismo docente ───────────────
+  const asigsMismoDocente = DB.get('asignaciones').filter(function(a) {
+    return a.docente_id == parseInt(docente_id) && String(a.id) !== String(idEdit);
+  });
+  for (const c of cursos) {
+    for (const d of c.dias) {
+      const ini = timeToMins(d.hora_inicio);
+      const fin = timeToMins(d.hora_fin);
+      for (const otraAsig of asigsMismoDocente) {
+        for (const otroCurso of (otraAsig.cursos || [])) {
+          for (const otroDia of (otroCurso.dias || [])) {
+            if (otroDia.dia !== d.dia) continue;
+            const otroIni = timeToMins(otroDia.hora_inicio);
+            const otroFin = timeToMins(otroDia.hora_fin);
+            if (ini < otroFin && fin > otroIni) {
+              const sec = DB.get('secciones').find(function(s){ return s.id == otroCurso.seccion_id; });
+              const secNombre = sec ? (nombreGrado(sec.grado_id) + ' — ' + sec.nombre) : 'otro grupo';
+              toast('⚠️ Conflicto de horario: el docente ya tiene "' + otraAsig.materia + '" en ' + secNombre
+                + ' el ' + d.dia + ' de ' + otroDia.hora_inicio + ' a ' + otroDia.hora_fin + '.', false, 5000);
+              _reactivarBtn(); return;
+            }
+          }
+        }
+      }
+    }
+  }
+
   const data   = { docente_id: parseInt(docente_id), materia, cursos,
                    estado: document.getElementById('asig-estado').value };
 
