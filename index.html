@@ -4272,6 +4272,19 @@ function cerrarTablero() {
   if (oc) oc.hide();
 }
 
+function cerrarTableroYEditar(asigId) {
+  var oc = bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasTablero'));
+  if (oc) {
+    document.getElementById('offcanvasTablero').addEventListener('hidden.bs.offcanvas', function handler() {
+      document.getElementById('offcanvasTablero').removeEventListener('hidden.bs.offcanvas', handler);
+      abrirAsignacion(asigId);
+    }, { once: true });
+    oc.hide();
+  } else {
+    abrirAsignacion(asigId);
+  }
+}
+
 // ── Modal open/save ─────────────────────────────────────────────────────
 function abrirAsignacion(id) {
   migrarAsignaciones();
@@ -4486,9 +4499,9 @@ function renderTableroDocente() {
         html += '</div>';
       });
       html += '<div class="d-flex gap-2 mt-2">'
-        + '<button class="btn btn-sm btn-outline-primary" onclick="abrirAsignacion(' + a.id + ');event.stopPropagation()">'
+        + '<button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation();cerrarTableroYEditar(' + a.id + ')">'
         + '<i class="bi bi-pencil-fill me-1"></i>Editar</button>'
-        + '<button class="btn btn-sm btn-outline-danger" onclick="eliminarAsignacion(' + a.id + ');event.stopPropagation()">'
+        + '<button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation();eliminarAsignacion(' + a.id + ')">'
         + '<i class="bi bi-trash-fill me-1"></i>Eliminar</button>'
         + '</div>';
       html += '</div></div>';
