@@ -1549,8 +1549,8 @@
         <div class="table-responsive">
           <table class="sigei-table">
             <thead><tr>
-              <th>#</th><th>Cédula</th><th>Nombre completo</th><th>Teléfono</th>
-              <th>Correo</th><th>Estado</th><th class="td-actions">Acciones</th>
+              <th>#</th><th>Nombre completo</th><th>Área</th>
+              <th>Vinculación</th><th>Estado</th><th class="td-actions">Acciones</th>
             </tr></thead>
             <tbody id="tabla-docentes"></tbody>
           </table>
@@ -3178,6 +3178,81 @@ function confirmar(msg) { return confirm(msg); }
 // Chart instances (destroy before re-creating)
 let _chartEstado = null, _chartCarga = null;
 
+// ══════════════════════════════════════════════════════════════════════
+//  CIFRADO DE DATOS PERSONALES — AES-GCM 256-bit (Web Crypto API)
+//  Clave derivada del UID de Firebase vía PBKDF2 (100 000 iteraciones)
+//  Los campos sensibles se almacenan cifrados en Firestore y en caché.
+//  Prefijo "ENC:" identifica valores cifrados para migración gradual.
+// ══════════════════════════════════════════════════════════════════════
+let _encKey = null;   // CryptoKey en memoria, nunca serializada
+const _ENC_SALT = new TextEncoder().encode('SIGEI-IER-SANTANDERCITO-ALFATIC-2026');
+const _CAMPOS_PRIVADOS = ['cedula','fecha_nac','genero','telefono','celular','correo','municipio','direccion'];
+
+async function initEncKey(uid) {
+  try {
+    const base = await crypto.subtle.importKey(
+      'raw', new TextEncoder().encode(uid), 'PBKDF2', false, ['deriveKey']
+    );
+    _encKey = await crypto.subtle.deriveKey(
+      { name: 'PBKDF2', salt: _ENC_SALT, iterations: 100000, hash: 'SHA-256' },
+      base,
+      { name: 'AES-GCM', length: 256 },
+      false, ['encrypt', 'decrypt']
+    );
+  } catch(e) { console.warn('initEncKey error:', e); }
+}
+
+async function encryptField(v) {
+  if (v === null || v === undefined || v === '' || !_encKey) return v;
+  try {
+    const iv  = crypto.getRandomValues(new Uint8Array(12));
+    const enc = await crypto.subtle.encrypt(
+      { name: 'AES-GCM', iv }, _encKey, new TextEncoder().encode(String(v))
+    );
+    const buf = new Uint8Array(12 + enc.byteLength);
+    buf.set(iv);
+    buf.set(new Uint8Array(enc), 12);
+    return 'ENC:' + btoa(String.fromCharCode(...buf));
+  } catch(e) { return v; }
+}
+
+async function decryptField(v) {
+  if (!v || typeof v !== 'string' || !v.startsWith('ENC:') || !_encKey) return v;
+  try {
+    const buf = Uint8Array.from(atob(v.slice(4)), c => c.charCodeAt(0));
+    const dec = await crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv: buf.slice(0, 12) }, _encKey, buf.slice(12)
+    );
+    return new TextDecoder().decode(dec);
+  } catch(e) { return v; }   // retorna cifrado si falla (clave incorrecta / dato legacy)
+}
+
+async function encryptDocente(doc) {
+  const out = { ...doc };
+  for (const f of _CAMPOS_PRIVADOS) {
+    if (out[f] !== undefined) out[f] = await encryptField(out[f]);
+  }
+  return out;
+}
+
+async function decryptDocente(doc) {
+  const out = { ...doc };
+  for (const f of _CAMPOS_PRIVADOS) {
+    if (out[f]) out[f] = await decryptField(out[f]);
+  }
+  return out;
+}
+
+// Busca docente cuya cédula (posiblemente cifrada) coincide con la dada
+async function buscarDocByCedula(cedula) {
+  const docs = DB.get('docentes');
+  for (const d of docs) {
+    const c = await decryptField(d.cedula);
+    if (c === cedula) return d;
+  }
+  return null;
+}
+
 function renderDashboard() {
   const docs   = DB.get('docentes');
   const secs   = DB.get('secciones');
@@ -3319,36 +3394,37 @@ function renderDocentes() {
   setMH('doc-mh-activos',   allDocs.filter(function(d){ return d.estado==='Activo'; }).length);
   setMH('doc-mh-inactivos', allDocs.filter(function(d){ return d.estado!=='Activo'; }).length);
   let rows = DB.get('docentes').filter(d => {
-    const txt = `${d.cedula} ${d.p_nombre} ${d.s_nombre||''} ${d.p_apellido} ${d.s_apellido||''}`.toLowerCase();
+    // Búsqueda solo por nombre (campos sensibles cifrados en caché)
+    const txt = `${d.p_nombre||''} ${d.s_nombre||''} ${d.p_apellido||''} ${d.s_apellido||''}`.toLowerCase();
     return (!q || txt.includes(q)) && (!estado || d.estado === estado);
   });
   const tb = document.getElementById('tabla-docentes');
   tb.innerHTML = rows.length ? rows.map((d,i) => `<tr class="doc-row" onclick="verDocente(${d.id})">
     <td>${i+1}</td>
-    <td><code>${d.cedula}</code></td>
     <td><strong>${d.p_nombre} ${d.s_nombre||''} ${d.p_apellido} ${d.s_apellido||''}</strong></td>
-    <td>${d.telefono||d.celular||'—'}</td>
-    <td>${d.correo||'—'}</td>
+    <td style="font-size:12px;color:var(--slate-500)">${d.area||'—'}</td>
+    <td style="font-size:12px">${d.tipo_vinc||'—'}</td>
     <td>${badgeEstado(d.estado)}</td>
     <td>
       <button class="btn btn-xs btn-outline-primary btn-sm me-1" onclick="event.stopPropagation();abrirDocente(${d.id})" title="Editar"><i class="bi bi-pencil-fill"></i></button>
       <button class="btn btn-xs btn-outline-danger btn-sm" onclick="event.stopPropagation();eliminarDocente(${d.id})" title="Eliminar"><i class="bi bi-trash-fill"></i></button>
     </td>
-  </tr>`).join('') : emptyRow(7, 'No hay docentes registrados');
+  </tr>`).join('') : emptyRow(6, 'No hay docentes registrados');
 }
 
-function abrirDocente(id=null) {
+async function abrirDocente(id=null) {
   document.getElementById('offcanvasDocente-title').textContent = id ? 'Editar Docente' : 'Nuevo Docente';
   const campos = ['id','cedula','p-nombre','s-nombre','p-apellido','s-apellido','fecha','genero','telefono','celular','correo','municipio','direccion','estado','area','tipo-vinc','decreto'];
   campos.forEach(c => { const el = document.getElementById('doc-'+c); if(el) el.value = ''; });
   if (id) {
-    const d = DB.get('docentes').find(x=>x.id==id);
-    if (!d) return;
+    const raw = DB.get('docentes').find(x=>x.id==id);
+    if (!raw) return;
+    const d = await decryptDocente(raw);  // descifra campos privados antes de mostrar
     document.getElementById('doc-id').value        = d.id;
-    document.getElementById('doc-cedula').value    = d.cedula;
-    document.getElementById('doc-p-nombre').value  = d.p_nombre;
+    document.getElementById('doc-cedula').value    = d.cedula||'';
+    document.getElementById('doc-p-nombre').value  = d.p_nombre||'';
     document.getElementById('doc-s-nombre').value  = d.s_nombre||'';
-    document.getElementById('doc-p-apellido').value= d.p_apellido;
+    document.getElementById('doc-p-apellido').value= d.p_apellido||'';
     document.getElementById('doc-s-apellido').value= d.s_apellido||'';
     document.getElementById('doc-fecha').value     = d.fecha_nac||'';
     document.getElementById('doc-genero').value    = d.genero||'';
@@ -3358,59 +3434,52 @@ function abrirDocente(id=null) {
     document.getElementById('doc-municipio').value = d.municipio||'';
     document.getElementById('doc-direccion').value = d.direccion||'';
     document.getElementById('doc-estado').value    = d.estado||'Activo';
+    document.getElementById('doc-area').value      = d.area||'';
+    document.getElementById('doc-tipo-vinc').value = d.tipo_vinc||'';
+    document.getElementById('doc-decreto').value   = d.decreto||'';
   }
   bootstrap.Offcanvas.getOrCreateInstance(document.getElementById('offcanvasDocente')).show();
 }
 
-function guardarDocente() {
+async function guardarDocente() {
   const cedula    = document.getElementById('doc-cedula').value.trim();
   const p_nombre  = document.getElementById('doc-p-nombre').value.trim();
   const p_apellido= document.getElementById('doc-p-apellido').value.trim();
   if (!cedula || !p_nombre || !p_apellido) { toast('Cédula, primer nombre y primer apellido son obligatorios.', false); return; }
 
-  const docs = DB.get('docentes');
+  const docs   = DB.get('docentes');
   const idEdit = document.getElementById('doc-id').value;
 
+  // Datos en claro del formulario
+  const plainData = {
+    cedula, p_nombre, p_apellido,
+    s_nombre:   document.getElementById('doc-s-nombre').value.trim(),
+    s_apellido: document.getElementById('doc-s-apellido').value.trim(),
+    fecha_nac:  document.getElementById('doc-fecha').value,
+    genero:     document.getElementById('doc-genero').value,
+    telefono:   document.getElementById('doc-telefono').value.trim(),
+    celular:    document.getElementById('doc-celular').value.trim(),
+    correo:     document.getElementById('doc-correo').value.trim(),
+    municipio:  document.getElementById('doc-municipio').value.trim(),
+    direccion:  document.getElementById('doc-direccion').value.trim(),
+    estado:     document.getElementById('doc-estado').value,
+    area:       document.getElementById('doc-area').value.trim(),
+    tipo_vinc:  document.getElementById('doc-tipo-vinc').value,
+    decreto:    document.getElementById('doc-decreto').value.trim(),
+  };
+
   if (!idEdit) {
-    if (docs.find(d => d.cedula === cedula)) { toast('La cédula ya está registrada.', false); return; }
-    docs.push({
-      id: DB.nextId('docentes'), cedula, p_nombre,
-      s_nombre:    document.getElementById('doc-s-nombre').value.trim(),
-      p_apellido,
-      s_apellido:  document.getElementById('doc-s-apellido').value.trim(),
-      fecha_nac:   document.getElementById('doc-fecha').value,
-      genero:      document.getElementById('doc-genero').value,
-      telefono:    document.getElementById('doc-telefono').value.trim(),
-      celular:     document.getElementById('doc-celular').value.trim(),
-      correo:      document.getElementById('doc-correo').value.trim(),
-      municipio:   document.getElementById('doc-municipio').value.trim(),
-      direccion:   document.getElementById('doc-direccion').value.trim(),
-      estado:      document.getElementById('doc-estado').value,
-      area:        document.getElementById('doc-area').value.trim(),
-      tipo_vinc:   document.getElementById('doc-tipo-vinc').value,
-      decreto:     document.getElementById('doc-decreto').value.trim(),
-    });
+    // Verificar duplicado descifrando cédulas del caché
+    const dup = await buscarDocByCedula(cedula);
+    if (dup) { toast('La cédula ya está registrada.', false); return; }
+    const encDoc = await encryptDocente({ id: DB.nextId('docentes'), ...plainData });
+    docs.push(encDoc);
     toast('Docente guardado exitosamente.');
   } else {
     const idx = docs.findIndex(d => d.id == idEdit);
     if (idx === -1) return;
-    Object.assign(docs[idx], {
-      cedula, p_nombre,
-      s_nombre:    document.getElementById('doc-s-nombre').value.trim(),
-      p_apellido,
-      s_apellido:  document.getElementById('doc-s-apellido').value.trim(),
-      fecha_nac:   document.getElementById('doc-fecha').value,
-      genero:      document.getElementById('doc-genero').value,
-      telefono:    document.getElementById('doc-telefono').value.trim(),
-      celular:     document.getElementById('doc-celular').value.trim(),
-      correo:      document.getElementById('doc-correo').value.trim(),
-      municipio:   document.getElementById('doc-municipio').value.trim(),
-      direccion:   document.getElementById('doc-direccion').value.trim(),
-      estado:      document.getElementById('doc-estado').value,
-      area:        document.getElementById('doc-area').value.trim(),
-      tipo_vinc:   document.getElementById('doc-tipo-vinc').value,
-      decreto:     document.getElementById('doc-decreto').value.trim(),
-    });
+    const encData = await encryptDocente(plainData);
+    Object.assign(docs[idx], encData);
     toast('Docente actualizado.');
   }
   DB.set('docentes', docs);
@@ -3509,9 +3578,10 @@ function verSeccion(secId) {
   bootstrap.Offcanvas.getOrCreateInstance(document.getElementById('offcanvasSeccion')).show();
 }
 
-function verDocente(id) {
-  const d = DB.get('docentes').find(x => x.id === id);
-  if (!d) return;
+async function verDocente(id) {
+  const raw = DB.get('docentes').find(x => x.id === id);
+  if (!raw) return;
+  const d = await decryptDocente(raw);  // descifra campos privados antes de mostrar
   const nombre = [d.p_nombre, d.s_nombre||'', d.p_apellido, d.s_apellido||''].filter(Boolean).join(' ');
   const initials = ((d.p_nombre||'')[0]||'') + ((d.p_apellido||'')[0]||'');
   document.getElementById('det-avatar').textContent = initials.toUpperCase();
@@ -6737,7 +6807,7 @@ function xlsxEstado(val) {
   if (['retirado','retired','jubilado'].includes(v)) return 'Retirado';
   return val || 'Activo';
 }
-function confirmarImportExcel() {
+async function confirmarImportExcel() {
   const mapa = {};
   Object.keys(COL_ALIASES).forEach(campo => {
     const sel = document.getElementById('map-' + campo);
@@ -6749,11 +6819,15 @@ function confirmarImportExcel() {
   const mode = document.querySelector('input[name="importMode"]:checked').value;
   let docs = mode === 'replace' ? [] : DB.get('docentes');
   let added = 0, updated = 0, skipped = 0;
-  _xlsxRows.forEach(row => {
+
+  // Pre-descifrar cédulas del caché para comparación de duplicados
+  const cedsCifradas = await Promise.all(docs.map(d => decryptField(d.cedula)));
+
+  for (const row of _xlsxRows) {
     const cedula = String(row[mapa.cedula]||'').trim();
-    if (!cedula) { skipped++; return; }
+    if (!cedula) { skipped++; continue; }
     const get = (k) => String(row[mapa[k]] != null ? row[mapa[k]] : '').trim();
-    const nuevo = {
+    const plain = {
       cedula, p_nombre: get('p_nombre'), s_nombre: get('s_nombre'),
       p_apellido: get('p_apellido'), s_apellido: get('s_apellido'),
       fecha_nac: xlsxFecha(mapa.fecha_nac !== null ? row[mapa.fecha_nac] : ''),
@@ -6761,19 +6835,22 @@ function confirmarImportExcel() {
       correo: get('correo'), municipio: get('municipio'), direccion: get('direccion'),
       estado: xlsxEstado(mapa.estado !== null ? row[mapa.estado] : 'Activo'),
     };
-    if (!nuevo.p_nombre || !nuevo.p_apellido) { skipped++; return; }
-    const existIdx = docs.findIndex(d => d.cedula === cedula);
+    if (!plain.p_nombre || !plain.p_apellido) { skipped++; continue; }
+    const encDoc = await encryptDocente(plain);
+    const existIdx = cedsCifradas.findIndex(c => c === cedula);
     if (existIdx === -1) {
-      docs.push({ id: (docs.length ? Math.max(...docs.map(d=>d.id))+1 : 1), ...nuevo });
+      const newId = docs.length ? Math.max(...docs.map(d=>d.id))+1 : 1;
+      docs.push({ id: newId, ...encDoc });
+      cedsCifradas.push(cedula);  // evita duplicados dentro del mismo import
       added++;
     } else if (mode === 'update' || mode === 'replace') {
-      Object.assign(docs[existIdx], nuevo); updated++;
+      Object.assign(docs[existIdx], encDoc); updated++;
     } else { skipped++; }
-  });
+  }
   DB.set('docentes', docs);
   bootstrap.Modal.getInstance(document.getElementById('modalImportExcel')).hide();
   renderDocentes();
-  toast('Importacion: ' + added + ' nuevos, ' + updated + ' actualizados, ' + skipped + ' omitidos.');
+  toast('Importación: ' + added + ' nuevos, ' + updated + ' actualizados, ' + skipped + ' omitidos.');
 }
 
 // ══════════════════════════════════════════════
@@ -6807,6 +6884,7 @@ async function loginSubmit() {
 
 async function logoutUser() {
   _appLoaded = false;
+  _encKey = null;   // destruye la clave de cifrado de la memoria
   await _auth.signOut();
 }
 
@@ -6821,6 +6899,7 @@ _auth.onAuthStateChanged(async function(user) {
     const btn = document.getElementById('login-btn');
     if (btn) { btn.textContent = 'Cargando...'; btn.disabled = true; }
     try {
+      await initEncKey(user.uid);   // deriva clave AES-GCM del UID antes de cargar datos
       await DB.loadAll();
     } catch(e) {
       const errEl = document.getElementById('login-error');
