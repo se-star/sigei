@@ -375,19 +375,22 @@
   .hv-body { position: relative; }
   .hv-hline { position: absolute; left: 0; right: 0; border-top: 1px solid var(--slate-100); pointer-events: none; }
   .hv-hline.full { border-color: var(--slate-200); }
-  .hv-block { position: absolute; border-radius: 7px; padding: 5px 7px; overflow: hidden;
-    cursor: pointer; box-sizing: border-box; border: 1.5px solid rgba(0,0,0,.08);
-    transition: filter .15s, transform .15s; display: flex; flex-direction: column; gap: 1px; }
-  .hv-block:hover { filter: brightness(.93); transform: scale(1.02); z-index: 10; }
-  .hv-block-ausente { opacity: 0.45; border: 2px dashed #EF4444 !important; filter: grayscale(60%); }
-  .hv-block-ausente:hover { opacity: 0.55; }
-  .hv-block-asig { border-left: 3px solid rgba(255,255,255,0.6) !important; }
-  .hv-block-reemplazo { background: linear-gradient(135deg,#D1FAE5,#A7F3D0) !important; border: 2px solid #10B981 !important; }
-  .hv-bm { font-weight: 700; font-size: 11px; line-height: 1.2; white-space: nowrap;
-    overflow: hidden; text-overflow: ellipsis; }
-  .hv-bs { font-size: 10px; opacity: .75; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .hv-bd { font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .hv-bt { font-size: 9px; opacity: .6; margin-top: auto; }
+  .hv-block { position:absolute; border-radius:8px; padding:5px 7px; overflow:hidden;
+    cursor:pointer; box-sizing:border-box; border:none; border-left:3.5px solid;
+    transition:filter .15s,transform .15s,box-shadow .15s; display:flex; flex-direction:column; gap:1px;
+    box-shadow:0 1px 3px rgba(0,0,0,.07); }
+  .hv-block:hover { filter:brightness(.93); transform:translateY(-1px) scale(1.01); z-index:10; box-shadow:0 4px 14px rgba(0,0,0,.13); }
+  .hv-block-ausente { opacity:0.4; border:2px dashed #EF4444 !important; filter:grayscale(60%); }
+  .hv-block-ausente:hover { opacity:0.6; }
+  .hv-block-asig { /* derived from assignment */ }
+  .hv-block-reemplazo { background:linear-gradient(135deg,#D1FAE5,#A7F3D0) !important; border-left:3.5px solid #10B981 !important; }
+  .hv-bm { font-weight:700; font-size:11px; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .hv-bs { font-size:10px; opacity:.82; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:1px; }
+  .hv-bd { font-size:10px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .hv-bt { font-size:9px; opacity:.6; margin-top:auto; }
+  .hv-now-line { position:absolute; left:0; right:0; display:flex; align-items:center; z-index:20; pointer-events:none; }
+  .hv-now-line::after { content:''; flex:1; height:1.5px; background:rgba(239,68,68,.75); }
+  .hv-now-dot { width:7px; height:7px; border-radius:50%; background:#EF4444; flex-shrink:0; }
 
   /* ── GRADO CARDS — Premium Minimal ───────────── */
   .grado-card {
@@ -658,14 +661,14 @@
 
 
   /* ══ HORARIO MATERIA COLORS ══════════════════════════════════════════ */
-  .block-mat   { background:#DBEAFE; color:#1E40AF; border-color:#BFDBFE; }
-  .block-esp   { background:#D1FAE5; color:#065F46; border-color:#A7F3D0; }
-  .block-cn    { background:#CCFBF1; color:#0F766E; border-color:#99F6E4; }
-  .block-soc   { background:#FEF3C7; color:#92400E; border-color:#FDE68A; }
-  .block-ing   { background:#EDE9FE; color:#5B21B6; border-color:#DDD6FE; }
-  .block-art   { background:#FCE7F3; color:#9D174D; border-color:#FBCFE8; }
-  .block-tec   { background:#F0FDF4; color:#15803D; border-color:#BBF7D0; }
-  .block-otros { background:#F1F5F9; color:#334155; border-color:#E2E8F0; }
+  .block-mat   { background:linear-gradient(160deg,#EFF6FF,#DBEAFE); color:#1D4ED8; border-color:#3B82F6; }
+  .block-esp   { background:linear-gradient(160deg,#F0FDF4,#DCFCE7); color:#15803D; border-color:#22C55E; }
+  .block-cn    { background:linear-gradient(160deg,#F0FDFA,#CCFBF1); color:#0F766E; border-color:#14B8A6; }
+  .block-soc   { background:linear-gradient(160deg,#FFFBEB,#FEF3C7); color:#B45309; border-color:#F59E0B; }
+  .block-ing   { background:linear-gradient(160deg,#F5F3FF,#EDE9FE); color:#6D28D9; border-color:#8B5CF6; }
+  .block-art   { background:linear-gradient(160deg,#FDF2F8,#FCE7F3); color:#BE185D; border-color:#EC4899; }
+  .block-tec   { background:linear-gradient(160deg,#ECFEFF,#CFFAFE); color:#0E7490; border-color:#06B6D4; }
+  .block-otros { background:linear-gradient(160deg,#F8FAFC,#F1F5F9); color:#334155; border-color:#94A3B8; }
 
   /* ══ USER AVATAR ═════════════════════════════════════════════════════ */
   .user-avatar {
@@ -4813,7 +4816,7 @@ function renderHorarios() {
   });
 
   // ── CALENDAR VISUAL LAYOUT ────────────────────────────────────────────
-  const PX_H = 64; // px per hour
+  const PX_H = 72; // px per hour
   const DAY_START = 7 * 60; // 7:00 in minutes
   const DAY_END   = (() => {
     let maxMin = 13 * 60; // minimum end: 13:00
@@ -4893,20 +4896,35 @@ function renderHorarios() {
       var _esAusente  = _ausentes.has(String(b.docente_id));
       var _reempId    = _esAusente ? _reemplazos[String(b.docente_id)] : null;
       var _extraCls   = _esAusente ? ' hv-block-ausente' : '';
-      var _docenteLabel = nombreDocente(b.docente_id);
-      if (_esAusente) _docenteLabel = '⚠️ ' + _docenteLabel;
-      var _reempLabel = _reempId ? '🔄 ' + nombreDocente(_reempId) : '';
+      var _reempLabel = _reempId ? '↔ ' + nombreDocente(_reempId) : '';
       var _clickFn = b._fromAsig
-        ? 'verClaseAsig(\'' + b.asignacion_id + '\',\'' + b.seccion_id + '\',\'' + b.dia + '\',\'' + (b.hora_inicio||'') + '\',\'' + (b.hora_fin||'') + '\',\'' + _fechaDia + '\')'
+        ? 'verClaseAsig(\'' + b.asignacion_id + '\',\'' + b.seccion_id + '\',\'' + b.dia + '\',\'' + (b.hora_inicio||'') + '\',\'' + (b.hora_fin||'') + '\',\'' + _fechaDia + '\')' 
         : 'abrirHorario(' + b.id + ',\'' + _fechaDia + '\')';
-      bodyHtml += '<div class="hv-block ' + cls + _extraCls + (b._fromAsig ? ' hv-block-asig' : '') + '" onclick="' + _clickFn + '"'
+      // Materia abreviada
+      var _ABREVS = {'Tecnología e Informática':'Tecnología','Ciencias Naturales':'C. Naturales',
+        'Ciencias Sociales':'C. Sociales','Educación Física':'Ed. Física',
+        'Lengua Castellana':'Lengua Cast.','Lectura Crítica':'L. Crítica',
+        'Constitución y Democracia':'C. y Demo.'};
+      var _mat = _ABREVS[b.materia] || b.materia || 'Sin materia';
+      var _docD = DB.get('docentes').find(function(x){ return x.id == b.docente_id; });
+      var _docAbrev = _docD ? (_docD.p_nombre[0]||'') + '. ' + (_docD.p_apellido||'') : '';
+      var _secShort = sec ? (grado ? grado.nombre.replace(' Grado','') : '') + sec.nombre : '';
+      bodyHtml += '<div class="hv-block ' + cls + _extraCls + '" onclick="' + _clickFn + '"'
         + ' style="top:' + top + 'px;height:' + height + 'px;left:calc(' + leftPct + '% + 2px);width:calc(' + widthPct + '% - 4px)">'
-        + '<div class="hv-bm">' + _docenteLabel + '</div>'
-        + (height > 28 ? '<div class="hv-bs">' + gradoLabel + '</div>' : '')
-        + (_reempLabel && height > 40 ? '<div class="hv-bs" style="color:inherit;font-weight:700;margin-top:2px">' + _reempLabel + '</div>' : '')
+        + '<div class="hv-bm">' + (_esAusente ? '⚠ ' : '') + _mat + '</div>'
+        + (height > 30 ? '<div class="hv-bs">' + _secShort + (_docAbrev ? ' · ' + _docAbrev : '') + '</div>' : '')
+        + (_reempLabel && height > 44 ? '<div class="hv-bs" style="font-weight:700">' + _reempLabel + '</div>' : '')
         + '</div>';
     });
 
+    // ── Línea de hora actual (solo en el día de hoy) ─────────────────────
+    if (_isHoy) {
+      var _nowMins2 = (new Date()).getHours() * 60 + (new Date()).getMinutes();
+      if (_nowMins2 > DAY_START && _nowMins2 < DAY_END) {
+        bodyHtml += '<div class="hv-now-line" style="top:' + minToTop(_nowMins2) + 'px">'
+          + '<div class="hv-now-dot"></div></div>';
+      }
+    }
     var _fDia  = _fechasPorDia[dia] || '';
     var _fDate = _fDia ? new Date(_fDia + 'T00:00:00') : null;
     var _dayNum = _fDate ? _fDate.getDate() : '';
@@ -5063,7 +5081,8 @@ function renderDocentesDisponibles(dia, horariosTodos, fechasPorDia) {
           + '📚 ' + claseLabel + ' (' + conClaseNoAhora.length + ')</p>';
     conClaseNoAhora.forEach(function(d) {
       var clases = docenteHorarios[String(d.id)] || [];
-      var extra = clases.map(fmtHora).join(' · ');
+      var _mats = [...new Set(clases.map(function(h){ return h.materia||''; }).filter(Boolean))].slice(0,3).join(' · ');
+      var extra = _mats || clases.map(fmtHora).join(' · ');
       html += card('clase', d, extra, '');
     });
   }
