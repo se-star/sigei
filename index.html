@@ -1463,9 +1463,9 @@
         </div>
       </div>
 
-      <!-- Row 2: Próximo evento + Hoy -->
+      <!-- Row 2: Próximo evento -->
       <div class="row g-3 mb-3">
-        <div class="col-md-8">
+        <div class="col-12">
           <div class="card-panel h-100" id="dash-proximo-evento-panel">
             <div class="panel-header">
               <h6><i class="bi bi-calendar-event-fill me-2" style="color:#f59e0b"></i>Próximo Evento</h6>
@@ -1473,17 +1473,6 @@
             </div>
             <div id="dash-proximo-evento">
               <p class="text-muted text-center py-2" style="font-size:13px">Sin eventos próximos</p>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="card-panel h-100">
-            <div class="panel-header">
-              <h6><i class="bi bi-sun-fill me-2" style="color:#f59e0b"></i>Clases de hoy</h6>
-              <span id="dash-hoy-dia" style="font-size:11px;color:var(--slate-400)"></span>
-            </div>
-            <div id="dash-hoy-lista">
-              <p class="text-muted text-center py-2" style="font-size:13px">Sin clases hoy</p>
             </div>
           </div>
         </div>
@@ -3219,35 +3208,6 @@ function renderDashboard() {
     }).join('')
     : emptyRow(3, 'Sin permisos pendientes');
 
-  // ── Clases de hoy ───────────────────────────────────────────────────
-  const DIAS_ES = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
-  const hoyDia = DIAS_ES[new Date().getDay()];
-  const hoyEl  = document.getElementById('dash-hoy-dia');
-  const hoyLista = document.getElementById('dash-hoy-lista');
-  if (hoyEl) hoyEl.textContent = hoyDia;
-  const clasesHoy = hors
-    .filter(h => h.dia === hoyDia)
-    .sort((a,b) => a.hora_inicio.localeCompare(b.hora_inicio));
-  if (hoyLista) {
-    if (!clasesHoy.length) {
-      hoyLista.innerHTML = '<p class="text-muted text-center py-2" style="font-size:13px">Sin clases hoy</p>';
-    } else {
-      const MATCOLORS = ['#3B82F6','#10B981','#F59E0B','#EF4444','#8B5CF6','#06B6D4','#EC4899','#84CC16'];
-      const colorMap = {};
-      let ci = 0;
-      hoyLista.innerHTML = clasesHoy.slice(0,6).map(h => {
-        if (!colorMap[h.materia]) colorMap[h.materia] = MATCOLORS[ci++ % MATCOLORS.length];
-        const sec = DB.get('secciones').find(s => s.id == h.seccion_id);
-        const gradoNom = sec ? nombreGrado(sec.grado_id) + ' — ' + sec.nombre : '—';
-        return '<div class="today-item">'
-          + '<div class="today-dot" style="background:' + colorMap[h.materia] + '"></div>'
-          + '<div class="today-time">' + h.hora_inicio + '</div>'
-          + '<div class="today-info"><strong>' + h.materia + '</strong>'
-          + '<span>' + nombreDocente(h.docente_id) + ' · ' + gradoNom + '</span></div>'
-          + '</div>';
-      }).join('') + (clasesHoy.length > 6 ? '<p style="font-size:11px;color:var(--slate-400);text-align:center;margin:6px 0 0">+' + (clasesHoy.length-6) + ' más...</p>' : '');
-    }
-  }
 
   // ── Gráfica: Estado docentes ─────────────────────────────────────────
   const ctxE = document.getElementById('chart-docentes-estado');
