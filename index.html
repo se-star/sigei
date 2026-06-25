@@ -1612,6 +1612,9 @@
             <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="abrirAsignacion()">
               <i class="bi bi-plus-lg"></i> Nueva asignación
             </button>
+            <button class="btn btn-sm btn-outline-secondary" onclick="descargarPlantillaAsignaciones()" title="Descargar plantilla Excel para carga masiva">
+              <i class="bi bi-file-earmark-arrow-down-fill me-1"></i> Plantilla
+            </button>
             <button class="btn btn-sm btn-outline-secondary" onclick="importarAsignacionesExcel()" title="Cargar asignaciones desde plantilla Excel">
               <i class="bi bi-file-earmark-arrow-up-fill me-1"></i> Importar Excel
             </button>
@@ -5485,6 +5488,76 @@ function limpiarHorarios() {
 //  IMPORTAR ASIGNACIONES EXCEL
 // ══════════════════════════════════════════════
 var _asigImportRows = [];
+
+function descargarPlantillaAsignaciones() {
+  var docentes  = DB.get('docentes');
+  var secciones = DB.get('secciones');
+  var grados    = DB.get('grados');
+
+  // Encabezados (exactamente los que espera el importador)
+  var headers = ['DOCENTE', 'MATERIA', 'GRADO', 'SECCIÓN', 'DÍA', 'HORA INICIO', 'HORA FIN'];
+
+  // Fila de ejemplo
+  var docEjemplo  = docentes.length  ? (docentes[0].p_nombre  + ' ' + docentes[0].p_apellido) : 'Jhon Pérez';
+  var secEjemplo  = secciones.length ? secciones[0] : null;
+  var gradoEjemplo = secEjemplo ? (grados.find(function(g){ return g.id == secEjemplo.grado_id; }) || {nombre:'1° Grado'}) : {nombre:'1° Grado'};
+  var ejemplo = [
+    docEjemplo,
+    'Matemáticas',
+    gradoEjemplo.nombre,
+    secEjemplo ? secEjemplo.nombre : 'A',
+    'Lunes',
+    '07:00',
+    '08:00'
+  ];
+
+  // Fila con valores válidos (referencia)
+  var docentesRef  = docentes.slice(0,5).map(function(d){ return d.p_nombre+' '+d.p_apellido; }).join(' | ') || 'Nombre Apellido';
+  var seccionesRef = secciones.slice(0,5).map(function(s){
+    var g = grados.find(function(x){ return x.id == s.grado_id; });
+    return (g ? g.nombre : '') + ' — ' + s.nombre;
+  }).join(' | ') || '6° Grado — A';
+  var nota = [
+    '← Nombre completo del docente. Ej: ' + docentesRef,
+    'Matemáticas / Ciencias Sociales / Inglés...',
+    '6° Grado / 7° Grado / 10° Grado...',
+    'A / B / C (sección del grupo)',
+    'Lunes | Martes | Miércoles | Jueves | Viernes',
+    'HH:MM (24h) — Ej: 07:00',
+    'HH:MM (24h) — Ej: 08:00  |  Grupos disponibles: ' + seccionesRef
+  ];
+
+  // Hoja de referencia con docentes y secciones
+  var refHeaders = ['DOCENTE (nombre exacto)', 'SECCIÓN (referencia)', 'GRADO'];
+  var maxRef = Math.max(docentes.length, secciones.length);
+  var refRows = [];
+  for (var i = 0; i < maxRef; i++) {
+    var d = docentes[i];
+    var s = secciones[i];
+    var g = s ? grados.find(function(x){ return x.id == s.grado_id; }) : null;
+    refRows.push([
+      d ? (d.p_nombre + ' ' + d.p_apellido) : '',
+      s ? s.nombre : '',
+      g ? g.nombre : ''
+    ]);
+  }
+
+  var wb = XLSX.utils.book_new();
+
+  // Hoja 1: Plantilla
+  var wsData = [headers, ejemplo, nota];
+  var ws1 = XLSX.utils.aoa_to_sheet(wsData);
+  ws1['!cols'] = headers.map(function(){ return { wch: 28 }; });
+  XLSX.utils.book_append_sheet(wb, ws1, 'Asignaciones');
+
+  // Hoja 2: Referencia de docentes y secciones
+  var ws2 = XLSX.utils.aoa_to_sheet([refHeaders].concat(refRows));
+  ws2['!cols'] = [{ wch: 30 }, { wch: 14 }, { wch: 20 }];
+  XLSX.utils.book_append_sheet(wb, ws2, 'Referencia');
+
+  XLSX.writeFile(wb, 'Plantilla_Asignaciones_SIGEI.xlsx');
+  toast('Plantilla descargada.');
+}
 
 function importarAsignacionesExcel() {
   document.getElementById('import-asig-file').value = '';
