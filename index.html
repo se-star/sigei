@@ -6992,6 +6992,72 @@ async function logoutUser() {
 
 let _appLoaded = false;
 
+// ── AUTO-CIERRE POR INACTIVIDAD ──────────────────────────────────────────
+var INACTIVIDAD_MS  = 15 * 60 * 1000;  // 15 minutos de inactividad
+var AVISO_ANTES_MS  = 60  * 1000;      // aviso 1 minuto antes
+var _inacTimer      = null;
+var _avisoTimer     = null;
+var _cntdwnTimer    = null;
+var _inacActivado   = false;
+
+function _resetInactividad() {
+  if (!_inacActivado) return;
+  clearTimeout(_inacTimer);
+  clearTimeout(_avisoTimer);
+  _ocultarAviso();
+  _avisoTimer = setTimeout(_mostrarAviso, INACTIVIDAD_MS - AVISO_ANTES_MS);
+  _inacTimer  = setTimeout(function() {
+    _ocultarAviso();
+    logoutUser();
+  }, INACTIVIDAD_MS);
+}
+
+function _iniciarInactividad() {
+  if (_inacActivado) return;
+  _inacActivado = true;
+  ['mousemove','mousedown','keydown','touchstart','scroll','click'].forEach(function(ev) {
+    document.addEventListener(ev, _resetInactividad, { passive: true });
+  });
+  _resetInactividad();
+}
+
+function _detenerInactividad() {
+  _inacActivado = false;
+  clearTimeout(_inacTimer);
+  clearTimeout(_avisoTimer);
+  clearInterval(_cntdwnTimer);
+  ['mousemove','mousedown','keydown','touchstart','scroll','click'].forEach(function(ev) {
+    document.removeEventListener(ev, _resetInactividad);
+  });
+  _ocultarAviso();
+}
+
+function _mostrarAviso() {
+  var el = document.getElementById('aviso-inactividad');
+  if (!el) return;
+  el.style.display = 'flex';
+  var seg = Math.round(AVISO_ANTES_MS / 1000);
+  var cEl = document.getElementById('aviso-countdown');
+  if (cEl) cEl.textContent = seg;
+  clearInterval(_cntdwnTimer);
+  _cntdwnTimer = setInterval(function() {
+    seg--;
+    if (cEl) {
+      cEl.textContent = seg;
+      cEl.style.color = seg <= 10 ? '#EF4444' : '#D97706';
+    }
+    if (seg <= 0) clearInterval(_cntdwnTimer);
+  }, 1000);
+}
+
+function _ocultarAviso() {
+  clearInterval(_cntdwnTimer);
+  var el = document.getElementById('aviso-inactividad');
+  if (el) el.style.display = 'none';
+}
+
+function _continuarSesion() { _resetInactividad(); }
+
 _auth.onAuthStateChanged(async function(user) {
   const overlay = document.getElementById('login-overlay');
   if (user) {
@@ -7021,11 +7087,13 @@ _auth.onAuthStateChanged(async function(user) {
         dateEl.textContent = now.toLocaleDateString('es-CO', { weekday:'short', day:'numeric', month:'short', year:'numeric' });
       }
       applyDarkPref(); cargarRolUsuario(); Object.keys(_cache).forEach(function(c){ _cache['_prev_'+c]=(_cache[c]||[]).slice(); }); renderDashboard(); navigate('dashboard'); _appLoaded = true;
+      _iniciarInactividad();
     }
   } else {
     // Not logged in — just show the overlay (no reload)
     _cache = {};
     _appLoaded = false;
+    _detenerInactividad();
     if (overlay) {
       overlay.style.display = 'flex';
       // Reset form state
@@ -7098,6 +7166,35 @@ _auth.onAuthStateChanged(async function(user) {
       <span style="font-size:11px;color:rgba(255,255,255,.25)">IER SANTANDERCITO &middot; ALFATIC &middot; &copy; 2026</span>
     </div>
 
+  </div>
+</div>
+
+<!-- ── AVISO INACTIVIDAD ──────────────────────────────────────────── -->
+<div id="aviso-inactividad" style="display:none;position:fixed;inset:0;z-index:10000;
+  background:rgba(2,8,20,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  align-items:center;justify-content:center;font-family:'Plus Jakarta Sans','Segoe UI',system-ui,sans-serif">
+  <div style="background:#fff;border-radius:20px;padding:36px 40px;max-width:380px;width:90%;
+    text-align:center;box-shadow:0 24px 80px rgba(0,0,0,.45);animation:_fadeIn .25s ease">
+    <div style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#FEF3C7,#FDE68A);
+      display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:26px;
+      box-shadow:0 4px 12px rgba(245,158,11,.25)">⏱️</div>
+    <h5 style="color:#0F172A;font-weight:700;margin-bottom:8px;font-size:17px">Sesión por expirar</h5>
+    <p style="color:#64748B;font-size:14px;line-height:1.5;margin-bottom:6px">
+      Tu sesión se cerrará automáticamente por inactividad en:
+    </p>
+    <div style="font-size:42px;font-weight:800;color:#D97706;letter-spacing:-1px;margin:10px 0 20px" id="aviso-countdown">60</div>
+    <p style="color:#94A3B8;font-size:12px;margin-bottom:22px">Mueve el mouse o haz clic en "Continuar" para seguir trabajando.</p>
+    <button onclick="_continuarSesion()" style="background:linear-gradient(135deg,#2563EB,#1D4ED8);color:#fff;
+      border:none;border-radius:12px;padding:12px 28px;font-size:14px;font-weight:700;cursor:pointer;
+      width:100%;box-shadow:0 4px 14px rgba(37,99,235,.35);transition:opacity .15s" 
+      onmouseover="this.style.opacity='.9'" onmouseout="this.style.opacity='1'">
+      <i class="bi bi-arrow-clockwise me-2"></i>Continuar sesión
+    </button>
+    <button onclick="logoutUser()" style="background:transparent;color:#94A3B8;border:none;
+      padding:10px;font-size:12px;cursor:pointer;margin-top:6px;width:100%;
+      transition:color .15s" onmouseover="this.style.color='#EF4444'" onmouseout="this.style.color='#94A3B8'">
+      Cerrar sesión ahora
+    </button>
   </div>
 </div>
 
