@@ -723,6 +723,14 @@
   .det-asig-item { padding:8px 10px;border-radius:var(--radius-sm);background:var(--blue-50);margin-bottom:6px; }
   .det-asig-item strong { font-size:12px;color:var(--blue-600);display:block; }
   .det-asig-item span   { font-size:11px;color:var(--slate-500); }
+  /* Perfil docente — diseño compacto */
+  .det-sec-title { font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--blue-600);margin-bottom:8px;display:flex;align-items:center;gap:4px; }
+  .det-compact-row { display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;border-bottom:0.5px solid var(--slate-100); }
+  .det-compact-row:last-child { border-bottom:none; }
+  .det-compact-lbl { font-size:11px;color:var(--slate-400);flex-shrink:0;margin-right:8px; }
+  .det-compact-val { font-size:12px;color:var(--slate-800);font-weight:500;text-align:right;word-break:break-word; }
+  .det-chip { display:inline-block;font-size:11px;padding:3px 9px;border-radius:20px;background:var(--slate-100);color:var(--slate-600);border:0.5px solid var(--slate-200); }
+  .det-chip.accent { background:#EFF6FF;color:#1D4ED8;border-color:#BFDBFE; }
   tr.doc-row { cursor:pointer; transition:background .15s; }
   tr.doc-row:hover td { background:var(--blue-50) !important; }
 
@@ -1135,6 +1143,13 @@
   body.dark-mode .det-asig-item { background: #0F2A45 !important; }
   body.dark-mode .det-asig-item strong { color: #60A5FA !important; }
   body.dark-mode .det-asig-item span { color: #94A3B8 !important; }
+  body.dark-mode .det-compact-row { border-bottom-color: #1E3A52 !important; }
+  body.dark-mode .det-compact-lbl { color: #64748B !important; }
+  body.dark-mode .det-compact-val { color: #CBD5E1 !important; }
+  body.dark-mode .det-sec-title { color: #60A5FA !important; }
+  body.dark-mode .det-chip { background: #1E3A52 !important; color: #94A3B8 !important; border-color: #2D4F6C !important; }
+  body.dark-mode .det-chip.accent { background: #0F2A45 !important; color: #60A5FA !important; border-color: #1D4E89 !important; }
+  body.dark-mode #det-chips { background: #0F1E2E !important; border-bottom-color: #2D3F55 !important; }
   body.dark-mode .offcanvas .border-top { border-color: #2D3F55 !important; }
   body.dark-mode .offcanvas .badge { opacity: .9; }
 
@@ -2554,52 +2569,59 @@
   </div>
 </div>
 
-<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasDocenteDetalle" style="width:380px">
-  <div class="offcanvas-header border-bottom" style="background:var(--slate-900)">
-    <div class="d-flex align-items-center gap-3">
-      <div class="user-avatar" id="det-avatar" style="width:44px;height:44px;font-size:16px">?</div>
+<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasDocenteDetalle" style="width:390px">
+  <!-- Header compacto -->
+  <div style="background:var(--slate-900);padding:16px 20px;display:flex;align-items:center;justify-content:space-between">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="user-avatar" id="det-avatar" style="width:42px;height:42px;font-size:15px;border:2px solid rgba(255,255,255,.25)">?</div>
       <div>
-        <h6 class="offcanvas-title text-white mb-0" id="det-nombre">—</h6>
+        <div class="offcanvas-title text-white mb-0" id="det-nombre" style="font-size:15px;font-weight:600;line-height:1.2">—</div>
         <span id="det-estado-badge"></span>
       </div>
     </div>
     <button class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
   </div>
+  <!-- Chips de datos clave -->
+  <div id="det-chips" style="display:flex;flex-wrap:wrap;gap:5px;padding:10px 16px;border-bottom:1px solid var(--slate-200);background:var(--slate-50)"></div>
+  <!-- Cuerpo -->
   <div class="offcanvas-body p-0" style="overflow-y:auto">
-    <div style="padding:16px 20px">
-      <p class="text-muted fw-bold mb-2" style="font-size:10px;text-transform:uppercase;letter-spacing:.06em">Identificación</p>
-      <div class="row g-2 mb-3">
-        <div class="col-6"><div class="det-field"><div class="det-label">Cédula</div><div id="det-cedula" class="det-val">—</div></div></div>
-        <div class="col-6"><div class="det-field"><div class="det-label">Género</div><div id="det-genero" class="det-val">—</div></div></div>
-        <div class="col-6"><div class="det-field"><div class="det-label">Fecha Nac.</div><div id="det-fecha" class="det-val">—</div></div></div>
-        <div class="col-6"><div class="det-field"><div class="det-label">Municipio</div><div id="det-municipio" class="det-val">—</div></div></div>
-      </div>
-      <p class="text-muted fw-bold mb-2" style="font-size:10px;text-transform:uppercase;letter-spacing:.06em">Contacto</p>
-      <div class="row g-2 mb-3">
-        <div class="col-6"><div class="det-field"><div class="det-label">Teléfono</div><div id="det-telefono" class="det-val">—</div></div></div>
-        <div class="col-6"><div class="det-field"><div class="det-label">Celular</div><div id="det-celular" class="det-val">—</div></div></div>
-        <div class="col-12"><div class="det-field"><div class="det-label">Correo</div><div id="det-correo" class="det-val">—</div></div></div>
-        <div class="col-12"><div class="det-field"><div class="det-label">Dirección</div><div id="det-direccion" class="det-val">—</div></div></div>
-      </div>
-      <p class="text-muted fw-bold mb-2" style="font-size:10px;text-transform:uppercase;letter-spacing:.06em">Información Contractual</p>
-      <div class="row g-2 mb-3">
-        <div class="col-12"><div class="det-field"><div class="det-label">Área Principal</div><div id="det-area" class="det-val">—</div></div></div>
-        <div class="col-6"><div class="det-field"><div class="det-label">Tipo Vinculación</div><div id="det-tipo-vinc" class="det-val">—</div></div></div>
-        <div class="col-6"><div class="det-field"><div class="det-label">Decreto</div><div id="det-decreto" class="det-val">—</div></div></div>
-        <div class="col-6"><div class="det-field"><div class="det-label">Nivel</div><div id="det-nivel" class="det-val">—</div></div></div>
-        <div class="col-6"><div class="det-field"><div class="det-label">Sede</div><div id="det-sede" class="det-val">—</div></div></div>
-      </div>
-      <p class="text-muted fw-bold mb-2" style="font-size:10px;text-transform:uppercase;letter-spacing:.06em">Asignación Académica</p>
-      <div id="det-asignaciones"><p class="text-muted" style="font-size:12px">Sin asignaciones</p></div>
+    <!-- Identificación -->
+    <div style="padding:14px 18px">
+      <div class="det-sec-title"><i class="bi bi-person-vcard me-1"></i>Identificación</div>
+      <div class="det-compact-row"><span class="det-compact-lbl">Cédula</span><span id="det-cedula" class="det-compact-val">—</span></div>
+      <div class="det-compact-row"><span class="det-compact-lbl">Fecha nac.</span><span id="det-fecha" class="det-compact-val">—</span></div>
+      <div class="det-compact-row"><span class="det-compact-lbl">Género</span><span id="det-genero" class="det-compact-val">—</span></div>
+      <div class="det-compact-row"><span class="det-compact-lbl">Municipio</span><span id="det-municipio" class="det-compact-val">—</span></div>
+    </div>
+    <!-- Contacto -->
+    <div style="padding:0 18px 14px">
+      <div class="det-sec-title"><i class="bi bi-telephone me-1"></i>Contacto</div>
+      <div class="det-compact-row"><span class="det-compact-lbl">Teléfono</span><span id="det-telefono" class="det-compact-val">—</span></div>
+      <div class="det-compact-row"><span class="det-compact-lbl">Celular</span><span id="det-celular" class="det-compact-val">—</span></div>
+      <div class="det-compact-row"><span class="det-compact-lbl">Correo</span><span id="det-correo" class="det-compact-val" style="font-size:11px">—</span></div>
+      <div class="det-compact-row"><span class="det-compact-lbl">Dirección</span><span id="det-direccion" class="det-compact-val">—</span></div>
+    </div>
+    <!-- Contractual oculta en chips, pero área y decreto sí se muestran aquí -->
+    <div style="padding:0 18px 14px">
+      <div class="det-sec-title"><i class="bi bi-briefcase me-1"></i>Contractual</div>
+      <div class="det-compact-row"><span class="det-compact-lbl">Área principal</span><span id="det-area" class="det-compact-val">—</span></div>
+      <div class="det-compact-row"><span class="det-compact-lbl">Vinculación</span><span id="det-tipo-vinc" class="det-compact-val">—</span></div>
+      <div class="det-compact-row"><span class="det-compact-lbl">Decreto</span><span id="det-decreto" class="det-compact-val">—</span></div>
+      <div class="det-compact-row"><span class="det-compact-lbl">Nivel</span><span id="det-nivel" class="det-compact-val">—</span></div>
+      <div class="det-compact-row"><span class="det-compact-lbl">Sede</span><span id="det-sede" class="det-compact-val">—</span></div>
+    </div>
+    <!-- Asignación Académica -->
+    <div style="padding:0 18px 14px;border-top:1px solid var(--slate-200)">
+      <div class="det-sec-title" style="margin-top:14px"><i class="bi bi-journal-bookmark me-1"></i>Asignación académica</div>
+      <div id="det-asignaciones"><p style="font-size:12px;color:var(--slate-400)">Sin asignaciones registradas</p></div>
     </div>
     <!-- Historial de novedades -->
-    <div style="padding:16px 20px;border-top:1px solid var(--slate-200)">
-      <p class="text-muted fw-bold mb-2" style="font-size:10px;text-transform:uppercase;letter-spacing:.06em">
-        Historial de Novedades / Permisos
-      </p>
-      <div id="det-novedades"><p class="text-muted" style="font-size:12px">Sin novedades registradas</p></div>
+    <div style="padding:0 18px 14px;border-top:1px solid var(--slate-200)">
+      <div class="det-sec-title" style="margin-top:14px"><i class="bi bi-clock-history me-1"></i>Historial de novedades</div>
+      <div id="det-novedades"><p style="font-size:12px;color:var(--slate-400)">Sin novedades registradas</p></div>
     </div>
-    <div class="border-top p-3 d-flex gap-2">
+    <!-- Acciones -->
+    <div style="border-top:1px solid var(--slate-200);padding:12px 16px;display:flex;gap:8px">
       <button class="btn btn-sm text-white flex-fill" style="background:var(--blue-600)" id="det-btn-editar"><i class="bi bi-pencil-fill me-1"></i>Editar</button>
       <button class="btn btn-sm btn-outline-danger" id="det-btn-eliminar"><i class="bi bi-trash-fill"></i></button>
     </div>
@@ -3615,7 +3637,8 @@ async function verDocente(id) {
   document.getElementById('det-nombre').textContent = nombre;
   const sc = {Activo:'#10B981',Inactivo:'#94A3B8',Licencia:'#F59E0B',Retirado:'#EF4444'}[d.estado]||'#64748B';
   document.getElementById('det-estado-badge').innerHTML =
-    '<span style="background:'+sc+'20;color:'+sc+';padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600">'+(d.estado||'—')+'</span>';
+    '<span style="background:'+sc+'20;color:'+sc+';padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600">'+(d.estado||'—')+'</span>';
+  // Campos individuales
   document.getElementById('det-cedula').textContent    = d.cedula||'—';
   document.getElementById('det-genero').textContent    = d.genero||'—';
   document.getElementById('det-fecha').textContent     = d.fecha_nac ? fmt(d.fecha_nac) : '—';
@@ -3626,10 +3649,22 @@ async function verDocente(id) {
   document.getElementById('det-direccion').textContent = d.direccion||'—';
   document.getElementById('det-area').textContent      = d.area||'—';
   document.getElementById('det-tipo-vinc').textContent = d.tipo_vinc||'—';
-  document.getElementById('det-decreto').textContent   = d.decreto||'—';
+  document.getElementById('det-decreto').textContent   = d.decreto ? 'Dec. '+d.decreto : '—';
   document.getElementById('det-nivel').textContent     = d.nivel||'—';
   const sedeDoc = d.sede_id ? (DB.get('sedes').find(s => s.id == d.sede_id)||{nombre:'—'}).nombre : '—';
   document.getElementById('det-sede').textContent      = sedeDoc;
+  // Chips de datos clave
+  const chipsEl = document.getElementById('det-chips');
+  const chipData = [
+    d.nivel    ? {txt: d.nivel,      accent: true}  : null,
+    d.tipo_vinc? {txt: d.tipo_vinc,  accent: true}  : null,
+    sedeDoc !== '—' ? {txt: sedeDoc, accent: false} : null,
+    d.area     ? {txt: d.area,       accent: false}  : null,
+    d.decreto  ? {txt: 'Dec. '+d.decreto, accent: false} : null,
+  ].filter(Boolean);
+  chipsEl.innerHTML = chipData.length
+    ? chipData.map(c => '<span class="det-chip'+(c.accent?' accent':'')+'">'+c.txt+'</span>').join('')
+    : '<span style="font-size:11px;color:var(--slate-400)">Sin información contractual</span>';
   const asigs = DB.get('asignaciones').filter(a => a.docente_id == id);
   const detAsig = document.getElementById('det-asignaciones');
   if (!asigs.length) {
