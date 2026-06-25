@@ -1541,6 +1541,9 @@
             <option value="Licencia">Licencia</option>
             <option value="Retirado">Retirado</option>
           </select>
+          <button class="btn btn-sm btn-outline-secondary" onclick="descargarPlantillaDocentes()" title="Descargar plantilla Excel para carga masiva">
+            <i class="bi bi-file-earmark-arrow-down-fill me-1"></i>Plantilla
+          </button>
           <button class="btn btn-sm btn-outline-success" onclick="document.getElementById('xlsxDocentes').click()">
             <i class="bi bi-file-earmark-excel-fill me-1"></i>Importar Excel
           </button>
@@ -6756,12 +6759,19 @@ const COL_ALIASES = {
   municipio:  ['municipio','ciudad','city','localidad','canton'],
   direccion:  ['direccion','address','domicilio'],
   estado:     ['estado','status','situacion'],
+  area:       ['area','area principal','asignatura','disciplina','materia principal'],
+  tipo_vinc:  ['tipo vinculacion','tipo de vinculacion','vinculacion','tipo_vinc','contrato'],
+  decreto:    ['decreto','decreto ley','decreto-ley','num decreto'],
+  nivel:      ['nivel','nivel educativo','nivel educacion','nivel de ensenanza'],
+  sede:       ['sede','sede educativa','nombre sede','establecimiento'],
 };
 const COL_LABELS = {
   cedula:'Cedula/DNI', p_nombre:'Primer Nombre', s_nombre:'Segundo Nombre',
   p_apellido:'Primer Apellido', s_apellido:'Segundo Apellido', fecha_nac:'Fecha Nacimiento',
   genero:'Genero', telefono:'Telefono', celular:'Celular', correo:'Correo',
   municipio:'Municipio', direccion:'Direccion', estado:'Estado',
+  area:'Área Principal', tipo_vinc:'Tipo Vinculación', decreto:'Decreto',
+  nivel:'Nivel', sede:'Sede',
 };
 let _xlsxRows = [], _xlsxHeaders = [];
 
@@ -6778,6 +6788,39 @@ function detectarMapeo(headers) {
   });
   return mapa;
 }
+function descargarPlantillaDocentes() {
+  const sedes = DB.get('sedes');
+  // Fila de encabezado
+  const headers = [
+    'CÉDULA','PRIMER NOMBRE','SEGUNDO NOMBRE','PRIMER APELLIDO','SEGUNDO APELLIDO',
+    'FECHA NACIMIENTO','GÉNERO','TELÉFONO','CELULAR','CORREO',
+    'MUNICIPIO','DIRECCIÓN','ESTADO','ÁREA PRINCIPAL','TIPO VINCULACIÓN',
+    'DECRETO','NIVEL','SEDE'
+  ];
+  // Fila de ejemplo
+  const ejemplo = [
+    '1234567890','Ana','María','García','López',
+    '1985-03-22','Femenino','6001234567','3001234567','ana.garcia@correo.edu.co',
+    'Bogotá D.C.','Calle 1 # 2-3','Activo','Matemáticas','Planta',
+    '1278','Secundaria', sedes.length ? sedes[0].nombre : 'Principal'
+  ];
+  // Fila de instrucciones (comentario)
+  const nota = [
+    '← Obligatorio','← Obligatorio','','← Obligatorio','',
+    'AAAA-MM-DD','Masculino / Femenino / Otro','','','',
+    '','','Activo / Inactivo / Licencia / Retirado','','Planta / Provisional / Contratista / Hora cátedra / Temporal',
+    '1278 ó 2277','Preescolar / Primaria / Secundaria / Bachillerato',
+    sedes.length ? sedes.map(s=>s.nombre).join(' | ') : 'Nombre exacto de la sede'
+  ];
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet([headers, ejemplo, nota]);
+  // Ancho automático de columnas
+  ws['!cols'] = headers.map(() => ({ wch: 22 }));
+  XLSX.utils.book_append_sheet(wb, ws, 'Docentes');
+  XLSX.writeFile(wb, 'Plantilla_Docentes_SIGEI.xlsx');
+  toast('Plantilla descargada.');
+}
+
 function cargarExcelDocentes(ev) {
   const file = ev.target.files[0]; if (!file) return; ev.target.value = '';
   const reader = new FileReader();
@@ -6861,6 +6904,14 @@ async function confirmarImportExcel() {
       genero: get('genero'), telefono: get('telefono'), celular: get('celular'),
       correo: get('correo'), municipio: get('municipio'), direccion: get('direccion'),
       estado: xlsxEstado(mapa.estado !== null ? row[mapa.estado] : 'Activo'),
+      area: get('area'), tipo_vinc: get('tipo_vinc'), decreto: get('decreto'),
+      nivel: get('nivel') || '',
+      sede_id: (() => {
+        const nombreSede = normalizar(get('sede'));
+        if (!nombreSede) return null;
+        const s = DB.get('sedes').find(x => normalizar(x.nombre) === nombreSede);
+        return s ? s.id : null;
+      })(),
     };
     if (!plain.p_nombre || !plain.p_apellido) { skipped++; continue; }
     const encDoc = await encryptDocente(plain);
