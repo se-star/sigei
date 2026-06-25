@@ -2353,6 +2353,20 @@
         <label class="form-label" style="font-size:12px;font-weight:600">Decreto</label>
         <input type="text" class="form-control form-control-sm" id="doc-decreto" placeholder="Ej: 1278, 2277...">
       </div>
+      <div class="col-6">
+        <label class="form-label" style="font-size:12px;font-weight:600">Nivel</label>
+        <select class="form-select form-select-sm" id="doc-nivel">
+          <option value="">Seleccione</option>
+          <option>Preescolar</option><option>Primaria</option>
+          <option>Secundaria</option><option>Bachillerato</option>
+        </select>
+      </div>
+      <div class="col-6">
+        <label class="form-label" style="font-size:12px;font-weight:600">Sede</label>
+        <select class="form-select form-select-sm" id="doc-sede-id">
+          <option value="">Sin sede asignada</option>
+        </select>
+      </div>
     </div>
   </div>
   <div class="border-top p-3 d-flex gap-2 justify-content-end" style="background:#fff">
@@ -2569,6 +2583,8 @@
         <div class="col-12"><div class="det-field"><div class="det-label">Área Principal</div><div id="det-area" class="det-val">—</div></div></div>
         <div class="col-6"><div class="det-field"><div class="det-label">Tipo Vinculación</div><div id="det-tipo-vinc" class="det-val">—</div></div></div>
         <div class="col-6"><div class="det-field"><div class="det-label">Decreto</div><div id="det-decreto" class="det-val">—</div></div></div>
+        <div class="col-6"><div class="det-field"><div class="det-label">Nivel</div><div id="det-nivel" class="det-val">—</div></div></div>
+        <div class="col-6"><div class="det-field"><div class="det-label">Sede</div><div id="det-sede" class="det-val">—</div></div></div>
       </div>
       <p class="text-muted fw-bold mb-2" style="font-size:10px;text-transform:uppercase;letter-spacing:.06em">Asignación Académica</p>
       <div id="det-asignaciones"><p class="text-muted" style="font-size:12px">Sin asignaciones</p></div>
@@ -3414,8 +3430,12 @@ function renderDocentes() {
 
 async function abrirDocente(id=null) {
   document.getElementById('offcanvasDocente-title').textContent = id ? 'Editar Docente' : 'Nuevo Docente';
-  const campos = ['id','cedula','p-nombre','s-nombre','p-apellido','s-apellido','fecha','genero','telefono','celular','correo','municipio','direccion','estado','area','tipo-vinc','decreto'];
+  const campos = ['id','cedula','p-nombre','s-nombre','p-apellido','s-apellido','fecha','genero','telefono','celular','correo','municipio','direccion','estado','area','tipo-vinc','decreto','nivel','sede-id'];
   campos.forEach(c => { const el = document.getElementById('doc-'+c); if(el) el.value = ''; });
+  // Poblar select de sedes
+  const sedeSelect = document.getElementById('doc-sede-id');
+  const sedesOpts = DB.get('sedes').map(s => `<option value="${s.id}">${s.nombre}</option>`).join('');
+  sedeSelect.innerHTML = '<option value="">Sin sede asignada</option>' + sedesOpts;
   if (id) {
     const raw = DB.get('docentes').find(x=>x.id==id);
     if (!raw) return;
@@ -3437,6 +3457,8 @@ async function abrirDocente(id=null) {
     document.getElementById('doc-area').value      = d.area||'';
     document.getElementById('doc-tipo-vinc').value = d.tipo_vinc||'';
     document.getElementById('doc-decreto').value   = d.decreto||'';
+    document.getElementById('doc-nivel').value     = d.nivel||'';
+    document.getElementById('doc-sede-id').value   = d.sede_id||'';
   }
   bootstrap.Offcanvas.getOrCreateInstance(document.getElementById('offcanvasDocente')).show();
 }
@@ -3466,6 +3488,8 @@ async function guardarDocente() {
     area:       document.getElementById('doc-area').value.trim(),
     tipo_vinc:  document.getElementById('doc-tipo-vinc').value,
     decreto:    document.getElementById('doc-decreto').value.trim(),
+    nivel:      document.getElementById('doc-nivel').value,
+    sede_id:    document.getElementById('doc-sede-id').value || null,
   };
 
   if (!idEdit) {
@@ -3600,6 +3624,9 @@ async function verDocente(id) {
   document.getElementById('det-area').textContent      = d.area||'—';
   document.getElementById('det-tipo-vinc').textContent = d.tipo_vinc||'—';
   document.getElementById('det-decreto').textContent   = d.decreto||'—';
+  document.getElementById('det-nivel').textContent     = d.nivel||'—';
+  const sedeDoc = d.sede_id ? (DB.get('sedes').find(s => s.id == d.sede_id)||{nombre:'—'}).nombre : '—';
+  document.getElementById('det-sede').textContent      = sedeDoc;
   const asigs = DB.get('asignaciones').filter(a => a.docente_id == id);
   const detAsig = document.getElementById('det-asignaciones');
   if (!asigs.length) {
