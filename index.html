@@ -2909,6 +2909,7 @@
 ══════════════════════════════════════ -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script>
 'use strict';
 
@@ -5372,72 +5373,99 @@ function limpiarHorarios() {
 // ══════════════════════════════════════════════
 var _asigImportRows = [];
 
-function descargarPlantillaAsignaciones() {
-  var docentes  = DB.get('docentes');
+async function descargarPlantillaAsignaciones() {
+  var docentes  = DB.get('docentes').filter(function(d){ return d.estado !== 'Inactivo'; });
   var secciones = DB.get('secciones');
   var grados    = DB.get('grados');
 
-  // Encabezados (exactamente los que espera el importador)
   var headers = ['DOCENTE', 'MATERIA', 'GRADO', 'SECCIÓN', 'DÍA', 'HORA INICIO', 'HORA FIN'];
 
   // Fila de ejemplo
-  var docEjemplo  = docentes.length  ? (docentes[0].p_nombre  + ' ' + docentes[0].p_apellido) : 'Jhon Pérez';
-  var secEjemplo  = secciones.length ? secciones[0] : null;
+  var docEjemplo   = docentes.length  ? (docentes[0].p_nombre + ' ' + docentes[0].p_apellido) : 'Jhon Pérez';
+  var secEjemplo   = secciones.length ? secciones[0] : null;
   var gradoEjemplo = secEjemplo ? (grados.find(function(g){ return g.id == secEjemplo.grado_id; }) || {nombre:'1° Grado'}) : {nombre:'1° Grado'};
-  var ejemplo = [
-    docEjemplo,
-    'Matemáticas',
-    gradoEjemplo.nombre,
-    secEjemplo ? secEjemplo.nombre : 'A',
-    'Lunes',
-    '07:00',
-    '08:00'
-  ];
+  var ejemplo = [docEjemplo, 'Matemáticas', gradoEjemplo.nombre, secEjemplo ? secEjemplo.nombre : 'A', 'Lunes', '07:00', '08:00'];
 
-  // Fila con valores válidos (referencia)
-  var docentesRef  = docentes.slice(0,5).map(function(d){ return d.p_nombre+' '+d.p_apellido; }).join(' | ') || 'Nombre Apellido';
-  var seccionesRef = secciones.slice(0,5).map(function(s){
-    var g = grados.find(function(x){ return x.id == s.grado_id; });
-    return (g ? g.nombre : '') + ' — ' + s.nombre;
-  }).join(' | ') || '6° Grado — A';
-  var nota = [
-    '← Nombre completo del docente. Ej: ' + docentesRef,
-    'Matemáticas / Ciencias Sociales / Inglés...',
-    '6° Grado / 7° Grado / 10° Grado...',
-    'A / B / C (sección del grupo)',
-    'Lunes | Martes | Miércoles | Jueves | Viernes',
-    'HH:MM (24h) — Ej: 07:00',
-    'HH:MM (24h) — Ej: 08:00  |  Grupos disponibles: ' + seccionesRef
-  ];
-
-  // Hoja de referencia con docentes y secciones
-  var refHeaders = ['DOCENTE (nombre exacto)', 'SECCIÓN (referencia)', 'GRADO'];
-  var maxRef = Math.max(docentes.length, secciones.length);
-  var refRows = [];
-  for (var i = 0; i < maxRef; i++) {
-    var d = docentes[i];
-    var s = secciones[i];
-    var g = s ? grados.find(function(x){ return x.id == s.grado_id; }) : null;
-    refRows.push([
-      d ? (d.p_nombre + ' ' + d.p_apellido) : '',
-      s ? s.nombre : '',
-      g ? g.nombre : ''
-    ]);
-  }
+  // Listas de valores válidos
+  var docenteNames = docentes.map(function(d){ return d.p_nombre + ' ' + d.p_apellido; });
+  var materiasLista = MATERIAS.filter(function(m){ return m !== 'Otra...'; });
+  var gradosLista   = grados.map(function(g){ return g.nombre; });
+  var seccionesLista = secciones.map(function(s){ return s.nombre; });
 
   var wb = XLSX.utils.book_new();
 
-  // Hoja 1: Plantilla
-  var wsData = [headers, ejemplo, nota];
+  // ── Hoja 1: Plantilla (50 filas vacías para llenar) ─────────────────────
+  var wsData = [headers, ejemplo];
+  for (var i = 0; i < 50; i++) wsData.push(['','','','','','','']);
   var ws1 = XLSX.utils.aoa_to_sheet(wsData);
-  ws1['!cols'] = headers.map(function(){ return { wch: 28 }; });
+  ws1['!cols'] = [{wch:32},{wch:24},{wch:16},{wch:12},{wch:12},{wch:14},{wch:14}];
   XLSX.utils.book_append_sheet(wb, ws1, 'Asignaciones');
 
-  // Hoja 2: Referencia de docentes y secciones
-  var ws2 = XLSX.utils.aoa_to_sheet([refHeaders].concat(refRows));
-  ws2['!cols'] = [{ wch: 30 }, { wch: 14 }, { wch: 20 }];
+  // ── Hoja 2: Referencia visible ────────────────────────────────────────────
+  var maxRef = Math.max(docenteNames.length, materiasLista.length, gradosLista.length, seccionesLista.length);
+  var refRows = [['DOCENTES','MATERIAS','GRADOS','SECCIONES']];
+  for (var i = 0; i < maxRef; i++) {
+    refRows.push([docenteNames[i]||'', materiasLista[i]||'', gradosLista[i]||'', seccionesLista[i]||'']);
+  }
+  var ws2 = XLSX.utils.aoa_to_sheet(refRows);
+  ws2['!cols'] = [{wch:32},{wch:26},{wch:18},{wch:14}];
   XLSX.utils.book_append_sheet(wb, ws2, 'Referencia');
 
+  // ── Hoja 3: Listas (oculta — alimenta los dropdowns) ─────────────────────
+  var maxL = Math.max(docenteNames.length, materiasLista.length, gradosLista.length, seccionesLista.length);
+  var listasData = [];
+  for (var i = 0; i < maxL; i++) {
+    listasData.push([docenteNames[i]||'', materiasLista[i]||'', gradosLista[i]||'', seccionesLista[i]||'']);
+  }
+  var wsL = XLSX.utils.aoa_to_sheet(listasData);
+  XLSX.utils.book_append_sheet(wb, wsL, 'Listas');
+
+  // ── Inyectar validación Excel con JSZip ─────────────────────────────────
+  if (typeof JSZip !== 'undefined') {
+    try {
+      var arrBuf = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      var zip    = await JSZip.loadAsync(arrBuf);
+
+      // --- Validaciones en sheet1.xml ---
+      var s1 = await zip.file('xl/worksheets/sheet1.xml').async('string');
+      var nD = docenteNames.length  || 1;
+      var nM = materiasLista.length || 1;
+      var nG = gradosLista.length   || 1;
+      var nS = seccionesLista.length|| 1;
+
+      var dv = '<dataValidations count="5">'
+        + '<dataValidation type="list" allowBlank="1" showInputMessage="1" showErrorAlert="1" sqref="A2:A500">'
+        + '<formula1>Listas!$A$1:$A$' + nD + '</formula1></dataValidation>'
+        + '<dataValidation type="list" allowBlank="1" showInputMessage="1" showErrorAlert="1" sqref="B2:B500">'
+        + '<formula1>Listas!$B$1:$B$' + nM + '</formula1></dataValidation>'
+        + '<dataValidation type="list" allowBlank="1" showInputMessage="1" showErrorAlert="1" sqref="C2:C500">'
+        + '<formula1>Listas!$C$1:$C$' + nG + '</formula1></dataValidation>'
+        + '<dataValidation type="list" allowBlank="1" showInputMessage="1" showErrorAlert="1" sqref="D2:D500">'
+        + '<formula1>Listas!$D$1:$D$' + nS + '</formula1></dataValidation>'
+        + '<dataValidation type="list" allowBlank="1" showInputMessage="1" showErrorAlert="1" sqref="E2:E500">'
+        + '<formula1>&quot;Lunes,Martes,Miércoles,Jueves,Viernes&quot;</formula1></dataValidation>'
+        + '</dataValidations>';
+
+      zip.file('xl/worksheets/sheet1.xml', s1.replace('</worksheet>', dv + '</worksheet>'));
+
+      // --- Ocultar hoja Listas en workbook.xml ---
+      var wbXml = await zip.file('xl/workbook.xml').async('string');
+      wbXml = wbXml.replace(/(<sheet[^>]*name="Listas"[^/]*)(\/>)/, '$1 state="hidden"$2');
+      wbXml = wbXml.replace(/(<sheet[^>]*name="Listas"[^>]*)(>)/, '$1 state="hidden"$2');
+      zip.file('xl/workbook.xml', wbXml);
+
+      var blob = await zip.generateAsync({ type:'blob', mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url; a.download = 'Plantilla_Asignaciones_SIGEI.xlsx'; a.click();
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
+      toast('Plantilla con listas desplegables descargada.');
+      return;
+    } catch(e) {
+      console.warn('JSZip error:', e);
+    }
+  }
+  // Fallback sin validación
   XLSX.writeFile(wb, 'Plantilla_Asignaciones_SIGEI.xlsx');
   toast('Plantilla descargada.');
 }
