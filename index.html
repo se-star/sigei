@@ -1150,6 +1150,8 @@
   body.dark-mode .det-chip { background: #1E3A52 !important; color: #94A3B8 !important; border-color: #2D4F6C !important; }
   body.dark-mode .det-chip.accent { background: #0F2A45 !important; color: #60A5FA !important; border-color: #1D4E89 !important; }
   body.dark-mode #det-chips { background: #0F1E2E !important; border-bottom-color: #2D3F55 !important; }
+  .oc-footer { background: var(--slate-50); }
+  body.dark-mode .oc-footer { background: #0A1929 !important; border-color: #2D3F55 !important; }
   body.dark-mode .offcanvas .border-top { border-color: #2D3F55 !important; }
   body.dark-mode .offcanvas .badge { opacity: .9; }
 
@@ -2095,7 +2097,7 @@
       </div>
     </div>
   </div>
-  <div class="border-top p-3 d-flex gap-2 justify-content-end" style="background:#fff">
+  <div class="border-top p-3 d-flex gap-2 justify-content-end oc-footer">
     <button class="btn btn-sm btn-secondary" data-bs-dismiss="offcanvas">Cancelar</button>
     <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="guardarReunion()">
       <i class="bi bi-save me-1"></i>Guardar
@@ -2157,7 +2159,7 @@
     </div>
     <div id="usr-modal-error" class="alert alert-danger mt-3 d-none" style="font-size:13px"></div>
   </div>
-  <div class="border-top p-3 d-flex gap-2 justify-content-end" style="background:#fff">
+  <div class="border-top p-3 d-flex gap-2 justify-content-end oc-footer">
     <button class="btn btn-sm btn-secondary" data-bs-dismiss="offcanvas">Cancelar</button>
     <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="guardarUsuario()" id="usr-save-btn">
       <i class="bi bi-save me-1"></i>Guardar
@@ -2216,7 +2218,7 @@
       </div>
     </div>
   </div>
-  <div class="border-top p-3 d-flex gap-2 justify-content-end" style="background:#fff">
+  <div class="border-top p-3 d-flex gap-2 justify-content-end oc-footer">
     <button class="btn btn-sm btn-secondary" data-bs-dismiss="offcanvas">Cancelar</button>
     <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="guardarEvento()">
       <i class="bi bi-save me-1"></i>Guardar
@@ -2272,7 +2274,7 @@
       <i class="bi bi-plus-lg me-1"></i>Agregar otro grupo
     </button>
   </div>
-  <div class="border-top p-3 d-flex gap-2 justify-content-end align-items-center" style="background:#fff">
+  <div class="border-top p-3 d-flex gap-2 justify-content-end align-items-center oc-footer">
     <div id="asig-footer-resumen" class="me-auto text-muted" style="font-size:12px"></div>
     <button class="btn btn-sm btn-secondary" data-bs-dismiss="offcanvas">Cancelar</button>
     <button class="btn btn-sm btn-success" onclick="guardarAsignacion()">
@@ -2292,7 +2294,7 @@
   </div>
   <div class="offcanvas-body" style="overflow-y:auto;padding:24px">
     <input type="hidden" id="doc-id">
-    <p class="text-muted fw-bold mb-3" style="font-size:11px;text-transform:uppercase;letter-spacing:.06em"><i class="bi bi-person-vcard me-1"></i>Datos Personales</p>
+    <div class="det-sec-title" style="margin-bottom:14px"><i class="bi bi-person-vcard me-1"></i>Datos Personales</div>
     <div class="row g-3 mb-4">
       <div class="col-4">
         <label class="form-label" style="font-size:12px;font-weight:600">Cédula / DNI *</label>
@@ -2353,7 +2355,7 @@
         </select>
       </div>
     </div>
-    <p class="text-muted fw-bold mb-3" style="font-size:11px;text-transform:uppercase;letter-spacing:.06em"><i class="bi bi-briefcase me-1"></i>Información Contractual</p>
+    <div class="det-sec-title" style="margin-bottom:14px"><i class="bi bi-briefcase me-1"></i>Información Contractual</div>
     <div class="row g-3">
       <div class="col-4">
         <label class="form-label" style="font-size:12px;font-weight:600">Área Principal</label>
@@ -2387,7 +2389,7 @@
       </div>
     </div>
   </div>
-  <div class="border-top p-3 d-flex gap-2 justify-content-end" style="background:#fff">
+  <div class="border-top p-3 d-flex gap-2 justify-content-end oc-footer">
     <button class="btn btn-sm btn-secondary" data-bs-dismiss="offcanvas">Cancelar</button>
     <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="guardarDocente()">
       <i class="bi bi-save me-1"></i>Guardar
@@ -2429,31 +2431,31 @@
   <div class="offcanvas-body p-0" style="overflow-y:auto">
 
     <!-- Info chips -->
-    <div style="padding:16px 20px;display:flex;flex-wrap:wrap;gap:8px;border-bottom:1px solid #F1F4F8">
+    <div style="padding:16px 20px;display:flex;flex-wrap:wrap;gap:8px;border-bottom:1px solid var(--slate-200)">
       <div id="oc-clase-dia-chip"   class="oc-chip"><i class="bi bi-calendar3 me-1"></i><span></span></div>
       <div id="oc-clase-hora-chip"  class="oc-chip"><i class="bi bi-clock me-1"></i><span></span></div>
       <div id="oc-clase-aula-chip"  class="oc-chip"><i class="bi bi-door-open me-1"></i><span></span></div>
     </div>
 
     <!-- Asignatura -->
-    <div style="padding:16px 20px;border-bottom:1px solid #F1F4F8">
-      <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#94A3B8;margin-bottom:10px">Asignatura</p>
+    <div style="padding:16px 20px;border-bottom:1px solid var(--slate-200)">
+      <div class="det-sec-title">Asignatura</div>
       <div id="oc-clase-asignatura" style="display:flex;align-items:center;gap:12px">
         <div id="oc-clase-asig-icon" style="width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">📚</div>
         <div>
-          <div id="oc-clase-asig-nombre" style="font-weight:700;font-size:15px;color:#0F172A">—</div>
-          <div id="oc-clase-asig-sub"    style="font-size:11px;color:#94A3B8;font-weight:600;margin-top:1px"></div>
+          <div id="oc-clase-asig-nombre" style="font-weight:700;font-size:15px;color:var(--slate-900)">—</div>
+          <div id="oc-clase-asig-sub"    style="font-size:11px;color:var(--slate-400);font-weight:600;margin-top:1px"></div>
         </div>
       </div>
     </div>
 
     <!-- Docente titular -->
-    <div style="padding:16px 20px;border-bottom:1px solid #F1F4F8">
-      <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#94A3B8;margin-bottom:10px">Docente Titular</p>
+    <div style="padding:16px 20px;border-bottom:1px solid var(--slate-200)">
+      <div class="det-sec-title"><i class="bi bi-person-badge me-1"></i>Docente Titular</div>
       <div id="oc-clase-docente" style="display:flex;align-items:center;gap:12px">
         <div id="oc-clase-doc-avatar" class="user-avatar" style="width:40px;height:40px;font-size:15px;flex-shrink:0">?</div>
         <div>
-          <div id="oc-clase-doc-nombre" style="font-weight:700;font-size:14px;color:#0F172A">—</div>
+          <div id="oc-clase-doc-nombre" style="font-weight:700;font-size:14px;color:var(--slate-900)">—</div>
           <div id="oc-clase-doc-estado" style="font-size:11px;color:#16A34A;font-weight:600"></div>
         </div>
       </div>
@@ -2461,17 +2463,13 @@
 
     <!-- Novedad / Reemplazo (hidden by default) -->
     <div id="oc-clase-novedad-section" style="padding:16px 20px;display:none">
-      <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#EF4444;margin-bottom:10px">
-        <i class="bi bi-exclamation-triangle-fill me-1"></i>Novedad Activa
-      </p>
-      <div id="oc-clase-novedad-info" style="background:#FEF2F2;border:1px solid #FECACA;border-radius:10px;padding:12px;margin-bottom:12px;font-size:12px;color:#B91C1C"></div>
-      <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#16A34A;margin:12px 0 10px">
-        <i class="bi bi-arrow-right-circle-fill me-1"></i>Docente Reemplazo
-      </p>
+      <div class="det-sec-title" style="color:#EF4444"><i class="bi bi-exclamation-triangle-fill me-1"></i>Novedad Activa</div>
+      <div id="oc-clase-novedad-info" style="background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;padding:10px;margin-bottom:10px;font-size:12px;color:#B91C1C"></div>
+      <div class="det-sec-title" style="color:#16A34A;margin-top:12px"><i class="bi bi-arrow-right-circle-fill me-1"></i>Docente Reemplazo</div>
       <div id="oc-clase-reemplazo" style="display:flex;align-items:center;gap:12px">
         <div id="oc-clase-remp-avatar" class="user-avatar" style="width:40px;height:40px;font-size:15px;flex-shrink:0;background:linear-gradient(135deg,#16a34a,#15803d)">?</div>
         <div>
-          <div id="oc-clase-remp-nombre" style="font-weight:700;font-size:14px;color:#0F172A">—</div>
+          <div id="oc-clase-remp-nombre" style="font-weight:700;font-size:14px;color:var(--slate-900)">—</div>
           <div style="font-size:11px;color:#16A34A;font-weight:600">Docente de reemplazo</div>
         </div>
       </div>
@@ -2497,37 +2495,23 @@
   <div class="offcanvas-body p-0" style="overflow-y:auto">
 
     <!-- Info general -->
-    <div style="padding:16px 20px;border-bottom:1px solid var(--slate-200)">
-      <p class="text-muted fw-bold mb-2" style="font-size:10px;text-transform:uppercase;letter-spacing:.06em">Información General</p>
-      <div class="row g-2">
-        <div class="col-6">
-          <div style="font-size:11px;color:var(--slate-400)">Turno</div>
-          <div style="font-size:13px;font-weight:600" id="sec-det-turno">—</div>
-        </div>
-        <div class="col-6">
-          <div style="font-size:11px;color:var(--slate-400)">Capacidad</div>
-          <div style="font-size:13px;font-weight:600" id="sec-det-cap">—</div>
-        </div>
-        <div class="col-6 mt-2">
-          <div style="font-size:11px;color:var(--slate-400)">Director de grupo</div>
-          <div style="font-size:13px;font-weight:600" id="sec-det-director">—</div>
-        </div>
-        <div class="col-6 mt-2">
-          <div style="font-size:11px;color:var(--slate-400)">Aula</div>
-          <div style="font-size:13px;font-weight:600" id="sec-det-aula">—</div>
-        </div>
-      </div>
+    <div style="padding:14px 18px;border-bottom:1px solid var(--slate-200)">
+      <div class="det-sec-title"><i class="bi bi-info-circle me-1"></i>Información General</div>
+      <div class="det-compact-row"><span class="det-compact-lbl">Turno</span><span id="sec-det-turno" class="det-compact-val">—</span></div>
+      <div class="det-compact-row"><span class="det-compact-lbl">Capacidad</span><span id="sec-det-cap" class="det-compact-val">—</span></div>
+      <div class="det-compact-row"><span class="det-compact-lbl">Director de grupo</span><span id="sec-det-director" class="det-compact-val">—</span></div>
+      <div class="det-compact-row"><span class="det-compact-lbl">Aula</span><span id="sec-det-aula" class="det-compact-val">—</span></div>
     </div>
 
     <!-- Docentes asignados -->
-    <div style="padding:16px 20px;border-bottom:1px solid var(--slate-200)">
-      <p class="text-muted fw-bold mb-2" style="font-size:10px;text-transform:uppercase;letter-spacing:.06em">Docentes Asignados</p>
+    <div style="padding:14px 18px;border-bottom:1px solid var(--slate-200)">
+      <div class="det-sec-title"><i class="bi bi-people me-1"></i>Docentes Asignados</div>
       <div id="sec-det-docentes"></div>
     </div>
 
     <!-- Horario -->
-    <div style="padding:16px 20px">
-      <p class="text-muted fw-bold mb-2" style="font-size:10px;text-transform:uppercase;letter-spacing:.06em">Horario</p>
+    <div style="padding:14px 18px">
+      <div class="det-sec-title"><i class="bi bi-calendar-week me-1"></i>Horario</div>
       <div id="sec-det-horario"></div>
     </div>
 
@@ -2558,7 +2542,7 @@
     <!-- Secciones list -->
     <div style="padding:16px 20px">
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <p class="text-muted fw-bold mb-0" style="font-size:10px;text-transform:uppercase;letter-spacing:.06em">Secciones</p>
+        <div class="det-sec-title mb-0"><i class="bi bi-grid me-1"></i>Secciones</div>
         <button class="btn btn-sm text-white" style="background:var(--blue-600);font-size:11px" onclick="abrirSeccionEnGrado()">
           <i class="bi bi-plus-lg"></i> Añadir
         </button>
@@ -2672,7 +2656,7 @@
       </div>
     </div>
   </div>
-  <div class="border-top p-3 d-flex gap-2 justify-content-end" style="background:#fff">
+  <div class="border-top p-3 d-flex gap-2 justify-content-end oc-footer">
     <button class="btn btn-sm btn-secondary" data-bs-dismiss="offcanvas">Cancelar</button>
     <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="guardarSeccion()">
       <i class="bi bi-save me-1"></i>Guardar
@@ -2736,7 +2720,7 @@
       </div>
     </div>
   </div>
-  <div class="border-top p-3 d-flex gap-2 justify-content-end" style="background:#fff">
+  <div class="border-top p-3 d-flex gap-2 justify-content-end oc-footer">
     <button class="btn btn-sm btn-secondary" data-bs-dismiss="offcanvas">Cancelar</button>
     <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="guardarHorario()">
       <i class="bi bi-save me-1"></i>Guardar
@@ -2781,7 +2765,7 @@
       </div>
     </div>
   </div>
-  <div class="border-top p-3 d-flex gap-2 justify-content-end" style="background:#fff">
+  <div class="border-top p-3 d-flex gap-2 justify-content-end oc-footer">
     <button class="btn btn-sm btn-secondary" data-bs-dismiss="offcanvas">Cancelar</button>
     <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="guardarAula()">
       <i class="bi bi-save me-1"></i>Guardar
@@ -2819,7 +2803,7 @@
       </div>
     </div>
   </div>
-  <div class="border-top p-3 d-flex gap-2 justify-content-end" style="background:#fff">
+  <div class="border-top p-3 d-flex gap-2 justify-content-end oc-footer">
     <button class="btn btn-sm btn-secondary" data-bs-dismiss="offcanvas">Cancelar</button>
     <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="guardarSede()">
       <i class="bi bi-save me-1"></i>Guardar
@@ -2841,9 +2825,7 @@
     <div class="p-4">
 
       <!-- Sección 1: Datos de la novedad -->
-      <p class="text-muted fw-bold mb-3" style="font-size:11px;text-transform:uppercase;letter-spacing:.06em">
-        <i class="bi bi-calendar-event me-1"></i>Datos de la Novedad
-      </p>
+      <div class="det-sec-title" style="margin-bottom:14px"><i class="bi bi-calendar-event me-1"></i>Datos de la Novedad</div>
       <div class="row g-3 mb-4">
         <div class="col-6">
           <label class="form-label" style="font-size:12px;font-weight:600">Fecha Novedad *</label>
@@ -2871,9 +2853,7 @@
       </div>
 
       <!-- Sección 2: Grados y horas -->
-      <p class="text-muted fw-bold mb-3" style="font-size:11px;text-transform:uppercase;letter-spacing:.06em">
-        <i class="bi bi-mortarboard me-1"></i>Grados y Horas
-      </p>
+      <div class="det-sec-title" style="margin-bottom:14px"><i class="bi bi-mortarboard me-1"></i>Grados y Horas</div>
       <div class="row g-3 mb-4">
         <div class="col-8">
           <label class="form-label" style="font-size:12px;font-weight:600">Grado(s) Afectado(s)</label>
@@ -2887,9 +2867,7 @@
       </div>
 
       <!-- Sección 3: Reemplazo -->
-      <p class="text-muted fw-bold mb-3" style="font-size:11px;text-transform:uppercase;letter-spacing:.06em">
-        <i class="bi bi-person-fill-check me-1"></i>Docente Reemplazo
-      </p>
+      <div class="det-sec-title" style="margin-bottom:14px"><i class="bi bi-person-fill-check me-1"></i>Docente Reemplazo</div>
       <div class="row g-3 mb-4">
         <div class="col-12">
           <label class="form-label" style="font-size:12px;font-weight:600">Docente Reemplazo</label>
@@ -2913,9 +2891,7 @@
       </div>
 
       <!-- Sección 4: Autorización -->
-      <p class="text-muted fw-bold mb-3" style="font-size:11px;text-transform:uppercase;letter-spacing:.06em">
-        <i class="bi bi-shield-check me-1"></i>Autorización
-      </p>
+      <div class="det-sec-title" style="margin-bottom:14px"><i class="bi bi-shield-check me-1"></i>Autorización</div>
       <div class="row g-3">
         <div class="col-12">
           <label class="form-label" style="font-size:12px;font-weight:600">Autorizado por</label>
@@ -2938,7 +2914,7 @@
     </div>
   </div>
   <!-- Footer sticky -->
-  <div class="border-top p-3 d-flex gap-2 justify-content-end" style="background:#fff">
+  <div class="border-top p-3 d-flex gap-2 justify-content-end oc-footer">
     <button class="btn btn-sm btn-secondary" data-bs-dismiss="offcanvas">Cancelar</button>
     <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="guardarPermiso()">
       <i class="bi bi-save me-1"></i>Guardar
@@ -7076,41 +7052,4 @@ _auth.onAuthStateChanged(async function(user) {
 
     <div style="text-align:center;margin-bottom:32px;position:relative">
       <div style="width:120px;height:120px;margin:0 auto 18px;filter:drop-shadow(0 6px 24px rgba(99,179,237,.55))">
-        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB2aWV3Qm94PSIwIDAgNTAwIDUwMCI+PGRlZnM+PHN0eWxlPi5jbHMtMXtpc29sYXRpb246aXNvbGF0ZTt9LmNscy0ye29wYWNpdHk6MC40O21peC1ibGVuZC1tb2RlOm11bHRpcGx5O30uY2xzLTN7ZmlsbDp1cmwoI2xpbmVhci1ncmFkaWVudCk7fS5jbHMtNHtmaWxsOnVybCgjbGluZWFyLWdyYWRpZW50LTIpO30uY2xzLTV7ZmlsbDp1cmwoI2xpbmVhci1ncmFkaWVudC0zKTt9LmNscy02e2ZpbGw6dXJsKCNsaW5lYXItZ3JhZGllbnQtNCk7fS5jbHMtN3tmaWxsOnVybCgjbGluZWFyLWdyYWRpZW50LTUpO30uY2xzLTh7ZmlsbDp1cmwoI2xpbmVhci1ncmFkaWVudC02KTt9LmNscy05e2ZpbGw6dXJsKCNsaW5lYXItZ3JhZGllbnQtNyk7fS5jbHMtMTB7ZmlsbDp1cmwoI2xpbmVhci1ncmFkaWVudC04KTt9LmNscy0xMXtmaWxsOnVybCgjbGluZWFyLWdyYWRpZW50LTkpO30uY2xzLTEye2ZpbGw6dXJsKCNsaW5lYXItZ3JhZGllbnQtMTApO30uY2xzLTEze2ZpbGw6bm9uZTt9LmNscy0xNHtmaWxsOnVybCgjbGluZWFyLWdyYWRpZW50LTExKTt9LmNscy0xNXtmaWxsOnVybCgjbGluZWFyLWdyYWRpZW50LTEyKTt9LmNscy0xNntmaWxsOnVybCgjbGluZWFyLWdyYWRpZW50LTEzKTt9PC9zdHlsZT48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudCIgeDE9IjI5NC45NCIgeTE9IjQyNy4zNCIgeDI9IjI5NC45NCIgeTI9IjI2LjU4IiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjMmM0ZDhkIi8+PHN0b3Agb2Zmc2V0PSIwLjA2IiBzdG9wLWNvbG9yPSIjMzM1YTk5Ii8+PHN0b3Agb2Zmc2V0PSIwLjI4IiBzdG9wLWNvbG9yPSIjNGM4NmMyIi8+PHN0b3Agb2Zmc2V0PSIwLjQ4IiBzdG9wLWNvbG9yPSIjNWVhNmUwIi8+PHN0b3Agb2Zmc2V0PSIwLjY1IiBzdG9wLWNvbG9yPSIjNjliOWYyIi8+PHN0b3Agb2Zmc2V0PSIwLjc2IiBzdG9wLWNvbG9yPSIjNmRjMGY5Ii8+PHN0b3Agb2Zmc2V0PSIwLjc3IiBzdG9wLWNvbG9yPSIjNmVjMmY5Ii8+PHN0b3Agb2Zmc2V0PSIwLjg2IiBzdG9wLWNvbG9yPSIjN2NkY2ZiIi8+PHN0b3Agb2Zmc2V0PSIwLjk0IiBzdG9wLWNvbG9yPSIjODRlY2ZkIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjODdmMWZkIi8+PC9saW5lYXJHcmFkaWVudD48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudC0yIiB4MT0iMjAzLjk2IiB5MT0iNDI3LjM0IiB4Mj0iMjAzLjk2IiB5Mj0iMjYuNTgiIHhsaW5rOmhyZWY9IiNsaW5lYXItZ3JhZGllbnQiLz48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudC0zIiB4MT0iMTc1LjE3IiB5MT0iNDI3LjM0IiB4Mj0iMTc1LjE3IiB5Mj0iMjYuNTgiIHhsaW5rOmhyZWY9IiNsaW5lYXItZ3JhZGllbnQiLz48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudC00IiB4MT0iMjU1Ljg0IiB5MT0iNDI3LjM0IiB4Mj0iMjU1Ljg0IiB5Mj0iMjYuNTgiIHhsaW5rOmhyZWY9IiNsaW5lYXItZ3JhZGllbnQiLz48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudC01IiB4MT0iMjcyLjk3IiB5MT0iNDI3LjM0IiB4Mj0iMjcyLjk3IiB5Mj0iMjYuNTgiIHhsaW5rOmhyZWY9IiNsaW5lYXItZ3JhZGllbnQiLz48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudC02IiB4MT0iMjIxLjM0IiB5MT0iNDI3LjM0IiB4Mj0iMjIxLjM0IiB5Mj0iMjYuNTgiIHhsaW5rOmhyZWY9IiNsaW5lYXItZ3JhZGllbnQiLz48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudC03IiB4MT0iMTc3LjU2IiB5MT0iNDI3LjM0IiB4Mj0iMTc3LjU2IiB5Mj0iMjYuNTgiIHhsaW5rOmhyZWY9IiNsaW5lYXItZ3JhZGllbnQiLz48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudC04IiB4MT0iMzU1LjI1IiB5MT0iNDI3LjM0IiB4Mj0iMzU1LjI1IiB5Mj0iMjYuNTgiIHhsaW5rOmhyZWY9IiNsaW5lYXItZ3JhZGllbnQiLz48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudC05IiB4MT0iMTMzLjYiIHkxPSI0MjcuMzQiIHgyPSIxMzMuNiIgeTI9IjI2LjU4IiB4bGluazpocmVmPSIjbGluZWFyLWdyYWRpZW50Ii8+PGxpbmVhckdyYWRpZW50IGlkPSJsaW5lYXItZ3JhZGllbnQtMTAiIHgxPSIyNDkuNjUiIHkxPSI0MjcuMzQiIHgyPSIyNDkuNjUiIHkyPSIyNi41OCIgeGxpbms6aHJlZj0iI2xpbmVhci1ncmFkaWVudCIvPjxsaW5lYXJHcmFkaWVudCBpZD0ibGluZWFyLWdyYWRpZW50LTExIiB4MT0iMzAyLjY4IiB5MT0iNDI3LjM0IiB4Mj0iMzAyLjY4IiB5Mj0iMjYuNTgiIHhsaW5rOmhyZWY9IiNsaW5lYXItZ3JhZGllbnQiLz48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudC0xMiIgeDE9IjQxOC43MyIgeTE9IjQyNy4zNCIgeDI9IjQxOC43MyIgeTI9IjI2LjU4IiB4bGluazpocmVmPSIjbGluZWFyLWdyYWRpZW50Ii8+PGxpbmVhckdyYWRpZW50IGlkPSJsaW5lYXItZ3JhZGllbnQtMTMiIHgxPSIzOTMuMjYiIHkxPSI0MjcuMzQiIHgyPSIzOTMuMjYiIHkyPSIyNi41OCIgeGxpbms6aHJlZj0iI2xpbmVhci1ncmFkaWVudCIvPjwvZGVmcz48ZyBjbGFzcz0iY2xzLTEiPjxnIGlkPSJPQkpFQ1RTIj48cGF0aCBjbGFzcz0iY2xzLTMiIGQ9Ik0yOTQuOTQsMTU5YTguODYsOC44NiwwLDEsMC04Ljg2LTguODVBOC44Niw4Ljg2LDAsMCwwLDI5NC45NCwxNTlaIi8+PHBhdGggY2xhc3M9ImNscy00IiBkPSJNMjA0LDM1MS4zMmE4Ljg2LDguODYsMCwxLDAsOC44Niw4Ljg2QTguODgsOC44OCwwLDAsMCwyMDQsMzUxLjMyWiIvPjxwYXRoIGNsYXNzPSJjbHMtNSIgZD0iTTE3NS4xNywyMjguODNhOC44Niw4Ljg2LDAsMSwwLTguODYtOC44NkE4Ljg3LDguODcsMCwwLDAsMTc1LjE3LDIyOC44M1oiLz48cGF0aCBjbGFzcz0iY2xzLTYiIGQ9Ik0yNTUuODQsMzc2LjYyYTguODYsOC44NiwwLDEsMCw4Ljg2LDguODZBOC44OCw4Ljg4LDAsMCwwLDI1NS44NCwzNzYuNjJaIi8+PHBhdGggY2xhc3M9ImNscy03IiBkPSJNMjczLDMyNi4xMWE4Ljg2LDguODYsMCwxLDAtOC44NS04Ljg2QTguODYsOC44NiwwLDAsMCwyNzMsMzI2LjExWiIvPjxwYXRoIGNsYXNzPSJjbHMtOCIgZD0iTTIxMi40OCwyNjEuNTRhOC44Niw4Ljg2LDAsMSwwLDguODYtOC44NkE4Ljg4LDguODgsMCwwLDAsMjEyLjQ4LDI2MS41NFoiLz48cGF0aCBjbGFzcz0iY2xzLTkiIGQ9Ik0xODYuNDIsMjY1LjI5YTguODYsOC44NiwwLDEsMC04Ljg2LDguODZBOC44Nyw4Ljg3LDAsMCwwLDE4Ni40MiwyNjUuMjlaIi8+PHBhdGggY2xhc3M9ImNscy0xMCIgZD0iTTM1NS4yNSwyNzEuMDhhOC44Niw4Ljg2LDAsMSwwLDguODYsOC44NkE4Ljg3LDguODcsMCwwLDAsMzU1LjI1LDI3MS4wOFoiLz48cGF0aCBjbGFzcz0iY2xzLTExIiBkPSJNMTI0Ljc0LDMwNS44M0E4Ljg2LDguODYsMCwxLDAsMTMzLjYsMjk3LDguODYsOC44NiwwLDAsMCwxMjQuNzQsMzA1LjgzWiIvPjxwYXRoIGNsYXNzPSJjbHMtMTIiIGQ9Ik0xODAuNDYsMzM3LjU1YTUuMTEsNS4xMSwwLDAsMS03LjY3LTQuNDRsLjA4LTUxLjQ2YTE3LDE3LDAsMSwxLDEwLjIzLS4yN0wxODMsMzI0LjI2bDIwOS4zMi0xMjAuOFYxNzUuODdMMzY2LjYsMTYxbC0zNS4xOSwyMC4yNC0xMi42NSwzMmE1LjEsNS4xLDAsMCwxLTIuMzMsMi42MkwyMzgsMjU4LjE4YTE3LjExLDE3LjExLDAsMSwxLTQuOTQtOC45NGw3Ni44NC00MS40OCwxMi42Mi0zMS45NGE1LjEsNS4xLDAsMCwxLDIuMi0yLjU2bDMxLjYxLTE4LjE3LTcxLTQxTDEzOC43NiwxOTkuMjNsMCw5MC4zNWExNywxNywwLDEsMS0xMC4yMiwwbDAtOTMuM2E1LjEzLDUuMTMsMCwwLDEsMi41NC00LjQybDE0NC4xMS04My42NEwyNDkuNjUsOTMuNDdsLTE0Mi43MSw4Mi40VjM0MC42NUwyNDkuNjUsNDIzbDE0Mi43LTgyLjM5VjIxNS4yNlptLTUuMjktMTM0LjYyYTE3LDE3LDAsMCwxLDExLDQuMDdsOTIuMTgtNTIuOTVhMTcuMDksMTcuMDksMCwxLDEsNS4yNSw4Ljc3bC05Miw1Mi44NWExNywxNywwLDEsMS0xNi40Ny0xMi43NFpNMjA0LDM3Ny4yMmExNywxNywwLDEsMSwxMS4yMi0yOS44M2w0MS44Ny0yNC4xMWExNywxNywwLDEsMSw2LjQxLDguMWwtNDMsMjQuNzVBMTcsMTcsMCwwLDEsMjA0LDM3Ny4yMlpNMzU1LjI1LDI5N2ExNi45MywxNi45MywwLDAsMS0xMC4yOS0zLjVsLTMyLjIxLDE3LjRMMzAzLjMxLDM2MmE1LjEzLDUuMTMsMCwwLDEtMi42LDMuNTdsLTI4LjQ3LDE1LjQxYTE2Ljc4LDE2Ljc4LDAsMCwxLC42NCw0LjU1LDE3LDE3LDAsMSwxLTYuMTYtMTMuMSw0LjUyLDQuNTIsMCwwLDEsLjU4LS4zOWwyNi40LTE0LjMsOS40NS01MS4wN2E1LjEyLDUuMTIsMCwwLDEsMi41OS0zLjU3bDMzLjI3LTE4QTE3LDE3LDAsMSwxLDM1NS4yNSwyOTdaIi8+PHBhdGggY2xhc3M9ImNscy0xMyIgZD0iTTMxMy4xLDEwMC42MmE4Ljg2LDguODYsMCwxLDAtOC44Ni04Ljg2QTguODcsOC44NywwLDAsMCwzMTMuMSwxMDAuNjJaIi8+PHBhdGggY2xhc3M9ImNscy0xMyIgZD0iTTQwNi4xLDEzMi40M2E0LjYzLDQuNjMsMCwwLDEsLjQ3LDEuMTYsOC42NCw4LjY0LDAsMSwwLTEuNjYtMi41NEE0LjgxLDQuODEsMCwwLDEsNDA2LjEsMTMyLjQzWiIvPjxwYXRoIGNsYXNzPSJjbHMtMTQiIGQ9Ik0zMDEuOTEsMTA0LjU3YTE2Ljg4LDE2Ljg4LDAsMCwwLDExLjE5LDQuMjMsMTcsMTcsMCwxLDAtMTctMTcsMTYuNzMsMTYuNzMsMCwwLDAsLjUyLDQuMDlsLTIxLjM1LDEyLjM5LDEwLjIsNS45Wk0zMTMuMSw4Mi45YTguODYsOC44NiwwLDEsMS04Ljg2LDguODZBOC44OCw4Ljg4LDAsMCwxLDMxMy4xLDgyLjlaIi8+PHBhdGggY2xhc3M9ImNscy0xNSIgZD0iTTQ0NC40MywxNzkuMzVhNS4xMSw1LjExLDAsMCwwLTctMS44OGwtNDUuMSwyNnYxMS44bDUwLjIxLTI5QTUuMTEsNS4xMSwwLDAsMCw0NDQuNDMsMTc5LjM1WiIvPjxwYXRoIGNsYXNzPSJjbHMtMTYiIGQ9Ik00MDIuMSwxNDAuNjNhMTcuMTUsMTcuMTUsMCwxLDAtNS40Ny04LjY1bC00MC4yMiwyMy4xM0wzNjYuNjQsMTYxWm0xMS0yMS44NmE4Ljg2LDguODYsMCwxLDEtNi41MSwxNC44Miw0LjYzLDQuNjMsMCwwLDAtLjQ3LTEuMTYsNC44MSw0LjgxLDAsMCwwLTEuMTktMS4zOCw4Ljg1LDguODUsMCwwLDEsOC4xNy0xMi4yOFoiLz48L2c+PC9nPjwvc3ZnPg==" style="width:100%;height:100%;object-fit:contain" alt="Logo">
-      </div>
-      <h1 style="font-size:26px;font-weight:900;color:#fff;margin:0 0 5px;letter-spacing:-.5px">SIGEI <span style="color:#60A5FA">TIC</span></h1>
-      <p style="font-size:13px;color:rgba(255,255,255,.45);margin:0">Sistema de Gestión Educativa Institucional</p>
-    </div>
-
-    <div style="height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent);margin-bottom:28px"></div>
-
-    <div id="login-error" style="display:none;background:rgba(239,68,68,.18);color:#fca5a5;padding:11px 15px;border-radius:10px;font-size:13px;margin-bottom:18px;border:1px solid rgba(239,68,68,.3);font-weight:500"></div>
-    <div id="login-loading" style="display:none;text-align:center;color:#93c5fd;font-size:13px;margin-bottom:16px;font-weight:500"><span>⏳ Cargando datos del sistema...</span></div>
-
-    <div style="margin-bottom:16px">
-      <label class="lf-label">Correo electrónico</label>
-      <input type="email" id="login-email" placeholder="usuario@institución.edu" class="lf-input" onkeydown="if(event.key==='Enter')loginSubmit()">
-    </div>
-
-    <div style="margin-bottom:28px">
-      <label class="lf-label">Contraseña</label>
-      <input type="password" id="login-pass" placeholder="••••••••" class="lf-input" onkeydown="if(event.key==='Enter')loginSubmit()">
-    </div>
-
-    <button id="login-btn" onclick="loginSubmit()"
-      style="width:100%;padding:14px;background:linear-gradient(135deg,#2563EB,#1D4ED8);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;letter-spacing:.02em;box-shadow:0 4px 18px rgba(37,99,235,.45);transition:opacity .2s,transform .15s,box-shadow .2s"
-      onmouseover="this.style.opacity='.9';this.style.transform='translateY(-1px)';this.style.boxShadow='0 8px 28px rgba(37,99,235,.55)'"
-      onmouseout="this.style.opacity='1';this.style.transform='translateY(0)';this.style.boxShadow='0 4px 18px rgba(37,99,235,.45)'"
-      onmousedown="this.style.transform='translateY(1px)'">
-      Iniciar sesión
-    </button>
-
-    <div style="text-align:center;margin-top:24px">
-      <span style="font-size:11px;color:rgba(255,255,255,.25)">IER SANTANDERCITO &middot; ALFATIC &middot; &copy; 2026</span>
-    </div>
-
-  </div>
-</div>
-
-</body>
-</html>
+        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB2aWV3Qm94PSIwIDAgNTAwIDUwMCI+PGRlZnM+PHN0eWxlPi5jbHMtMXtpc29sYXRpb246aXNvbGF0ZTt9LmNscy0ye29wYWNpdHk6MC40O21peC1ibGVuZC1tb2RlOm11bHRpcGx5O30uY2xzLTN7ZmlsbDp1cmwoI2xpbmVhci1ncmFkaWVudCk7fS5jbHMtNHtmaWxsOnVybCgjbGluZWFyLWdyYWRpZW50LTIpO30uY2xzLTV7ZmlsbDp1cmwoI2xpbmVhci1ncmFkaWVudC0zKTt9LmNscy02e2ZpbGw6dXJsKCNsaW5lYXItZ3JhZGllbnQtNCk7fS5jb
