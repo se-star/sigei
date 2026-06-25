@@ -3071,6 +3071,10 @@ const PAGE_TITLES = {
   aulas:        'Aulas',
   sedes:        'Sedes',
   permisos:     'Permisos y Licencias',
+  cronograma:   'Cronograma Institucional',
+  reuniones:    'Reuniones',
+  actividad:    'Actividad Reciente',
+  usuarios:     'Gestión de Usuarios',
 };
 
 const PAGE_ICONS = {
@@ -3542,7 +3546,7 @@ function verSeccion(secId) {
     }).join('');
   }
 
-  bootstrap.Offcanvas.getOrCreateInstance(document.getElementById('offcanvasSeccionForm')).show();
+  bootstrap.Offcanvas.getOrCreateInstance(document.getElementById('offcanvasSeccion')).show();
 }
 
 function verDocente(id) {
@@ -5513,7 +5517,7 @@ function importarAsignacionesExcel() {
             + '<td>' + x.dia + '</td>'
             + '<td>' + x.hora_inicio + '</td>'
             + '<td>' + x.hora_fin + '</td>'
-            + '<td><span class="carga-badge ' + (x.estado === 'OK' ? 'badge-baja' : 'badge-alta') + '">' + x.estado + '</span></td>'
+            + '<td><span class="carga-badge ' + (x.estado === 'OK' ? 'baja' : 'alta') + '">' + x.estado + '</span></td>'
             + '</tr>';
         }).join('');
 
@@ -5606,6 +5610,18 @@ function confirmarImportAsig() {
   });
 
   DB.set('asignaciones', asignaciones);
+
+  // Sincronizar colección horarios solo para las asignaciones tocadas (creadas o actualizadas)
+  var asigsTocadas = asignaciones.filter(function(a) {
+    return Object.keys(mapa).some(function(k) {
+      var g = mapa[k];
+      return a.docente_id == g.docente_id && a.materia === g.materia;
+    });
+  });
+  asigsTocadas.forEach(function(asig) {
+    sincronizarHorarios(asig.id, { docente_id: asig.docente_id, materia: asig.materia, cursos: asig.cursos });
+  });
+
   bootstrap.Modal.getInstance(document.getElementById('modalImportAsig')).hide();
   toast('Importación completada: ' + nuevas + ' asignaciones nuevas, ' + actualizadas + ' actualizadas.');
   renderAsignaciones();
@@ -5711,6 +5727,13 @@ function abrirSede(id=null) {
     document.getElementById('sede-email').value     = s.email||'';
   }
   bootstrap.Offcanvas.getOrCreateInstance(document.getElementById('offcanvasSede')).show();
+}
+
+function eliminarSede(id) {
+  if (!confirmar('¿Eliminar esta sede?')) return;
+  DB.set('sedes', DB.get('sedes').filter(s => s.id !== id));
+  toast('Sede eliminada.');
+  renderSedes();
 }
 
 function guardarSede() {
@@ -5844,8 +5867,8 @@ function renderPermisos() {
     }).filter(Boolean).join(', ') || '—';
 
     const reemplNom = p.docente_reemplazo_id ? nombreDocente(p.docente_reemplazo_id) : '—';
-    const btnAprobar  = '<button class="btn btn-xs btn-success btn-sm me-1" onclick="cambiarEstadoPermiso('+p.id+',\'Aprobado\')" title="Aprobar"><i class="bi bi-check-lg"></i></button>';
-    const btnRechazar = '<button class="btn btn-xs btn-danger btn-sm me-1" onclick="cambiarEstadoPermiso('+p.id+',\'Rechazado\')" title="Rechazar"><i class="bi bi-x-lg"></i></button>';
+    const btnAprobar  = '<button class="btn btn-xs btn-success btn-sm me-1" onclick="event.stopPropagation();cambiarEstadoPermiso('+p.id+',\'Aprobado\')" title="Aprobar"><i class="bi bi-check-lg"></i></button>';
+    const btnRechazar = '<button class="btn btn-xs btn-danger btn-sm me-1" onclick="event.stopPropagation();cambiarEstadoPermiso('+p.id+',\'Rechazado\')" title="Rechazar"><i class="bi bi-x-lg"></i></button>';
     var pid2=p.id;
   return '<tr style="cursor:pointer" onclick="abrirPermiso('+pid2+')" title="Ver/Editar permiso">'
       + '<td style="white-space:nowrap">' + fmt(p.fecha_novedad||p.fecha_inicio) + '</td>'
@@ -5859,8 +5882,8 @@ function renderPermisos() {
       + '<td style="font-size:12px">' + (p.radicado ? '<span class="badge text-bg-secondary">'+p.radicado+'</span>' : '—') + '</td>'
       + '<td>'
       + (p.estado==='Pendiente' ? btnAprobar + btnRechazar : '')
-      + '<button class="btn btn-sm btn-outline-primary me-1" onclick="abrirPermiso('+p.id+')" title="Editar"><i class="bi bi-pencil-fill"></i></button>'
-      + '<button class="btn btn-sm btn-outline-danger" onclick="eliminarPermiso('+p.id+')" title="Eliminar"><i class="bi bi-trash-fill"></i></button>'
+      + '<button class="btn btn-sm btn-outline-primary me-1" onclick="event.stopPropagation();abrirPermiso('+p.id+')" title="Editar"><i class="bi bi-pencil-fill"></i></button>'
+      + '<button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation();eliminarPermiso('+p.id+')" title="Eliminar"><i class="bi bi-trash-fill"></i></button>'
       + '</td></tr>';
   }).join('') : emptyRow(10, 'No hay novedades registradas');
 }
