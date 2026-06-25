@@ -370,6 +370,7 @@
   .hv-semana-btn { background:#fff; border:1.5px solid #E2E8F0; border-radius:8px; padding:4px 12px; cursor:pointer; font-size:13px; color:#475569; transition:border-color .15s,color .15s; }
   .hv-semana-btn:hover { border-color:#2563EB; color:#2563EB; }
   .hv-semana-lbl { font-size:14px; font-weight:700; color:#1E293B; min-width:180px; text-align:center; }
+  .hv-dia-lbl { display:flex; align-items:baseline; gap:0; min-width:220px; justify-content:center; }
   .hv-semana-hoy { background:#EFF6FF; border:1.5px solid #BFDBFE; border-radius:8px; padding:3px 14px; cursor:pointer; font-size:12px; font-weight:700; color:#2563EB; transition:background .15s; }
   .hv-semana-hoy:hover { background:#DBEAFE; }
   .hv-body { position: relative; }
@@ -1756,11 +1757,7 @@
             <select class="form-select form-select-sm" id="filtro-horario-docente" onchange="renderHorarios()" style="width:165px">
               <option value="">Todos los docentes</option>
             </select>
-            <select class="form-select form-select-sm" id="filtro-horario-dia"     onchange="renderHorarios()" style="width:120px">
-              <option value="">Toda la semana</option>
-              <option>Lunes</option><option>Martes</option><option>Miércoles</option>
-              <option>Jueves</option><option>Viernes</option>
-            </select>
+            <select class="form-select form-select-sm" id="filtro-horario-dia" style="display:none"><option value=""></option></select>
             <button class="btn btn-sm btn-outline-secondary" onclick="imprimirHorario()" title="Imprimir horario">
               <i class="bi bi-printer-fill"></i> Imprimir
             </button>
@@ -1776,10 +1773,13 @@
         <div class="col-lg-9" style="min-width:0">
           <div class="card-panel h-100">
             <div class="hv-semana-nav">
-              <button class="hv-semana-btn" onclick="_semanaNav(-1)"><i class="bi bi-chevron-left"></i></button>
-              <span id="semana-label" class="hv-semana-lbl">—</span>
-              <button class="hv-semana-btn" onclick="_semanaNav(1)"><i class="bi bi-chevron-right"></i></button>
-              <button class="hv-semana-hoy" onclick="_semanaHoy()">Hoy</button>
+              <button class="hv-semana-btn" onclick="_diaNav(-1)" title="Día anterior"><i class="bi bi-chevron-left"></i></button>
+              <span id="semana-label" class="hv-dia-lbl">
+                <span id="dia-nombre" style="font-size:15px;font-weight:700;color:#1E293B">—</span>
+                <span id="dia-fecha"  style="font-size:12px;color:#64748B;margin-left:8px">—</span>
+              </span>
+              <button class="hv-semana-btn" onclick="_diaNav(1)"  title="Día siguiente"><i class="bi bi-chevron-right"></i></button>
+              <button class="hv-semana-hoy" onclick="_diaHoy()">Hoy</button>
             </div>
             <div id="horario-visual-container" style="overflow-x:auto;padding:8px 4px"></div>
           </div>
@@ -4666,7 +4666,14 @@ function eliminarEvento(id) {
 const DIAS  = ['Lunes','Martes','Miércoles','Jueves','Viernes'];
 
 // ── Semana navigation ──────────────────────────────────────────────────────
-var _horarioSemanaOffset = 0;
+// Navegación por día (salta fines de semana)
+var _horarioSemanaOffset = 0; // kept for compatibility
+var _horarioDiaOffset = (function(){
+  var d = new Date().getDay(); // 0=Dom,6=Sab
+  if (d === 6) return -1;      // sábado → viernes
+  if (d === 0) return  1;      // domingo → lunes
+  return 0;
+})();
 
 function _getLunesSemana(offset) {
   var hoy = new Date(); hoy.setHours(0,0,0,0);
@@ -4677,8 +4684,23 @@ function _getLunesSemana(offset) {
   return lunes;
 }
 
-function _semanaNav(delta) { _horarioSemanaOffset += delta; renderHorarios(); }
-function _semanaHoy()      { _horarioSemanaOffset  = 0;     renderHorarios(); }
+function _diaNav(delta) {
+  var d = new Date(); d.setHours(0,0,0,0);
+  d.setDate(d.getDate() + _horarioDiaOffset);
+  do {
+    var step = delta > 0 ? 1 : -1;
+    d.setDate(d.getDate() + step);
+    _horarioDiaOffset += step;
+  } while (d.getDay() === 0 || d.getDay() === 6);
+  renderHorarios();
+}
+function _diaHoy() {
+  var d = new Date().getDay();
+  _horarioDiaOffset = d === 6 ? -1 : d === 0 ? 1 : 0;
+  renderHorarios();
+}
+function _semanaNav(delta) { _diaNav(delta * 5); }
+function _semanaHoy()      { _diaHoy(); }
 
 const HORAS = ['07:00','07:30','08:00','08:30','09:00','09:30','10:00','10:30',
                '11:00','11:30','12:00','12:30','13:00','13:30','14:00','14:30'];
@@ -4743,25 +4765,37 @@ function renderHorarios() {
   const filtroGrado = fGrado.value;
   const filtroSec   = fSec.value;
   const filtroDoc   = fDoc.value;
-  const filtroDia   = document.getElementById('filtro-horario-dia').value;
+  const filtroDia   = _diaNombreActual; // día controlado por navegación
 
-  // ── Compute week dates ──────────────────────────────────────────────────
+  // ── Compute current day from offset ────────────────────────────────────
   var _todayISO = new Date().toISOString().slice(0,10);
-  var _lunesSem = _getLunesSemana(_horarioSemanaOffset);
-  var _DIAS_IDX = {'Lunes':0,'Martes':1,'Miércoles':2,'Jueves':3,'Viernes':4};
+  var _mesesCorto  = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  var _mesesLargo  = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  var _DIAS_JS_MAP = {1:'Lunes',2:'Martes',3:'Miércoles',4:'Jueves',5:'Viernes'};
+  var _DIAS_IDX    = {'Lunes':0,'Martes':1,'Miércoles':2,'Jueves':3,'Viernes':4};
+  var _currentDay  = new Date(); _currentDay.setHours(0,0,0,0);
+  _currentDay.setDate(_currentDay.getDate() + _horarioDiaOffset);
+  var _diaNombreActual = _DIAS_JS_MAP[_currentDay.getDay()] || 'Lunes';
+  var _diaISO = _currentDay.getFullYear() + '-' +
+    String(_currentDay.getMonth()+1).padStart(2,'0') + '-' +
+    String(_currentDay.getDate()).padStart(2,'0');
   var _fechasPorDia = {};
+  _fechasPorDia[_diaNombreActual] = _diaISO;
+  // También precalcular la semana completa para el panel de docentes
+  var _lunesSem = _getLunesSemana(0);
   DIAS.forEach(function(d) {
-    var fecha = new Date(_lunesSem);
-    fecha.setDate(_lunesSem.getDate() + _DIAS_IDX[d]);
-    _fechasPorDia[d] = fecha.getFullYear() + '-' + String(fecha.getMonth()+1).padStart(2,'0') + '-' + String(fecha.getDate()).padStart(2,'0');
+    if (!_fechasPorDia[d]) {
+      var f = new Date(_lunesSem); f.setDate(_lunesSem.getDate() + _DIAS_IDX[d]);
+      _fechasPorDia[d] = f.getFullYear()+'-'+String(f.getMonth()+1).padStart(2,'0')+'-'+String(f.getDate()).padStart(2,'0');
+    }
   });
-  // Update week label
-  var _mesesCorto = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-  var _viernes = new Date(_lunesSem); _viernes.setDate(_lunesSem.getDate() + 4);
-  var _lunesStr = _lunesSem.getDate() + ' ' + _mesesCorto[_lunesSem.getMonth()];
-  var _viernesStr = _viernes.getDate() + ' ' + _mesesCorto[_viernes.getMonth()] + ' ' + _viernes.getFullYear();
-  var _semLabel = document.getElementById('semana-label');
-  if (_semLabel) _semLabel.textContent = _lunesStr + ' — ' + _viernesStr;
+  // Actualizar etiqueta del día
+  var _esHoyNav = _diaISO === _todayISO;
+  var _nombreEl = document.getElementById('dia-nombre');
+  var _fechaEl  = document.getElementById('dia-fecha');
+  if (_nombreEl) _nombreEl.textContent = _diaNombreActual;
+  if (_fechaEl)  _fechaEl.textContent  = _currentDay.getDate() + ' de ' + _mesesLargo[_currentDay.getMonth()] + ' ' + _currentDay.getFullYear() + (_esHoyNav ? ' · Hoy' : '');
+  if (_fechaEl)  _fechaEl.style.color  = _esHoyNav ? '#2563EB' : '#64748B';
 
   // ── Build horarios: manual entries + derived from asignaciones ─────────
   let horarios = DB.get('horarios').slice();
@@ -4795,8 +4829,8 @@ function renderHorarios() {
   if (filtroSec)   horarios = horarios.filter(h => h.seccion_id == filtroSec);
   if (filtroDoc)   horarios = horarios.filter(h => h.docente_id == filtroDoc);
 
-  // Dias visibles
-  const diasVis = filtroDia ? [filtroDia] : DIAS;
+  // Día visible: siempre el día actual del navegador
+  const diasVis = [_diaNombreActual];
 
   // ── Permisos: mapas por fecha exacta (según semana visible) ────────────
   // _ausenciasPorFecha['2026-06-23'] = Set of String(docente_id)
@@ -4951,9 +4985,9 @@ function renderHorarios() {
   // Available teachers panel
   renderDocentesDisponibles(filtroDia, horarios, _fechasPorDia);
 
-  // Lista
-  const tbL = document.getElementById('tabla-horarios-lista');
-  const hFiltrados = filtroDia ? horarios.filter(h => h.dia === filtroDia) : horarios;
+  // Lista (vista día: no se usa)
+  const tbL = document.getElementById('tabla-horarios-lista'); if (!tbL) return;
+  const hFiltrados = horarios.filter(h => h.dia === filtroDia);
   tbL.innerHTML = hFiltrados.length ? hFiltrados.map(h => {
     const sec = secciones.find(s => s.id == h.seccion_id);
     return '<tr>'
