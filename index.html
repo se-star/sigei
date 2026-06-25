@@ -2010,6 +2010,23 @@
       </div>
     </div>
 
+    <!-- Usuarios desactivados -->
+    <div id="seccion-usuarios-eliminados" style="display:none;margin-top:24px">
+      <div class="card-panel">
+        <div class="panel-header" style="background:linear-gradient(135deg,#FEF2F2,#FEE2E2)">
+          <span style="color:#991B1B;font-weight:700"><i class="bi bi-person-x-fill me-2"></i>Usuarios desactivados</span>
+        </div>
+        <div class="table-responsive">
+          <table class="sigei-table">
+            <thead><tr>
+              <th>Nombre</th><th>Correo</th><th>Rol</th><th>Estado</th><th>Acciones</th>
+            </tr></thead>
+            <tbody id="tabla-usuarios-eliminados"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
   </div><!-- /content -->
 </div><!-- /main -->
 
@@ -6491,7 +6508,8 @@ function renderUsuarios() {
     cargarRolUsuario();
   }
   var filtroRol = (document.getElementById('filtro-usr-rol')||{}).value || '';
-  var users = (DB.get('usuarios') || []).slice();
+  // Excluir usuarios marcados como eliminados de la vista principal
+  var users = (DB.get('usuarios') || []).filter(function(u){ return u.estado !== 'Eliminado'; });
   if (filtroRol) users = users.filter(function(u){ return u.rol === filtroRol; });
 
   // Stats
@@ -6526,9 +6544,27 @@ function renderUsuarios() {
       + '<td style="font-size:12px;color:var(--slate-500)">'+creado+'</td>'
       + '<td>'
       + '<button class="btn btn-sm btn-outline-primary me-1" onclick="abrirUsuario('+u.id+')" title="Editar"><i class="bi bi-pencil-fill"></i></button>'
-      + (!isCurrent ? '<button class="btn btn-sm btn-outline-danger" onclick="eliminarUsuario('+u.id+')" title="Eliminar"><i class="bi bi-trash-fill"></i></button>' : '')
+      + (!isCurrent ? '<button class="btn btn-sm btn-outline-danger" onclick="desactivarUsuario('+u.id+')" title="Desactivar"><i class="bi bi-person-x-fill"></i></button>' : '')
       + '</td></tr>';
   }).join('');
+
+  // Mostrar usuarios desactivados si los hay
+  var eliminados = (DB.get('usuarios')||[]).filter(function(u){ return u.estado==='Eliminado'; });
+  var elTbl = document.getElementById('tabla-usuarios-eliminados');
+  var elSec = document.getElementById('seccion-usuarios-eliminados');
+  if (elSec) elSec.style.display = eliminados.length ? '' : 'none';
+  if (elTbl && eliminados.length) {
+    elTbl.innerHTML = eliminados.map(function(u) {
+      return '<tr style="opacity:.65">'
+        + '<td><strong>'+u.nombre+'</strong></td>'
+        + '<td style="font-size:12px;color:var(--slate-500)">'+u.email+'</td>'
+        + '<td>'+rolBadge(u.rol)+'</td>'
+        + '<td><span class="badge text-bg-secondary">Desactivado</span></td>'
+        + '<td>'
+        + '<button class="btn btn-sm btn-outline-success" onclick="reactivarUsuario('+u.id+')" title="Reactivar"><i class="bi bi-person-check-fill me-1"></i>Reactivar</button>'
+        + '</td></tr>';
+    }).join('');
+  }
 }
 
 function abrirUsuario(id) {
@@ -6625,12 +6661,63 @@ function guardarUsuario() {
         resetUsrBtn();
       })
       .catch(function(err) {
-        var msg = err.code === 'auth/email-already-in-use' ? 'Este correo ya está registrado.'
-                : err.code === 'auth/invalid-email'       ? 'Correo electrónico inválido.'
-                : err.code === 'auth/weak-password'       ? 'Contraseña demasiado débil.'
-                : err.message;
-        showUsrError(msg);
-        resetUsrBtn();
+        if (err.code === 'auth/email-already-in-use') {
+          // La cuenta Firebase Auth existe (posiblemente desactivada en SIGEI).
+          // Primero buscamos si está en el registro como 'Eliminado' para reactivarla.
+          var eliminadoExistente = (DB.get('usuarios')||[]).find(function(u){
+            return u.email === email && u.estado === 'Eliminado';
+          });
+          if (eliminadoExistente) {
+            // Reactivar directamente: el UID ya lo tenemos
+            var usuarios2 = (DB.get('usuarios')||[]).slice();
+            var idxEl = usuarios2.findIndex(function(u){ return u.id === eliminadoExistente.id; });
+            if (idxEl !== -1) {
+              usuarios2[idxEl].nombre  = nombre;
+              usuarios2[idxEl].rol     = rol;
+              usuarios2[idxEl].estado  = estado || 'Activo';
+              usuarios2[idxEl].notas   = notas;
+              delete usuarios2[idxEl].eliminado;
+            }
+            DB.set('usuarios', usuarios2);
+            if (idxEl !== -1) syncRoleDoc(usuarios2[idxEl]);
+            secondaryApp.auth().signOut();
+            bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasUsuario')).hide();
+            renderUsuarios();
+            toast('Usuario reactivado exitosamente.');
+            resetUsrBtn();
+          } else {
+            // Intentar iniciar sesión con la contraseña provista para obtener el UID
+            secondaryApp.auth().signInWithEmailAndPassword(email, pass)
+              .then(function(cred) {
+                var newUser = {
+                  id:     DB.nextId('usuarios'),
+                  uid:    cred.user.uid,
+                  nombre: nombre, email: email, rol: rol,
+                  estado: estado, notas: notas,
+                  creado: new Date().toISOString()
+                };
+                var usuarios3 = (DB.get('usuarios')||[]).slice();
+                usuarios3.push(newUser);
+                DB.set('usuarios', usuarios3);
+                syncRoleDoc(newUser);
+                secondaryApp.auth().signOut();
+                bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasUsuario')).hide();
+                renderUsuarios();
+                toast('Usuario registrado exitosamente.');
+                resetUsrBtn();
+              })
+              .catch(function() {
+                showUsrError('Este correo ya tiene una cuenta. Para recuperarlo, primero actívalo desde la sección "Usuarios desactivados", o usa la misma contraseña original.');
+                resetUsrBtn();
+              });
+          }
+        } else {
+          var msg = err.code === 'auth/invalid-email'  ? 'Correo electrónico inválido.'
+                  : err.code === 'auth/weak-password'  ? 'Contraseña demasiado débil.'
+                  : err.message;
+          showUsrError(msg);
+          resetUsrBtn();
+        }
       });
   } else {
     // EDIT — only update Firestore record (no password change here)
@@ -6665,17 +6752,40 @@ function resetUsrBtn() {
   if (btn) { btn.disabled=false; btn.innerHTML='<i class="bi bi-save me-1"></i>Guardar'; }
 }
 
-function eliminarUsuario(id) {
-  if (!confirmar('¿Eliminar este usuario? Solo se elimina del registro, la cuenta de Firebase sigue activa.')) return;
-  var borrado = (DB.get('usuarios')||[]).find(function(u){ return u.id===id; });
-  var usuarios = (DB.get('usuarios')||[]).filter(function(u){ return u.id!==id; });
+function desactivarUsuario(id) {
+  if (!confirmar('¿Desactivar este usuario? Podrás reactivarlo en cualquier momento.')) return;
+  var usuarios = (DB.get('usuarios')||[]).slice();
+  var idx = usuarios.findIndex(function(u){ return u.id===id; });
+  if (idx === -1) return;
+  usuarios[idx].estado = 'Eliminado';
+  usuarios[idx].eliminado = new Date().toISOString();
   DB.set('usuarios', usuarios);
-  if (borrado && borrado.uid) {
-    _fs.collection('roles').doc(borrado.uid).delete().catch(function(err){ console.error('Error eliminando rol:', err); });
+  // Actualizar rol en Firestore para bloquear acceso
+  if (usuarios[idx].uid) {
+    _fs.collection('roles').doc(usuarios[idx].uid).set({
+      rol: usuarios[idx].rol || 'Docente',
+      estado: 'Eliminado',
+      email: usuarios[idx].email || ''
+    }).catch(function(e){ console.error(e); });
   }
   renderUsuarios();
-  toast('Usuario eliminado del registro.');
+  toast('Usuario desactivado. Puedes reactivarlo desde el módulo de usuarios.');
 }
+
+function reactivarUsuario(id) {
+  var usuarios = (DB.get('usuarios')||[]).slice();
+  var idx = usuarios.findIndex(function(u){ return u.id===id; });
+  if (idx === -1) return;
+  usuarios[idx].estado = 'Activo';
+  delete usuarios[idx].eliminado;
+  DB.set('usuarios', usuarios);
+  if (usuarios[idx].uid) syncRoleDoc(usuarios[idx]);
+  renderUsuarios();
+  toast('Usuario reactivado exitosamente.');
+}
+
+// Mantener alias por compatibilidad con código existente
+function eliminarUsuario(id) { desactivarUsuario(id); }
 
 // ── Sincroniza /roles/{uid} en Firestore para que las reglas de seguridad
 //    puedan validar el rol de cada usuario sin depender del array 'usuarios'.
