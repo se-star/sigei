@@ -3820,7 +3820,7 @@ function renderGrados() {
   // Color del stat de cobertura según %
   var covEl = document.getElementById('gstat-cobertura');
   if (covEl) covEl.style.color = pct===100?'#15803D':pct>=70?'#B45309':'#DC2626';
-  var covBox = covEl ? covEl.closest('div[style]') : null;
+  var covBox = covEl ? covEl.parentElement : null;
   if (covBox) {
     if (pct === 100) {
       covBox.style.background = 'linear-gradient(135deg,#D1FAE5 0%,#A7F3D0 100%)';
