@@ -2282,6 +2282,14 @@
         <label class="form-label" style="font-size:12px;font-weight:600">Fecha fin</label>
         <input type="date" class="form-control form-control-sm" id="evento-fecha-fin">
       </div>
+      <div class="col-6">
+        <label class="form-label" style="font-size:12px;font-weight:600">Hora inicio</label>
+        <input type="time" class="form-control form-control-sm" id="evento-hora-ini">
+      </div>
+      <div class="col-6">
+        <label class="form-label" style="font-size:12px;font-weight:600">Hora fin</label>
+        <input type="time" class="form-control form-control-sm" id="evento-hora-fin">
+      </div>
       <div class="col-12">
         <label class="form-label" style="font-size:12px;font-weight:600">Grados</label>
         <select class="form-select form-select-sm" id="evento-grados" multiple style="height:90px">
@@ -4950,6 +4958,8 @@ function abrirEvento(id) {
   document.getElementById('evento-tipo').value         = '';
   document.getElementById('evento-fecha-ini').value    = '';
   document.getElementById('evento-fecha-fin').value    = '';
+  document.getElementById('evento-hora-ini').value     = '';
+  document.getElementById('evento-hora-fin').value     = '';
   document.getElementById('evento-area').value         = '';
   document.getElementById('evento-observaciones').value = '';
 
@@ -4967,6 +4977,8 @@ function abrirEvento(id) {
     document.getElementById('evento-tipo').value         = ev.tipo;
     document.getElementById('evento-fecha-ini').value    = ev.fecha_ini;
     document.getElementById('evento-fecha-fin').value    = ev.fecha_fin || '';
+    document.getElementById('evento-hora-ini').value     = ev.hora_ini || '';
+    document.getElementById('evento-hora-fin').value     = ev.hora_fin || '';
     document.getElementById('evento-area').value         = ev.area || '';
     document.getElementById('evento-observaciones').value = ev.observaciones || '';
     // Set grados selections
@@ -4986,6 +4998,8 @@ function guardarEvento() {
   const tipo       = document.getElementById('evento-tipo').value;
   const fecha_ini  = document.getElementById('evento-fecha-ini').value;
   const fecha_fin  = document.getElementById('evento-fecha-fin').value;
+  const hora_ini   = document.getElementById('evento-hora-ini').value;
+  const hora_fin   = document.getElementById('evento-hora-fin').value;
   const area       = document.getElementById('evento-area').value.trim();
   const observaciones = document.getElementById('evento-observaciones').value.trim();
 
@@ -5000,7 +5014,7 @@ function guardarEvento() {
   const grados  = selOpts.includes('all') ? ['all'] : selOpts;
 
   const idEdit = document.getElementById('evento-id').value;
-  const data   = { actividad, tipo, fecha_ini, fecha_fin: fecha_fin || null, area, grados, observaciones };
+  const data   = { actividad, tipo, fecha_ini, fecha_fin: fecha_fin || null, hora_ini: hora_ini || null, hora_fin: hora_fin || null, area, grados, observaciones };
 
   const lista = DB.get('cronograma');
   if (!idEdit) {
