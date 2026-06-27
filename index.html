@@ -1366,8 +1366,8 @@
     <a href="#" onclick="navigate('horarios')" data-sb-label="Horarios" title="Horarios" data-page="horarios">
       <i class="bi bi-clock-fill"></i><span>Horarios</span>
     </a>
-    <a href="#" onclick="navigate('cronograma')" data-sb-label="Cronograma" title="Cronograma" data-page="cronograma">
-      <i class="bi bi-calendar-event-fill"></i><span>Cronograma</span>
+    <a href="#" onclick="navigate('cronograma')" data-sb-label="POA" title="POA" data-page="cronograma">
+      <i class="bi bi-calendar-event-fill"></i><span>POA</span>
     </a>
     <a href="#" onclick="navigate('reuniones')" data-sb-label="Reuniones" title="Reuniones" data-page="reuniones">
       <i class="bi bi-people-fill"></i><span>Reuniones</span>
@@ -1480,7 +1480,7 @@
           <div class="card-panel h-100" id="dash-proximo-evento-panel">
             <div class="panel-header">
               <h6><i class="bi bi-calendar-event-fill me-2" style="color:#f59e0b"></i>Próximo Evento</h6>
-              <a href="#" onclick="navigate('cronograma')" data-sb-label="Cronograma" title="Cronograma" class="btn btn-sm btn-outline-secondary">Ver cronograma</a>
+              <a href="#" onclick="navigate('cronograma')" data-sb-label="POA" title="POA" class="btn btn-sm btn-outline-secondary">Ver cronograma</a>
             </div>
             <div id="dash-proximo-evento">
               <p class="text-muted text-center py-2" style="font-size:13px">Sin eventos próximos</p>
@@ -1769,7 +1769,7 @@
       <!-- Filtros + acciones -->
       <div class="card-panel mb-3">
         <div class="panel-header flex-wrap gap-2">
-          <h6><i class="bi bi-calendar-event-fill me-2"></i>Cronograma Institucional</h6>
+          <h6><i class="bi bi-calendar-event-fill me-2"></i>POA - Plan Operativo Anual</h6>
           <div class="d-flex gap-2 align-items-center flex-wrap">
             <select class="form-select form-select-sm" id="filtro-crono-tipo" onchange="renderCronograma()" style="width:160px">
               <option value="">Todos los tipos</option>
@@ -2016,7 +2016,7 @@
               <option value="asignaciones">Asignaciones</option>
               <option value="permisos">Permisos</option>
               <option value="horarios">Horarios</option>
-              <option value="cronograma">Cronograma</option>
+              <option value="cronograma">POA</option>
               <option value="reuniones">Reuniones</option>
             </select>
             <button class="btn btn-sm btn-outline-danger" onclick="limpiarActividad()">
@@ -2249,7 +2249,7 @@
   <div class="offcanvas-header border-bottom" style="background:var(--slate-900);padding:20px 24px">
     <div>
       <h6 class="offcanvas-title text-white mb-0" style="font-weight:700;font-size:15px" id="offcanvasEvento-title">Nuevo Evento</h6>
-      <small class="text-white-50" style="font-size:11px">Cronograma Institucional</small>
+      <small class="text-white-50" style="font-size:11px">POA - Plan Operativo Anual</small>
     </div>
     <button class="btn-close btn-close-white ms-3" data-bs-dismiss="offcanvas"></button>
   </div>
@@ -3117,7 +3117,7 @@ const PAGE_TITLES = {
   horarios:     'Horarios de Clase',
   sedes:        'Sedes',
   permisos:     'Permisos y Licencias',
-  cronograma:   'Cronograma Institucional',
+  cronograma:   'POA - Plan Operativo Anual',
   reuniones:    'Reuniones',
   actividad:    'Actividad Reciente',
   usuarios:     'Gestión de Usuarios',
@@ -5018,7 +5018,7 @@ function guardarEvento() {
 }
 
 function eliminarEvento(id) {
-  if (!confirmar('Eliminar este evento del cronograma?')) return;
+  if (!confirmar('Eliminar este evento del POA?')) return;
   DB.set('cronograma', DB.get('cronograma').filter(e => e.id !== id));
   toast('Evento eliminado.');
   renderCronograma();
@@ -6677,7 +6677,7 @@ function buscarGlobal(q) {
   });
   DB.get('cronograma').forEach(function(e) {
     if ((e.actividad||'').toLowerCase().includes(q) || (e.tipo||'').toLowerCase().includes(q)) {
-      res.push({ g:'Cronograma', ico:'bi-calendar-event-fill', bg:'#FEF3C7', col:'#B45309',
+      res.push({ g:'POA', ico:'bi-calendar-event-fill', bg:'#FEF3C7', col:'#B45309',
         t: e.actividad, s:(e.tipo||'')+(e.fecha_inicio?' · '+e.fecha_inicio:''),
         fn: function(){ navigate('cronograma'); } });
     }
@@ -6748,7 +6748,7 @@ function buscarGlobalKey(e) {
 // ════════════════════════════════════════════════
 var ACT_LABEL = {
   docentes:'Docentes', secciones:'Grupos', horarios:'Horarios',
-  permisos:'Permisos', asignaciones:'Asignaciones', cronograma:'Cronograma',
+  permisos:'Permisos', asignaciones:'Asignaciones', cronograma:'POA',
   sedes:'Sedes', reuniones:'Reuniones'
 };
 var ACT_ICON = {
