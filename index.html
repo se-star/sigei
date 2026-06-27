@@ -5527,7 +5527,7 @@ function renderHorarios() {
           id:            'asig_' + asig.id + '_' + curso.seccion_id + '_' + d.dia + '_' + d.hora_inicio,
           docente_id:    asig.docente_id,
           seccion_id:    curso.seccion_id,
-          materia:       curso.materia || '',
+          materia:       curso.materia || asig.materia || '',
           dia:           d.dia,
           hora_inicio:   d.hora_inicio,
           hora_fin:      d.hora_fin,
