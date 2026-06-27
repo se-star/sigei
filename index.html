@@ -4731,23 +4731,30 @@ function guardarAsignacion() {
   const data   = { docente_id: parseInt(docente_id), materia, cursos,
                    estado: document.getElementById('asig-estado').value };
 
-  const asigs = DB.get('asignaciones');
-  let asigId;
-  if (!idEdit) {
-    asigId = DB.nextId('asignaciones');
-    asigs.push({ id: asigId, ...data });
-    toast('Asignación creada y horario generado.');
-  } else {
-    asigId = parseInt(idEdit);
-    const idx = asigs.findIndex(a => a.id == idEdit);
-    Object.assign(asigs[idx], data);
-    toast('Asignación actualizada.');
+  try {
+    const asigs = DB.get('asignaciones');
+    let asigId;
+    if (!idEdit) {
+      asigId = DB.nextId('asignaciones');
+      asigs.push({ id: asigId, ...data });
+      toast('Asignación creada y horario generado.');
+    } else {
+      asigId = parseInt(idEdit);
+      const idx = asigs.findIndex(a => a.id == idEdit);
+      Object.assign(asigs[idx], data);
+      toast('Asignación actualizada.');
+    }
+    DB.set('asignaciones', asigs);
+    sincronizarHorarios(asigId, data);
+    _reactivarBtn();
+    bootstrap.Offcanvas.getOrCreateInstance(document.getElementById('offcanvasAsignacion')).hide();
+    renderAsignaciones();
+    if (document.getElementById('tablero-doc-sel').value == data.docente_id) renderTableroDocente();
+  } catch(e) {
+    console.error('Error guardando asignación:', e);
+    toast('Error al guardar. Intente de nuevo.', false);
+    _reactivarBtn();
   }
-  DB.set('asignaciones', asigs);
-  sincronizarHorarios(asigId, data);
-  bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasAsignacion')).hide();
-  renderAsignaciones();
-  if (document.getElementById('tablero-doc-sel').value == data.docente_id) renderTableroDocente();
 }
 
 function sincronizarHorarios(asigId, data) {
