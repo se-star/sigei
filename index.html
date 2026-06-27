@@ -2391,7 +2391,9 @@
           <option value="">Seleccione</option>
           <option>Preescolar</option>
           <option>Primaria</option>
-          <option>Secundaria y Media</option>
+          <option>Secundaria</option>
+          <option>Media</option>
+          <option>Directivo</option>
         </select>
       </div>
       <div class="col-6">
@@ -7048,20 +7050,45 @@ async function confirmarImportExcel() {
     const cedula = String(row[mapa.cedula]||'').trim();
     if (!cedula) { skipped++; continue; }
     const get = (k) => String(row[mapa[k]] != null ? row[mapa[k]] : '').trim();
+
+    // Normalizar género al valor canónico del select
+    const _generoRaw = normalizar(get('genero'));
+    const _generoMap = {
+      'masculino':'Masculino','hombre':'Masculino','male':'Masculino','m':'Masculino',
+      'femenino':'Femenino','mujer':'Femenino','female':'Femenino','f':'Femenino',
+      'otro':'Otro','other':'Otro','no binario':'Otro'
+    };
+    const _genero = _generoMap[_generoRaw] || get('genero');
+
+    // Normalizar nivel al valor canónico del select
+    const _nivelRaw = normalizar(get('nivel'));
+    const _nivelMap = {
+      'preescolar':'Preescolar','prescolar':'Preescolar','kinder':'Preescolar','transicion':'Preescolar',
+      'primaria':'Primaria','basica primaria':'Primaria','primaria basica':'Primaria',
+      'secundaria':'Secundaria','basica secundaria':'Secundaria','secundaria basica':'Secundaria',
+      'media':'Media','bachillerato':'Media','media vocacional':'Media','media tecnica':'Media',
+      'directivo':'Directivo','directivos':'Directivo','directivo docente':'Directivo',
+    };
+    const _nivel = _nivelMap[_nivelRaw] || get('nivel');
+
     const plain = {
       cedula, p_nombre: get('p_nombre'), s_nombre: get('s_nombre'),
       p_apellido: get('p_apellido'), s_apellido: get('s_apellido'),
       fecha_nac: xlsxFecha(mapa.fecha_nac !== null ? row[mapa.fecha_nac] : ''),
-      genero: get('genero'), telefono: get('telefono'), celular: get('celular'),
+      genero: _genero, telefono: get('telefono'), celular: get('celular'),
       correo: get('correo'), municipio: get('municipio'), direccion: get('direccion'),
       estado: xlsxEstado(mapa.estado !== null ? row[mapa.estado] : 'Activo'),
       area: get('area'), tipo_vinc: get('tipo_vinc'), decreto: get('decreto'),
-      nivel: get('nivel') || '',
+      nivel: _nivel,
       sede_id: (() => {
         const nombreSede = normalizar(get('sede'));
         if (!nombreSede) return null;
-        const s = DB.get('sedes').find(x => normalizar(x.nombre) === nombreSede);
-        return s ? s.id : null;
+        // Búsqueda exacta primero, luego parcial
+        const sedes = DB.get('sedes');
+        const exact = sedes.find(x => normalizar(x.nombre) === nombreSede);
+        if (exact) return exact.id;
+        const partial = sedes.find(x => normalizar(x.nombre).includes(nombreSede) || nombreSede.includes(normalizar(x.nombre)));
+        return partial ? partial.id : null;
       })(),
     };
     if (!plain.p_nombre || !plain.p_apellido) { skipped++; continue; }
