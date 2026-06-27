@@ -1596,25 +1596,34 @@
         <div class="col-12 col-lg-4">
           <div class="chart-card">
             <h6><i class="bi bi-bar-chart-fill me-2" style="color:#0284C7"></i>Grupos por grado</h6>
-            <div class="chart-wrap" style="height:200px">
+            <div class="chart-wrap" style="height:190px">
               <canvas id="chart-grupos-grado"></canvas>
             </div>
           </div>
         </div>
         <!-- Distribución por nivel (donut) -->
-        <div class="col-12 col-lg-3">
+        <div class="col-12 col-lg-2">
           <div class="chart-card">
-            <h6><i class="bi bi-pie-chart-fill me-2" style="color:#7C3AED"></i>Grupos por nivel</h6>
-            <div class="chart-wrap" style="height:200px">
+            <h6><i class="bi bi-pie-chart-fill me-2" style="color:#7C3AED"></i>Por nivel</h6>
+            <div class="chart-wrap" style="height:190px">
               <canvas id="chart-nivel-donut"></canvas>
             </div>
           </div>
         </div>
-        <!-- Grupos sin docente guía -->
-        <div class="col-12 col-lg-5">
+        <!-- Capacidad por nivel -->
+        <div class="col-12 col-lg-3">
           <div class="chart-card">
-            <h6><i class="bi bi-exclamation-triangle-fill me-2" style="color:#EF4444"></i>Grupos sin docente guía asignado</h6>
-            <div id="sin-docente-list" style="max-height:180px;overflow-y:auto"></div>
+            <h6><i class="bi bi-people-fill me-2" style="color:#D97706"></i>Estudiantes por nivel</h6>
+            <div class="chart-wrap" style="height:190px">
+              <canvas id="chart-capacidad-nivel"></canvas>
+            </div>
+          </div>
+        </div>
+        <!-- Grupos sin docente asignado -->
+        <div class="col-12 col-lg-3">
+          <div class="chart-card" style="border-left:3px solid #FCA5A5">
+            <h6><i class="bi bi-exclamation-triangle-fill me-2" style="color:#EF4444"></i>Sin docente asignado</h6>
+            <div id="sin-docente-list" style="max-height:170px;overflow-y:auto"></div>
           </div>
         </div>
       </div>
@@ -3808,25 +3817,35 @@ var _chartGruposGrado = null, _chartNivelDonut = null, _chartCapacidadNivel = nu
 function renderGraficasGrados(grados, secciones) {
   if (typeof Chart === 'undefined') return;
 
-  // ── 0. Grupos sin docente guía ──────────────────────────────────────
-  var sinDocente = secciones.filter(function(s){ return !s.director_id; });
+  // ── 0. Grupos sin docente asignado (cruza con asignaciones) ─────────
+  var asignaciones = DB.get('asignaciones') || [];
+  // Colectar IDs de secciones que tienen al menos una asignación activa
+  var secsConDocente = {};
+  asignaciones.filter(function(a){ return a.estado === 'Activo'; }).forEach(function(a) {
+    (a.cursos || []).forEach(function(c) { secsConDocente[c.seccion_id] = true; });
+  });
+  // También considerar director_id
+  secciones.forEach(function(s){ if (s.director_id) secsConDocente[s.id] = true; });
+
+  var sinDocente = secciones.filter(function(s){ return !secsConDocente[s.id]; });
   var listEl = document.getElementById('sin-docente-list');
   if (listEl) {
     if (!sinDocente.length) {
-      listEl.innerHTML = '<div style="text-align:center;padding:24px 0;color:#10B981">'
-        + '<i class="bi bi-check-circle-fill" style="font-size:28px;display:block;margin-bottom:6px"></i>'
-        + '<span style="font-size:13px;font-weight:600">Todos los grupos tienen docente guía</span></div>';
+      listEl.innerHTML = '<div style="text-align:center;padding:20px 0;color:#10B981">'
+        + '<i class="bi bi-check-circle-fill" style="font-size:26px;display:block;margin-bottom:6px"></i>'
+        + '<span style="font-size:12px;font-weight:600">Todos los grupos tienen docente asignado</span></div>';
     } else {
-      listEl.innerHTML = sinDocente.map(function(s) {
-        var grado = grados.find(function(g){ return g.id == s.grado_id; });
-        var cfg = NIVEL_CONFIG[(grado||{}).nivel] || { color:'#94A3B8' };
-        return '<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;margin-bottom:4px;background:#FEF2F2">'
-          + '<div style="width:8px;height:8px;border-radius:50%;background:'+cfg.color+';flex-shrink:0"></div>'
-          + '<span style="font-size:12px;font-weight:600;color:#1E293B">'+(grado?grado.nombre+' — ':'')+'Grupo '+s.nombre+'</span>'
-          + '<span style="margin-left:auto;font-size:10px;color:#EF4444;font-weight:600">Sin docente guía</span>'
-          + '<button class="btn btn-xs btn-outline-primary btn-sm" style="font-size:10px;padding:1px 6px" onclick="mostrarSeccionesGrado('+s.grado_id+')" title="Ir al grado">Asignar</button>'
-          + '</div>';
-      }).join('');
+      listEl.innerHTML = '<div style="font-size:11px;color:#EF4444;font-weight:700;margin-bottom:6px">'
+        + sinDocente.length + ' grupo(s) sin docente</div>'
+        + sinDocente.map(function(s) {
+          var grado = grados.find(function(g){ return g.id == s.grado_id; });
+          var cfg = NIVEL_CONFIG[(grado||{}).nivel] || { color:'#94A3B8' };
+          return '<div style="display:flex;align-items:center;gap:6px;padding:5px 6px;border-radius:7px;margin-bottom:3px;background:#FEF2F2">'
+            + '<div style="width:7px;height:7px;border-radius:50%;background:'+cfg.color+';flex-shrink:0"></div>'
+            + '<span style="font-size:11px;font-weight:600;color:#1E293B;flex:1">'+(grado?grado.nombre.replace(' Grado','°')+' ':'')+'Grupo '+s.nombre+'</span>'
+            + '<button class="btn btn-xs btn-outline-danger btn-sm" style="font-size:9px;padding:1px 5px" onclick="mostrarSeccionesGrado('+s.grado_id+')">Ver</button>'
+            + '</div>';
+        }).join('');
     }
   }
 
