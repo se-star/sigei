@@ -3109,6 +3109,26 @@ function badgeEstado(e) {
   };
   return '<span class="badge-status badge-'+(cls[e]||'pendiente')+'">'+(e||'—')+'</span>';
 }
+// Badge visual por tipo de novedad
+function badgeTipoPermiso(tipo) {
+  var _cfg = {
+    'Permiso médico':         { icon:'bi-heart-pulse-fill',   bg:'#FEE2E2', color:'#991B1B', border:'#FECACA' },
+    'Licencia':               { icon:'bi-file-earmark-text-fill', bg:'#DBEAFE', color:'#1E40AF', border:'#BFDBFE' },
+    'Licencia de maternidad': { icon:'bi-person-hearts',      bg:'#FCE7F3', color:'#9D174D', border:'#FBCFE8' },
+    'Licencia de paternidad': { icon:'bi-person-hearts',      bg:'#EDE9FE', color:'#5B21B6', border:'#DDD6FE' },
+    'Comisión':               { icon:'bi-briefcase-fill',     bg:'#FEF3C7', color:'#92400E', border:'#FDE68A' },
+    'Calamidad doméstica':    { icon:'bi-house-fill',         bg:'#FFEDD5', color:'#9A3412', border:'#FED7AA' },
+    'Incapacidad':            { icon:'bi-bandaid-fill',       bg:'#F0FDF4', color:'#14532D', border:'#BBF7D0' },
+    'Permiso sindical':       { icon:'bi-people-fill',        bg:'#F0FDFA', color:'#134E4A', border:'#CCFBF1' },
+    'Vacaciones':             { icon:'bi-sun-fill',           bg:'#FFFBEB', color:'#B45309', border:'#FDE68A' },
+    'Otro':                   { icon:'bi-three-dots',         bg:'#F1F5F9', color:'#475569', border:'#E2E8F0' },
+  };
+  var c = _cfg[tipo] || { icon:'bi-three-dots', bg:'#F1F5F9', color:'#475569', border:'#E2E8F0' };
+  return '<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;'
+    + 'background:'+c.bg+';color:'+c.color+';border:1px solid '+c.border+';font-size:11px;font-weight:600;white-space:nowrap">'
+    + '<i class="bi '+c.icon+'" style="font-size:11px"></i>' + (tipo||'—') + '</span>';
+}
+
 function emptyRow(cols, msg) {
   return '<tr><td colspan="'+cols+'" style="padding:0"><div class="empty-state-full">'
     + '<div class="es-icon"><i class="bi bi-inbox"></i></div>'
@@ -5915,11 +5935,22 @@ function renderKanbanPermisos() {
         ? '<button class="btn btn-xs btn-success btn-sm" onclick="event.stopPropagation();cambiarEstadoPermiso('+pid+',\'Aprobado\')" title="Aprobar"><i class="bi bi-check-lg"></i></button>'
           + '<button class="btn btn-xs btn-danger btn-sm" onclick="event.stopPropagation();cambiarEstadoPermiso('+pid+',\'Rechazado\')" title="Rechazar"><i class="bi bi-x-lg"></i></button>'
         : '';
-      return '<div class="kanban-card" onclick="abrirPermiso('+pid+')">'
-        + '<div class="kanban-card-name">'+doc+'</div>'
-        + '<div class="kanban-card-tipo">'+( p.tipo||'—' )+'</div>'
-        + (remp ? '<div style="font-size:11px;color:#64748B;margin-top:4px">'+remp+'</div>' : '')
-        + '<div class="kanban-card-footer">'
+      var secs2 = DB.get('secciones');
+      var grados2 = DB.get('grados');
+      var gradosK = (p.grados_afectados||[]).slice(0,3).map(function(sid){
+        var sec = secs2.find(function(s){return s.id==sid;});
+        if (!sec) return '';
+        var g = grados2.find(function(x){return x.id==sec.grado_id;});
+        return (g?g.nombre.replace(' Grado','')+' ':'')+sec.nombre;
+      }).filter(Boolean);
+      var gradosKlbl = gradosK.join(', ') + ((p.grados_afectados||[]).length > 3 ? ' +'+((p.grados_afectados||[]).length-3)+'...' : '');
+      return '<div class="kanban-card" onclick="abrirPermiso('+pid+')" style="border-top:3px solid '+(col.cls==='pendiente'?'#F59E0B':col.cls==='aprobado'?'#10B981':col.cls==='rechazado'?'#EF4444':'#6366F1')+'">'
+        + '<div style="margin-bottom:8px">' + badgeTipoPermiso(p.tipo) + '</div>'
+        + '<div class="kanban-card-name" style="font-size:13px;font-weight:700;color:#0F172A;margin-bottom:4px">'+doc+'</div>'
+        + (gradosKlbl ? '<div style="font-size:11px;color:#64748B;margin-bottom:6px"><i class="bi bi-mortarboard-fill me-1" style="color:#94A3B8"></i>'+gradosKlbl+'</div>' : '')
+        + (remp ? '<div style="font-size:11px;color:#0F766E;background:#F0FDFA;padding:3px 8px;border-radius:8px;margin-bottom:6px"><i class="bi bi-arrow-left-right me-1"></i>'+remp.replace('🔄 ','')+'</div>' : '')
+        + (p.horas_afectadas ? '<div style="font-size:11px;color:#7C3AED;margin-bottom:4px"><i class="bi bi-clock-fill me-1"></i>'+p.horas_afectadas+' horas</div>' : '')
+        + '<div class="kanban-card-footer" style="margin-top:8px">'
         + '<span class="kanban-card-fecha"><i class="bi bi-calendar3 me-1"></i>'+fecha+'</span>'
         + '<div class="kanban-card-actions">'+aprBtns
         + '<button class="btn btn-xs btn-outline-primary btn-sm" onclick="event.stopPropagation();abrirPermiso('+pid+')" title="Editar"><i class="bi bi-pencil-fill"></i></button>'
@@ -5993,7 +6024,7 @@ function renderPermisos() {
   return '<tr style="cursor:pointer" onclick="abrirPermiso('+pid2+')" title="Ver/Editar permiso">'
       + '<td style="white-space:nowrap">' + fmt(p.fecha_novedad||p.fecha_inicio) + '</td>'
       + '<td><strong>' + nombreDocente(p.docente_id) + '</strong></td>'
-      + '<td><span style="font-size:11px;background:var(--blue-50);color:var(--blue-600);padding:2px 8px;border-radius:20px">' + (p.tipo||'—') + '</span></td>'
+      + '<td>' + badgeTipoPermiso(p.tipo) + '</td>'
       + '<td style="font-size:12px">' + gradosStr + '</td>'
       + '<td style="text-align:center">' + (p.horas_afectadas||'—') + '</td>'
       + '<td style="font-size:12px">' + reemplNom + (p.fecha_reemplazo ? '<br><small style="color:var(--slate-400)">'+fmt(p.fecha_reemplazo)+'</small>' : '') + '</td>'
