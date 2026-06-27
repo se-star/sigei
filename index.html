@@ -2316,13 +2316,14 @@
       </div>
       <div class="col-6">
         <label class="form-label" style="font-size:12px;font-weight:600">Tipo *</label>
-        <select class="form-select form-select-sm" id="evento-tipo">
+        <select class="form-select form-select-sm" id="evento-tipo" onchange="toggleTipoOtro()">
           <option value="">Seleccionar tipo...</option>
           <option>Institucional</option><option>Académica</option>
           <option>Formación docente</option><option>Comunidad</option>
           <option>Festivo</option><option>Cultural</option>
           <option>Deportivo</option><option>Otro</option>
         </select>
+        <input type="text" class="form-control form-control-sm mt-1 d-none" id="evento-tipo-otro" placeholder="Especifica el tipo...">
       </div>
       <div class="col-6">
         <label class="form-label" style="font-size:12px;font-weight:600">Área / Responsable</label>
@@ -5008,6 +5009,19 @@ function renderCronograma() {
   renderGraficasCronograma(eventosAnio);
 }
 
+function toggleTipoOtro() {
+  var sel   = document.getElementById('evento-tipo');
+  var input = document.getElementById('evento-tipo-otro');
+  if (!sel || !input) return;
+  if (sel.value === 'Otro') {
+    input.classList.remove('d-none');
+    input.focus();
+  } else {
+    input.classList.add('d-none');
+    input.value = '';
+  }
+}
+
 var _chartCronoTipo = null;
 var _chartCronoMes  = null;
 
@@ -5097,6 +5111,8 @@ function abrirEvento(id) {
   document.getElementById('evento-id').value           = '';
   document.getElementById('evento-actividad').value    = '';
   document.getElementById('evento-tipo').value         = '';
+  document.getElementById('evento-tipo-otro').value    = '';
+  document.getElementById('evento-tipo-otro').classList.add('d-none');
   document.getElementById('evento-fecha-ini').value    = '';
   document.getElementById('evento-fecha-fin').value    = '';
   document.getElementById('evento-hora-ini').value     = '';
@@ -5115,7 +5131,12 @@ function abrirEvento(id) {
     if (!ev) return;
     document.getElementById('evento-id').value           = ev.id;
     document.getElementById('evento-actividad').value    = ev.actividad;
-    document.getElementById('evento-tipo').value         = ev.tipo;
+    var _tiposBase = ['Institucional','Académica','Formación docente','Comunidad','Festivo','Cultural','Deportivo','Otro'];
+    var _esBase = _tiposBase.includes(ev.tipo);
+    document.getElementById('evento-tipo').value = _esBase ? ev.tipo : 'Otro';
+    var _inputOtro = document.getElementById('evento-tipo-otro');
+    if (!_esBase) { _inputOtro.value = ev.tipo; _inputOtro.classList.remove('d-none'); }
+    else { _inputOtro.value = ''; _inputOtro.classList.add('d-none'); }
     document.getElementById('evento-fecha-ini').value    = ev.fecha_ini;
     document.getElementById('evento-fecha-fin').value    = ev.fecha_fin || '';
     document.getElementById('evento-hora-ini').value     = ev.hora_ini || '';
@@ -5136,7 +5157,9 @@ function abrirEvento(id) {
 
 function guardarEvento() {
   const actividad  = document.getElementById('evento-actividad').value.trim();
-  const tipo       = document.getElementById('evento-tipo').value;
+  var _tipoSel = document.getElementById('evento-tipo').value;
+  var _tipoOtro = document.getElementById('evento-tipo-otro').value.trim();
+  const tipo = (_tipoSel === 'Otro' && _tipoOtro) ? _tipoOtro : _tipoSel;
   const fecha_ini  = document.getElementById('evento-fecha-ini').value;
   const fecha_fin  = document.getElementById('evento-fecha-fin').value;
   const hora_ini   = document.getElementById('evento-hora-ini').value;
