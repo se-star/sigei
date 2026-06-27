@@ -1838,7 +1838,7 @@
         <!-- Próximos eventos -->
         <div class="col-12 col-lg-3">
           <div class="chart-card" style="height:100%">
-            <h6><i class="bi bi-clock-fill me-2" style="color:#10B981"></i>Próximos eventos</h6>
+            <h6 id="crono-lista-titulo"><i class="bi bi-clock-fill me-2" style="color:#10B981"></i>Próximos eventos</h6>
             <div id="crono-proximos-list" style="max-height:200px;overflow-y:auto"></div>
           </div>
         </div>
@@ -5024,6 +5024,44 @@ function toggleTipoOtro() {
 
 var _chartCronoTipo = null;
 var _chartCronoMes  = null;
+var _cronoMesFiltro = null;   // índice 0-11 del mes seleccionado, null = todos
+var _cronoEventosCache = [];  // todos los eventos del año en curso
+
+function renderListaCronoEventos(eventos, mesIdx) {
+  var meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  var hoy = new Date().toISOString().slice(0,10);
+  var listEl   = document.getElementById('crono-proximos-list');
+  var tituloEl = document.getElementById('crono-lista-titulo');
+  if (!listEl) return;
+
+  var filtrados;
+  if (mesIdx !== null && mesIdx !== undefined) {
+    filtrados = eventos.filter(function(e){
+      var m = parseInt((e.fecha_ini||'').slice(5,7)) - 1;
+      return m === mesIdx;
+    });
+    if (tituloEl) tituloEl.innerHTML = '<i class="bi bi-funnel-fill me-2" style="color:#3B82F6"></i>'
+      + meses[mesIdx] + ' <small style="font-size:10px;color:#64748B;font-weight:400">(click para quitar)</small>';
+  } else {
+    filtrados = eventos.filter(function(e){ return e.fecha_ini >= hoy; }).slice(0,6);
+    if (tituloEl) tituloEl.innerHTML = '<i class="bi bi-clock-fill me-2" style="color:#10B981"></i>Próximos eventos';
+  }
+
+  if (!filtrados.length) {
+    listEl.innerHTML = '<div style="text-align:center;padding:20px;color:#94A3B8;font-size:12px"><i class="bi bi-calendar-check" style="font-size:24px;display:block;margin-bottom:6px;opacity:.4"></i>Sin eventos</div>';
+  } else {
+    listEl.innerHTML = filtrados.map(function(e){
+      var tc = TIPO_COLORES[e.tipo] || TIPO_COLORES['Otro'];
+      var d  = fmt(e.fecha_ini);
+      return '<div style="display:flex;align-items:center;gap:8px;padding:6px 4px;border-bottom:1px solid #F1F5F9">'
+        + '<div style="width:4px;min-width:4px;height:36px;border-radius:2px;background:'+(tc?tc.txt:'#94A3B8')+'"></div>'
+        + '<div style="flex:1;min-width:0">'
+        + '<div style="font-size:11px;font-weight:700;color:#1E293B;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + e.actividad + '</div>'
+        + '<div style="font-size:10px;color:#94A3B8">' + d + (e.hora_ini ? ' · '+e.hora_ini : '') + '</div>'
+        + '</div></div>';
+    }).join('');
+  }
+}
 
 function renderGraficasCronograma(eventos) {
   if (typeof Chart === 'undefined') return;
@@ -5063,46 +5101,61 @@ function renderGraficasCronograma(eventos) {
   }
 
   // ── Gráfica por mes (barras) ─────────────────────────────────────────────
+  _cronoEventosCache = eventos;
+  _cronoMesFiltro = null;
   var meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
   var mesCounts = new Array(12).fill(0);
   eventos.forEach(function(e){
     var m = parseInt((e.fecha_ini||'').slice(5,7)) - 1;
     if (m >= 0 && m < 12) mesCounts[m]++;
   });
-  var mesColors = mesCounts.map(function(v,i){
-    var now = new Date().getMonth();
-    return i === now ? '#3B82F6' : '#93C5FD';
-  });
+  var now = new Date().getMonth();
+  var getMesColors = function(selIdx) {
+    return mesCounts.map(function(v,i){
+      if (selIdx !== null && selIdx !== undefined) return i === selIdx ? '#1D4ED8' : '#BFDBFE';
+      return i === now ? '#3B82F6' : '#93C5FD';
+    });
+  };
 
   var ctx2 = document.getElementById('chart-crono-mes');
   if (ctx2) {
     if (_chartCronoMes) _chartCronoMes.destroy();
     _chartCronoMes = new Chart(ctx2, {
       type: 'bar',
-      data: { labels: meses, datasets: [{ data: mesCounts, backgroundColor: mesColors, borderRadius:5, borderSkipped:false }] },
-      options: { plugins:{ legend:{display:false} }, scales:{ y:{ beginAtZero:true, ticks:{stepSize:1, font:{size:9}}, grid:{color:'rgba(0,0,0,.04)'} }, x:{ ticks:{font:{size:9}}, grid:{display:false} } }, maintainAspectRatio:false }
+      data: { labels: meses, datasets: [{ data: mesCounts, backgroundColor: getMesColors(null), borderRadius:5, borderSkipped:false }] },
+      options: {
+        plugins:{ legend:{display:false}, tooltip:{ callbacks:{ title: function(items){ return meses[items[0].dataIndex]; }, label: function(item){ return item.raw + ' evento(s)'; } } } },
+        scales:{ y:{ beginAtZero:true, ticks:{stepSize:1, font:{size:9}}, grid:{color:'rgba(0,0,0,.04)'} }, x:{ ticks:{font:{size:9}}, grid:{display:false} } },
+        maintainAspectRatio:false,
+        onClick: function(evt, elements) {
+          if (!elements.length) {
+            // click fuera de barra → quitar filtro
+            _cronoMesFiltro = null;
+            _chartCronoMes.data.datasets[0].backgroundColor = getMesColors(null);
+            _chartCronoMes.update();
+            renderListaCronoEventos(_cronoEventosCache, null);
+            return;
+          }
+          var idx = elements[0].index;
+          if (_cronoMesFiltro === idx) {
+            // mismo mes → deseleccionar
+            _cronoMesFiltro = null;
+            _chartCronoMes.data.datasets[0].backgroundColor = getMesColors(null);
+          } else {
+            _cronoMesFiltro = idx;
+            _chartCronoMes.data.datasets[0].backgroundColor = getMesColors(idx);
+          }
+          _chartCronoMes.update();
+          renderListaCronoEventos(_cronoEventosCache, _cronoMesFiltro);
+        },
+        cursor: 'pointer'
+      }
     });
+    ctx2.style.cursor = 'pointer';
   }
 
-  // ── Próximos eventos (lista) ─────────────────────────────────────────────
-  var listEl = document.getElementById('crono-proximos-list');
-  if (listEl) {
-    var prox = eventos.filter(function(e){ return e.fecha_ini >= hoy; }).slice(0,6);
-    if (!prox.length) {
-      listEl.innerHTML = '<div style="text-align:center;padding:20px;color:#94A3B8;font-size:12px"><i class="bi bi-calendar-check" style="font-size:24px;display:block;margin-bottom:6px;opacity:.4"></i>Sin eventos próximos</div>';
-    } else {
-      listEl.innerHTML = prox.map(function(e){
-        var tc = TIPO_COLORES[e.tipo] || TIPO_COLORES['Otro'];
-        var d  = fmt(e.fecha_ini);
-        return '<div style="display:flex;align-items:center;gap:8px;padding:6px 4px;border-bottom:1px solid #F1F5F9">'
-          + '<div style="width:4px;min-width:4px;height:36px;border-radius:2px;background:'+(tc?tc.txt:'#94A3B8')+'"></div>'
-          + '<div style="flex:1;min-width:0">'
-          + '<div style="font-size:11px;font-weight:700;color:#1E293B;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + e.actividad + '</div>'
-          + '<div style="font-size:10px;color:#94A3B8">' + d + (e.hora_ini ? ' · '+e.hora_ini : '') + '</div>'
-          + '</div></div>';
-      }).join('');
-    }
-  }
+  // ── Lista inicial (próximos eventos) ────────────────────────────────────
+  renderListaCronoEventos(eventos, null);
 }
 
 function abrirEvento(id) {
