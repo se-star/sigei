@@ -3817,17 +3817,8 @@ var _chartGruposGrado = null, _chartNivelDonut = null, _chartCapacidadNivel = nu
 function renderGraficasGrados(grados, secciones) {
   if (typeof Chart === 'undefined') return;
 
-  // ── 0. Grupos sin docente asignado (cruza con asignaciones) ─────────
-  var asignaciones = DB.get('asignaciones') || [];
-  // Colectar IDs de secciones que tienen al menos una asignación activa
-  var secsConDocente = {};
-  asignaciones.filter(function(a){ return a.estado === 'Activo'; }).forEach(function(a) {
-    (a.cursos || []).forEach(function(c) { secsConDocente[c.seccion_id] = true; });
-  });
-  // También considerar director_id
-  secciones.forEach(function(s){ if (s.director_id) secsConDocente[s.id] = true; });
-
-  var sinDocente = secciones.filter(function(s){ return !secsConDocente[s.id]; });
+  // ── 0. Grupos sin docente guía (director_id del grupo) ──────────────
+  var sinDocente = secciones.filter(function(s){ return !s.director_id; });
   var listEl = document.getElementById('sin-docente-list');
   if (listEl) {
     if (!sinDocente.length) {
