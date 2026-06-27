@@ -5791,105 +5791,53 @@ function limpiarHorarios() {
 // ══════════════════════════════════════════════
 var _asigImportRows = [];
 
-async function descargarPlantillaAsignaciones() {
+function descargarPlantillaAsignaciones() {
   var docentes  = (DB.get('docentes')||[]).filter(function(d){ return d.estado !== 'Inactivo'; });
   var secciones = DB.get('secciones') || [];
   var grados    = DB.get('grados')    || [];
+  var materias  = (MATERIAS||[]).filter(function(m){ return m !== 'Otra...'; });
 
-  // ── Listas desde la BD ───────────────────────────────────────────
-  var listaDocentes = docentes.map(function(d){ return (d.p_nombre+' '+d.p_apellido).trim(); });
-  var listaMaterias = (MATERIAS||[]).filter(function(m){ return m !== 'Otra...'; });
-  var listaGrados   = grados.map(function(g){ return g.nombre; });
-  var listaGrupos   = Array.from(new Set(secciones.map(function(s){ return s.nombre; }))).sort();
-  var listaDias     = ['Lunes','Martes','Miércoles','Jueves','Viernes'];
-  var listaHoras    = ['06:00','06:30','07:00','07:30','08:00','08:30','09:00','09:30',
-                       '10:00','10:30','11:00','11:30','12:00','12:30','13:00','13:30',
-                       '14:00','14:30','15:00','15:30','16:00','16:30','17:00'];
+  var wb = XLSX.utils.book_new();
 
-  // ── Hoja Asignaciones ────────────────────────────────────────────
-  var headers = ['DOCENTE','MATERIA','GRADO','GRUPO','DÍA','HORA INICIO (HH:MM)','HORA FIN (HH:MM)'];
-  var docEj   = listaDocentes[0] || 'Jhon Pérez';
-  var gradEj  = listaGrados[0]   || '1° Grado';
-  var grupoEj = listaGrupos[0]   || 'A';
-  var wsData  = [headers, [docEj,'Matemáticas',gradEj,grupoEj,'Lunes','07:00','08:00']];
-  for (var i = 0; i < 198; i++) wsData.push(['','','','','','','']);
+  // ── Hoja Asignaciones ────────────────────────────────────────────────────
+  var filas = [
+    ['DOCENTE', 'MATERIA', 'GRADO', 'GRUPO', 'DÍA', 'HORA INICIO', 'HORA FIN']
+  ];
+  // 3 filas de ejemplo
+  var docEj   = docentes.length  ? docentes[0].p_nombre  + ' ' + docentes[0].p_apellido  : 'Ejemplo Docente';
+  var gradEj  = grados.length    ? grados[0].nombre   : '1° Grado';
+  var grupoEj = secciones.length ? secciones[0].nombre : 'A';
+  filas.push([docEj,   'Matemáticas',     gradEj, grupoEj, 'Lunes',     '07:00', '08:00']);
+  filas.push([docEj,   'Matemáticas',     gradEj, grupoEj, 'Miércoles', '07:00', '08:00']);
+  filas.push(['',      'Ciencias Sociales', '',     '',      'Martes',    '08:00', '09:00']);
+  // 150 filas vacías
+  for (var i = 0; i < 150; i++) filas.push(['', '', '', '', '', '', '']);
 
-  var wb  = XLSX.utils.book_new();
-  var ws1 = XLSX.utils.aoa_to_sheet(wsData);
-  ws1['!cols'] = [{wch:32},{wch:26},{wch:16},{wch:10},{wch:14},{wch:18},{wch:16}];
-  XLSX.utils.book_append_sheet(wb, ws1, 'Asignaciones');
+  var ws = XLSX.utils.aoa_to_sheet(filas);
+  ws['!cols'] = [{wch:30},{wch:26},{wch:16},{wch:8},{wch:13},{wch:13},{wch:11}];
+  ws['!rows'] = [{hpt:22}];
+  XLSX.utils.book_append_sheet(wb, ws, 'Asignaciones');
 
-  // ── Hoja Listas (oculta — alimenta los dropdowns) ───────────────────────
-  var maxL = Math.max(listaDocentes.length, listaMaterias.length, listaGrados.length, listaGrupos.length, listaDias.length, listaHoras.length);
-  var listasData = [];
-  for (var i = 0; i < maxL; i++) {
-    listasData.push([listaDocentes[i]||'', listaMaterias[i]||'', listaGrados[i]||'', listaGrupos[i]||'', listaDias[i]||'', listaHoras[i]||'']);
+  // ── Hoja Referencia ──────────────────────────────────────────────────────
+  var maxRef = Math.max(docentes.length, materias.length, grados.length, secciones.length);
+  var ref = [['DOCENTES (copiar exacto)', 'MATERIAS', 'GRADOS', 'GRUPOS', 'DÍAS', 'HORAS VÁLIDAS']];
+  var dias  = ['Lunes','Martes','Miércoles','Jueves','Viernes'];
+  var horas = ['06:00','06:30','07:00','07:30','08:00','08:30','09:00','09:30',
+               '10:00','10:30','11:00','11:30','12:00','12:30','13:00','13:30',
+               '14:00','14:30','15:00','15:30','16:00','16:30','17:00'];
+  var maxR2 = Math.max(maxRef, horas.length);
+  for (var i = 0; i < maxR2; i++) {
+    var doc = docentes[i] ? docentes[i].p_nombre + ' ' + docentes[i].p_apellido : '';
+    ref.push([doc, materias[i]||'', grados[i]?grados[i].nombre:'', secciones[i]?secciones[i].nombre:'', dias[i]||'', horas[i]||'']);
   }
-  var wsL = XLSX.utils.aoa_to_sheet(listasData);
-  XLSX.utils.book_append_sheet(wb, wsL, 'Listas');
-
-  // ── Hoja Referencia (visible, solo consulta) ─────────────────────────
-  var maxRef = maxL;
-  var refRows = [['DOCENTES','MATERIAS','GRADOS','GRUPOS','DÍAS','HORAS']];
-  for (var i = 0; i < maxRef; i++) {
-    refRows.push([listaDocentes[i]||'', listaMaterias[i]||'', listaGrados[i]||'', listaGrupos[i]||'', listaDias[i]||'', listaHoras[i]||'']);
-  }
-  var ws2 = XLSX.utils.aoa_to_sheet(refRows);
-  ws2['!cols'] = [{wch:32},{wch:26},{wch:16},{wch:10},{wch:14},{wch:10}];
+  var ws2 = XLSX.utils.aoa_to_sheet(ref);
+  ws2['!cols'] = [{wch:30},{wch:26},{wch:16},{wch:8},{wch:13},{wch:13}];
   XLSX.utils.book_append_sheet(wb, ws2, 'Referencia');
 
-  // ── Inyectar validaciones y ocultar hoja Listas con JSZip ────────────────
-  if (typeof JSZip !== 'undefined') {
-    try {
-      var arrBuf = XLSX.write(wb, { bookType:'xlsx', type:'array' });
-      var zip    = await JSZip.loadAsync(arrBuf);
-
-      // Validaciones en sheet1.xml
-      var s1xml = await zip.file('xl/worksheets/sheet1.xml').async('string');
-      var nD   = listaDocentes.length || 1;
-      var nM   = listaMaterias.length || 1;
-      var nG   = listaGrados.length   || 1;
-      var nS   = listaGrupos.length   || 1;
-      var nDia = listaDias.length     || 5;
-      var nH   = listaHoras.length    || 23;
-
-      // Quitar dataValidations previos si existen
-      s1xml = s1xml.replace(/<dataValidations[\s\S]*?<\/dataValidations>/, function(){ return ''; });
-
-      var dv = '<dataValidations count="7">'
-        + '<dataValidation type="list" allowBlank="1" showDropDown="0" showInputMessage="1" showErrorAlert="1" sqref="A2:A200"><formula1>Listas!$A$1:$A$' + nD   + '</formula1></dataValidation>'
-        + '<dataValidation type="list" allowBlank="1" showDropDown="0" showInputMessage="1" showErrorAlert="1" sqref="B2:B200"><formula1>Listas!$B$1:$B$' + nM   + '</formula1></dataValidation>'
-        + '<dataValidation type="list" allowBlank="1" showDropDown="0" showInputMessage="1" showErrorAlert="1" sqref="C2:C200"><formula1>Listas!$C$1:$C$' + nG   + '</formula1></dataValidation>'
-        + '<dataValidation type="list" allowBlank="1" showDropDown="0" showInputMessage="1" showErrorAlert="1" sqref="D2:D200"><formula1>Listas!$D$1:$D$' + nS   + '</formula1></dataValidation>'
-        + '<dataValidation type="list" allowBlank="1" showDropDown="0" showInputMessage="1" showErrorAlert="1" sqref="E2:E200"><formula1>Listas!$E$1:$E$' + nDia + '</formula1></dataValidation>'
-        + '<dataValidation type="list" allowBlank="1" showDropDown="0" showInputMessage="1" showErrorAlert="1" sqref="F2:F200"><formula1>Listas!$F$1:$F$' + nH + '</formula1></dataValidation>'
-        + '<dataValidation type="list" allowBlank="1" showDropDown="0" showInputMessage="1" showErrorAlert="1" sqref="G2:G200"><formula1>Listas!$F$1:$F$' + nH + '</formula1></dataValidation>'
-        + '</dataValidations>';
-
-      s1xml = s1xml.replace(/<\/worksheet>/, function(){ return dv + '<\/worksheet>'; });
-      zip.file('xl/worksheets/sheet1.xml', s1xml);
-
-      // Ocultar hoja Listas en workbook.xml
-      var wbXml = await zip.file('xl/workbook.xml').async('string');
-      wbXml = wbXml.replace(/(<sheet[^>]*name="Listas"[^>]*?)(\s*\/>)/, '$1 state="hidden"$2');
-      wbXml = wbXml.replace(/(<sheet[^>]*name="Listas"[^>]*?)(\s*>)(?!.*state)/, '$1 state="hidden"$2');
-      zip.file('xl/workbook.xml', wbXml);
-
-      var blob = await zip.generateAsync({ type:'blob', mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      var url  = URL.createObjectURL(blob);
-      var a    = document.createElement('a');
-      a.href = url; a.download = 'Plantilla_Asignaciones_SIGEI.xlsx'; a.click();
-      setTimeout(function(){ URL.revokeObjectURL(url); }, 3000);
-      toast('✅ Plantilla descargada con listas de ' + listaDocentes.length + ' docentes, ' + listaGrados.length + ' grados y ' + listaGrupos.length + ' grupos.');
-      return;
-    } catch(e) {
-      console.error('Error generando plantilla:', e);
-    }
-  }
-  // Fallback sin validaciones
   XLSX.writeFile(wb, 'Plantilla_Asignaciones_SIGEI.xlsx');
-  toast('Plantilla descargada (sin listas desplegables).');
+  toast('✅ Plantilla descargada. Usa la hoja “Referencia” para ver los valores válidos.');
 }
+
 
 function importarAsignacionesExcel() {
   document.getElementById('import-asig-file').value = '';
