@@ -1577,11 +1577,11 @@
       <!-- Header -->
       <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <div>
-          <h5 style="font-weight:700;color:var(--slate-800);margin:0"><i class="bi bi-diagram-3-fill me-2 text-primary"></i>Grados y Secciones</h5>
-          <small class="text-muted">Selecciona un grado para ver sus secciones</small>
+          <h5 style="font-weight:700;color:var(--slate-800);margin:0"><i class="bi bi-diagram-3-fill me-2 text-primary"></i>Grados y Grupos</h5>
+          <small class="text-muted">Selecciona un grado para ver sus grupos</small>
         </div>
         <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="abrirSeccion()">
-          <i class="bi bi-plus-lg"></i> Nueva sección
+          <i class="bi bi-plus-lg"></i> Nuevo grupo
         </button>
       </div>
 
@@ -1628,7 +1628,7 @@
               <div class="alert alert-info d-flex gap-2 align-items-start mb-3" style="font-size:13px">
                 <i class="bi bi-info-circle-fill mt-1 flex-shrink-0"></i>
                 <div>Use la plantilla <strong>Plantilla_Asignaciones_SIGEI.xlsx</strong>. Una fila por bloque de horario.<br>
-                El sistema agrupará automáticamente por docente, materia y sección.</div>
+                El sistema agrupará automáticamente por docente, materia y grupo.</div>
               </div>
               <div class="mb-3">
                 <label class="form-label fw-semibold" style="font-size:13px">Seleccionar archivo Excel</label>
@@ -1641,7 +1641,7 @@
                     <thead>
                       <tr>
                         <th>#</th><th>Docente</th><th>Materia</th><th>Grado</th>
-                        <th>Sección</th><th>Día</th><th>Hora inicio</th><th>Hora fin</th><th>Estado</th>
+                        <th>Grupo</th><th>Día</th><th>Hora inicio</th><th>Hora fin</th><th>Estado</th>
                       </tr>
                     </thead>
                     <tbody id="import-asig-tbody"></tbody>
@@ -2414,7 +2414,7 @@
 
 <!-- Offcanvas Detalle Docente -->
 
-<!-- Offcanvas Sección / Grupo -->
+<!-- Offcanvas Grupo -->
 <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasTablero" style="width:min(680px,95vw)">
   <div class="offcanvas-header border-bottom" style="background:var(--slate-900);padding:20px">
     <div class="d-flex align-items-center gap-3" style="flex:1;min-width:0">
@@ -2552,10 +2552,10 @@
       <div class="row g-3 text-center" id="oc-grado-stats"></div>
     </div>
 
-    <!-- Secciones list -->
+    <!-- Grupos list -->
     <div style="padding:16px 20px">
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <div class="det-sec-title mb-0"><i class="bi bi-grid me-1"></i>Secciones</div>
+        <div class="det-sec-title mb-0"><i class="bi bi-grid me-1"></i>Grupos</div>
         <button class="btn btn-sm text-white" style="background:var(--blue-600);font-size:11px" onclick="abrirSeccionEnGrado()">
           <i class="bi bi-plus-lg"></i> Añadir
         </button>
@@ -2625,12 +2625,12 @@
   </div>
 </div>
 
-<!-- Modal Sección -->
+<!-- Modal Grupo -->
 <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasSeccionForm" style="width:min(520px,96vw)">
   <div class="offcanvas-header border-bottom" style="background:var(--slate-900);padding:20px 24px">
     <div>
       <h6 class="offcanvas-title text-white mb-0" style="font-weight:700;font-size:15px" id="offcanvasSeccionForm-title">Nueva Sección</h6>
-      <small class="text-white-50" style="font-size:11px">Gestión de Secciones / Grupos</small>
+      <small class="text-white-50" style="font-size:11px">Gestión de Grupos</small>
     </div>
     <button class="btn-close btn-close-white ms-3" data-bs-dismiss="offcanvas"></button>
   </div>
@@ -2642,7 +2642,7 @@
         <select class="form-select form-select-sm" id="sec-grado"></select>
       </div>
       <div class="col-6">
-        <label class="form-label" style="font-size:12px;font-weight:600">Nombre de la Sección *</label>
+        <label class="form-label" style="font-size:12px;font-weight:600">Nombre del Grupo *</label>
         <input type="text" class="form-control form-control-sm" id="sec-nombre" placeholder="Ej: A, B, C">
       </div>
       <div class="col-6">
@@ -2685,7 +2685,7 @@
     <input type="hidden" id="hor-id">
     <div class="row g-3">
       <div class="col-12">
-        <label class="form-label" style="font-size:12px;font-weight:600">Sección *</label>
+        <label class="form-label" style="font-size:12px;font-weight:600">Grupo *</label>
         <select class="form-select form-select-sm" id="hor-seccion"></select>
       </div>
       <div class="col-12">
@@ -3031,7 +3031,7 @@ const DB = {
 const PAGE_TITLES = {
   dashboard:    'Dashboard',
   docentes:     'Docentes',
-  grados:       'Grados y Secciones',
+  grados:       'Grados y Grupos',
   asignaciones: 'Asignación Académica',
   horarios:     'Horarios de Clase',
   sedes:        'Sedes',
@@ -3717,7 +3717,7 @@ function renderGrados() {
       + '<div class="grado-card-nivel">' + (g.nivel||'—') + '</div>'
       + '</div>'
       + '<div class="grado-card-secs">'
-      + '<span class="gc-badge">' + secsGrado.length + ' secc.</span>'
+      + '<span class="gc-badge">' + secsGrado.length + ' grupos</span>'
       + '<span class="gc-names">' + secNames + '</span>'
       + '</div>'
       + '</div></div>';
@@ -3759,7 +3759,7 @@ function mostrarSeccionesGrado(gradoId, refresh) {
     if (s.docente_id) docIds.add(s.docente_id);
   });
   document.getElementById('oc-grado-stats').innerHTML =
-    stat('bi-people-fill', cfg.color, secsGrado.length, 'Secciones') +
+    stat('bi-people-fill', cfg.color, secsGrado.length, 'Grupos') +
     stat('bi-person-fill', cfg.color, totalAlumnos, 'Cupos') +
     stat('bi-mortarboard-fill', cfg.color, docIds.size, 'Docentes');
 
@@ -3777,7 +3777,7 @@ function mostrarSeccionesGrado(gradoId, refresh) {
     return '<div style="background:#F8FAFC;border:1px solid #E8ECF2;border-radius:12px;padding:14px 16px;margin-bottom:10px">'
       + '<div class="d-flex justify-content-between align-items-start">'
       + '<div>'
-      + '<div style="font-size:18px;font-weight:800;color:' + cfg.color + ';letter-spacing:-.5px">Sección ' + s.nombre + '</div>'
+      + '<div style="font-size:18px;font-weight:800;color:' + cfg.color + ';letter-spacing:-.5px">Grupo ' + s.nombre + '</div>'
       + '<div style="font-size:12px;color:#64748B;margin-top:2px">' + (s.turno||'Mañana') + ' &nbsp;·&nbsp; ' + (s.capacidad||30) + ' cupos</div>'
       + '</div>'
       + '<div class="d-flex gap-1">'
@@ -3842,7 +3842,7 @@ function abrirSeccion(id=null) {
 function guardarSeccion() {
   const nombre = document.getElementById('sec-nombre').value.trim();
   const grado  = document.getElementById('sec-grado').value;
-  if (!nombre || !grado) { toast('Grado y nombre de sección son obligatorios.', false); return; }
+  if (!nombre || !grado) { toast('Grado y nombre de grupo son obligatorios.', false); return; }
 
   const secciones = DB.get('secciones');
   const idEdit    = document.getElementById('sec-id').value;
@@ -3856,11 +3856,11 @@ function guardarSeccion() {
 
   if (!idEdit) {
     secciones.push({ id: DB.nextId('secciones'), ...data });
-    toast('Sección creada.');
+    toast('Grupo creado.');
   } else {
     const idx = secciones.findIndex(s=>s.id==idEdit);
     Object.assign(secciones[idx], data);
-    toast('Sección actualizada.');
+    toast('Grupo actualizado.');
   }
   DB.set('secciones', secciones);
   bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasSeccionForm')).hide();
@@ -3868,9 +3868,9 @@ function guardarSeccion() {
 }
 
 function eliminarSeccion(id) {
-  if (!confirmar('¿Eliminar esta sección?')) return;
+  if (!confirmar('¿Eliminar este grupo?')) return;
   DB.set('secciones', DB.get('secciones').filter(s=>s.id!==id));
-  toast('Sección eliminada.');
+  toast('Grupo eliminado.');
   renderGrados();
 }
 
@@ -3995,7 +3995,7 @@ function agregarCursoRow(data) {
     grados.map(g => '<option value="' + g.id + '"' + (g.id == data.grado_id ? ' selected' : '') + '>' + g.nombre + '</option>').join('');
 
   const secsDelGrado = data.grado_id ? secciones.filter(s => s.grado_id == data.grado_id) : secciones;
-  const secOpts = '<option value="">Sección...</option>' +
+  const secOpts = '<option value="">Grupo...</option>' +
     secsDelGrado.map(s => '<option value="' + s.id + '"' + (s.id == data.seccion_id ? ' selected' : '') + '>' + s.nombre + '</option>').join('');
 
 
@@ -4038,7 +4038,7 @@ function agregarCursoRow(data) {
     + '<div class="row g-2">'
     + '<div class="col-md-6"><label class="form-label" style="font-size:11px">Grado</label>'
     + '<select class="form-select form-select-sm" id="cr-grado-' + idx + '" onchange="cargarSecsCurso(' + idx + ')">' + gradoOpts + '</select></div>'
-    + '<div class="col-md-6"><label class="form-label" style="font-size:11px">Sección *</label>'
+    + '<div class="col-md-6"><label class="form-label" style="font-size:11px">Grupo *</label>'
     + '<select class="form-select form-select-sm" id="cr-sec-' + idx + '">' + secOpts + '</select></div>'
     + '<div class="col-12 mt-2">'
     + '<label class="form-label" style="font-size:11px">Días y horario *</label>'
@@ -4086,7 +4086,7 @@ function cargarSecsCurso(idx) {
   const gradoId = document.getElementById('cr-grado-' + idx).value;
   const sSel    = document.getElementById('cr-sec-' + idx);
   const secs    = DB.get('secciones').filter(s => !gradoId || s.grado_id == gradoId);
-  sSel.innerHTML = '<option value="">Sección...</option>' +
+  sSel.innerHTML = '<option value="">Grupo...</option>' +
     secs.map(s => '<option value="' + s.id + '">' + s.nombre + '</option>').join('');
 }
 
@@ -5240,7 +5240,7 @@ function abrirHorario(id, fechaDia) {
   document.getElementById('oc-clase-materia-badge').textContent = cls.replace('block-','').toUpperCase();
   document.getElementById('oc-clase-materia').textContent = h.materia || '—';
   document.getElementById('oc-clase-seccion').textContent =
-    (grado ? grado.nombre : '—') + (sec ? ' — Sección ' + sec.nombre : '');
+    (grado ? grado.nombre : '—') + (sec ? ' — Grupo ' + sec.nombre : '');
 
   // Chips
   document.querySelector('#oc-clase-dia-chip span').textContent  = h.dia || '—';
@@ -5338,7 +5338,7 @@ function verClaseAsig(asigId, seccionId, dia, horaInicio, horaFin, fechaDia) {
   document.getElementById('oc-clase-materia-badge').textContent = cls.replace('block-','').toUpperCase();
   document.getElementById('oc-clase-materia').textContent       = asig.materia || '—';
   document.getElementById('oc-clase-seccion').textContent       =
-    (grado ? grado.nombre : '—') + (sec ? ' — Sección ' + sec.nombre : '');
+    (grado ? grado.nombre : '—') + (sec ? ' — Grupo ' + sec.nombre : '');
 
   document.querySelector('#oc-clase-dia-chip span').textContent  = dia || '—';
   document.querySelector('#oc-clase-hora-chip span').textContent = (horaInicio||'') + ' – ' + (horaFin||'');
@@ -5677,7 +5677,7 @@ function importarAsignacionesExcel() {
           var secMatch = gradoMatch
             ? secciones.find(function(s){ return s.grado_id == gradoMatch.id && s.nombre.toLowerCase() === secNom.toLowerCase(); })
             : null;
-          if (gradoMatch && !secMatch) { warns.push('Sección "' + secNom + '" no existe en ' + gradoNom); estado = 'ERROR'; }
+          if (gradoMatch && !secMatch) { warns.push('Grupo "' + secNom + '" no existe en ' + gradoNom); estado = 'ERROR'; }
 
           // Validar día
           if (!diasValidos.includes(dia)) { warns.push('Día inválido: "' + dia + '"'); estado = 'ERROR'; }
