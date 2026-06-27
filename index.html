@@ -3157,6 +3157,14 @@ const DB = {
       _cache[COLS[i]] = snap.exists ? (snap.data().items || []) : [];
     });
 
+    // Purge horarios entries that were auto-generated from asignaciones (asignacion_id present).
+    // These are shown virtually in renderHorarios — storing them causes duplicates.
+    const horariosPurged = (_cache.horarios || []).filter(h => !h.asignacion_id);
+    if (horariosPurged.length !== (_cache.horarios || []).length) {
+      _cache.horarios = horariosPurged;
+      _fs.collection('sigei').doc('horarios').set({ items: horariosPurged }).catch(function(){});
+    }
+
     // Seed grados on first run
     if (!_cache.grados.length) {
       const GRADOS = [
@@ -4755,23 +4763,8 @@ function guardarAsignacion() {
 }
 
 function sincronizarHorarios(asigId, data) {
-  let horarios = DB.get('horarios').filter(h => h.asignacion_id !== asigId);
-  let nextId   = horarios.length ? Math.max(...horarios.map(h => h.id)) + 1 : 1;
-  data.cursos.forEach(c => {
-    (c.dias || []).forEach(d => {
-      horarios.push({
-        id: nextId++,
-        seccion_id:    c.seccion_id,
-        materia:       data.materia,
-        dia:           d.dia,
-        hora_inicio:   d.hora_inicio,
-        hora_fin:      d.hora_fin,
-        docente_id:    data.docente_id,
-        asignacion_id: asigId,
-      });
-    });
-  });
-  DB.set('horarios', horarios);
+  // No-op: blocks from asignaciones are rendered virtually in renderHorarios.
+  // Saving them to the horarios collection caused duplicates.
 }
 
 function eliminarAsignacion(id) {
