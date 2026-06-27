@@ -3817,8 +3817,8 @@ var _chartGruposGrado = null, _chartNivelDonut = null, _chartCapacidadNivel = nu
 function renderGraficasGrados(grados, secciones) {
   if (typeof Chart === 'undefined') return;
 
-  // ── 0. Grupos sin docente guía (director_id del grupo) ──────────────
-  var sinDocente = secciones.filter(function(s){ return !s.director_id; });
+  // ── 0. Grupos sin docente guía (docente_id del grupo) ───────────────
+  var sinDocente = secciones.filter(function(s){ return !s.docente_id; });
   var listEl = document.getElementById('sin-docente-list');
   if (listEl) {
     if (!sinDocente.length) {
