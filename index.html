@@ -2331,11 +2331,11 @@
       </div>
       <div class="col-6">
         <label class="form-label" style="font-size:12px;font-weight:600">Fecha inicio *</label>
-        <input type="date" class="form-control form-control-sm" id="evento-fecha-ini">
+        <input type="date" class="form-control form-control-sm" id="evento-fecha-ini" onchange="verificarConflictoEvento()">
       </div>
       <div class="col-6">
         <label class="form-label" style="font-size:12px;font-weight:600">Fecha fin</label>
-        <input type="date" class="form-control form-control-sm" id="evento-fecha-fin">
+        <input type="date" class="form-control form-control-sm" id="evento-fecha-fin" onchange="verificarConflictoEvento()">
       </div>
       <div class="col-6">
         <label class="form-label" style="font-size:12px;font-weight:600">Hora inicio</label>
@@ -2347,7 +2347,7 @@
       </div>
       <div class="col-12">
         <label class="form-label" style="font-size:12px;font-weight:600">Grados</label>
-        <select class="form-select form-select-sm" id="evento-grados" multiple style="height:90px">
+        <select class="form-select form-select-sm" id="evento-grados" multiple style="height:90px" onchange="verificarConflictoEvento()">
           <option value="all">Todos los grados</option>
         </select>
         <div class="form-text" style="font-size:11px">Ctrl+clic para seleccionar varios</div>
@@ -2357,6 +2357,10 @@
         <textarea class="form-control form-control-sm" id="evento-observaciones" rows="3" placeholder="Notas adicionales..."></textarea>
       </div>
     </div>
+  </div>
+  <div id="evento-conflicto-alert" class="d-none mx-3 mb-2" style="border-radius:8px;background:#FEF3C7;border:1px solid #F59E0B;padding:10px 14px">
+    <div style="font-size:12px;font-weight:700;color:#92400E;margin-bottom:4px"><i class="bi bi-exclamation-triangle-fill me-1"></i>Conflicto de fechas</div>
+    <div id="evento-conflicto-detalle" style="font-size:11px;color:#78350F;line-height:1.5"></div>
   </div>
   <div class="border-top p-3 d-flex gap-2 justify-content-end oc-footer">
     <button class="btn btn-sm btn-secondary" data-bs-dismiss="offcanvas">Cancelar</button>
@@ -5227,6 +5231,7 @@ function abrirEvento(id) {
   document.getElementById('evento-tipo').value         = '';
   document.getElementById('evento-tipo-otro').value    = '';
   document.getElementById('evento-tipo-otro').classList.add('d-none');
+  var _ca = document.getElementById('evento-conflicto-alert'); if (_ca) _ca.classList.add('d-none');
   document.getElementById('evento-fecha-ini').value    = '';
   document.getElementById('evento-fecha-fin').value    = '';
   document.getElementById('evento-hora-ini').value     = '';
@@ -5267,6 +5272,63 @@ function abrirEvento(id) {
   }
 
   bootstrap.Offcanvas.getOrCreateInstance(document.getElementById('offcanvasEvento')).show();
+}
+
+function verificarConflictoEvento() {
+  var alertEl   = document.getElementById('evento-conflicto-alert');
+  var detalleEl = document.getElementById('evento-conflicto-detalle');
+  if (!alertEl || !detalleEl) return;
+
+  var fecha_ini = document.getElementById('evento-fecha-ini').value;
+  var fecha_fin = document.getElementById('evento-fecha-fin').value || fecha_ini;
+  if (!fecha_ini) { alertEl.classList.add('d-none'); return; }
+
+  var gSel    = document.getElementById('evento-grados');
+  var selOpts = Array.from(gSel.selectedOptions).map(function(o){ return o.value === 'all' ? 'all' : parseInt(o.value); });
+  var gradosNuevo = selOpts.length ? (selOpts.includes('all') ? ['all'] : selOpts) : ['all'];
+
+  var idEdit = document.getElementById('evento-id').value;
+  var grados = DB.get('grados') || [];
+
+  // Función para obtener nombre del grado
+  var nombreGrado = function(id) {
+    var g = grados.find(function(x){ return x.id == id; });
+    return g ? g.nombre : ('Grado ' + id);
+  };
+
+  // Verifica si dos rangos de fechas se solapan
+  var solapan = function(ini1, fin1, ini2, fin2) {
+    return ini1 <= fin2 && fin1 >= ini2;
+  };
+
+  // Verifica si hay cruce de grados
+  var gradosCruzan = function(g1, g2) {
+    if (g1.includes('all') || g2.includes('all')) return true;
+    return g1.some(function(id){ return g2.indexOf(id) !== -1; });
+  };
+
+  var conflictos = (DB.get('cronograma') || []).filter(function(ev) {
+    if (ev.id == idEdit) return false; // no comparar consigo mismo
+    var evFin = ev.fecha_fin || ev.fecha_ini;
+    if (!solapan(fecha_ini, fecha_fin, ev.fecha_ini, evFin)) return false;
+    var evGrados = ev.grados && ev.grados.length ? ev.grados : ['all'];
+    return gradosCruzan(gradosNuevo, evGrados);
+  });
+
+  if (!conflictos.length) {
+    alertEl.classList.add('d-none');
+    return;
+  }
+
+  alertEl.classList.remove('d-none');
+  detalleEl.innerHTML = conflictos.map(function(ev) {
+    var evGrados = ev.grados && ev.grados.length ? ev.grados : ['all'];
+    var gradStr  = evGrados.includes('all') ? 'Todos los grados'
+      : evGrados.map(nombreGrado).join(', ');
+    var rango    = ev.fecha_ini === (ev.fecha_fin || ev.fecha_ini) ? fmt(ev.fecha_ini)
+      : fmt(ev.fecha_ini) + ' – ' + fmt(ev.fecha_fin);
+    return '• <strong>' + ev.actividad + '</strong> (' + gradStr + ') — ' + rango;
+  }).join('<br>');
 }
 
 function guardarEvento() {
