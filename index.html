@@ -3801,13 +3801,19 @@ function renderGrados() {
   const gradosOrdenados = _sortGrados(todosGrados);
   const grados = filtroNivel ? gradosOrdenados.filter(function(g){ return g.nivel === filtroNivel; }) : gradosOrdenados;
 
-  // ── Stats rápidas (sobre todos los grados, sin filtro) ───────────────
-  var totalGrupos  = secciones.length;
-  var totalCupos   = secciones.reduce(function(a,s){ return a+(s.capacidad||0); }, 0);
-  var conDocente   = secciones.filter(function(s){ return !!s.docente_id; }).length;
+  // ── Secciones filtradas según nivel seleccionado ─────────────────────
+  var gradoIds = grados.map(function(g){ return g.id; });
+  var seccionesFiltradas = filtroNivel
+    ? secciones.filter(function(s){ return gradoIds.indexOf(s.grado_id) !== -1; })
+    : secciones;
+
+  // ── Stats rápidas ─────────────────────────────────────────────────────
+  var totalGrupos  = seccionesFiltradas.length;
+  var totalCupos   = seccionesFiltradas.reduce(function(a,s){ return a+(s.capacidad||0); }, 0);
+  var conDocente   = seccionesFiltradas.filter(function(s){ return !!s.docente_id; }).length;
   var pct          = totalGrupos ? Math.round(conDocente/totalGrupos*100) : 0;
   var setS = function(id,v){ var el=document.getElementById(id); if(el) el.textContent=v; };
-  setS('gstat-grados',    todosGrados.length);
+  setS('gstat-grados',    grados.length);
   setS('gstat-grupos',    totalGrupos);
   setS('gstat-cupos',     totalCupos);
   setS('gstat-cobertura', pct+'%');
@@ -3856,7 +3862,7 @@ function renderGrados() {
   if (_gradoSeleccionado !== null) { mostrarSeccionesGrado(_gradoSeleccionado, true); }
 
   // ── Gráficas ─────────────────────────────────────────────────────────
-  renderGraficasGrados(grados, secciones);
+  renderGraficasGrados(grados, seccionesFiltradas);
 }
 
 // Asigna nivel automáticamente según nombre del grado
