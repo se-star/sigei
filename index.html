@@ -4081,7 +4081,9 @@ function mostrarSeccionesGrado(gradoId, refresh) {
   document.getElementById('oc-grado-secciones').innerHTML = secHtml;
 
   // ── Open offcanvas ───────────────────────────────────────────────────────
-  bootstrap.Offcanvas.getOrCreateInstance(document.getElementById('offcanvasGrado')).show();
+  if (!refresh) {
+    bootstrap.Offcanvas.getOrCreateInstance(document.getElementById('offcanvasGrado')).show();
+  }
 }
 
 function cerrarDetalleGrado() {
