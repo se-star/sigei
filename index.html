@@ -1790,6 +1790,60 @@
         </div>
       </div>
 
+      <!-- ── Gráficas POA ── -->
+      <div class="row g-3 mb-3" id="crono-charts-row">
+        <!-- Stats rápidas -->
+        <div class="col-12">
+          <div class="row g-2" id="crono-stats-row">
+            <div class="col-6 col-md-3">
+              <div style="background:#EFF6FF;border-radius:12px;padding:12px 16px;border-left:4px solid #3B82F6">
+                <div style="font-size:22px;font-weight:800;color:#1D4ED8" id="cstat-total">0</div>
+                <div style="font-size:11px;color:#64748B;font-weight:600">TOTAL EVENTOS</div>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div style="background:#F0FDF4;border-radius:12px;padding:12px 16px;border-left:4px solid #22C55E">
+                <div style="font-size:22px;font-weight:800;color:#15803D" id="cstat-proximos">0</div>
+                <div style="font-size:11px;color:#64748B;font-weight:600">PRÓXIMOS</div>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div style="background:#FFFBEB;border-radius:12px;padding:12px 16px;border-left:4px solid #F59E0B">
+                <div style="font-size:22px;font-weight:800;color:#B45309" id="cstat-encurso">0</div>
+                <div style="font-size:11px;color:#64748B;font-weight:600">EN CURSO</div>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div style="background:#F8FAFC;border-radius:12px;padding:12px 16px;border-left:4px solid #94A3B8">
+                <div style="font-size:22px;font-weight:800;color:#475569" id="cstat-pasados">0</div>
+                <div style="font-size:11px;color:#64748B;font-weight:600">REALIZADOS</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Gráfica por tipo -->
+        <div class="col-12 col-lg-4">
+          <div class="chart-card">
+            <h6><i class="bi bi-pie-chart-fill me-2" style="color:#6366F1"></i>Eventos por tipo</h6>
+            <div class="chart-wrap" style="height:200px"><canvas id="chart-crono-tipo"></canvas></div>
+          </div>
+        </div>
+        <!-- Gráfica por mes -->
+        <div class="col-12 col-lg-5">
+          <div class="chart-card">
+            <h6><i class="bi bi-bar-chart-fill me-2" style="color:#0284C7"></i>Distribución mensual</h6>
+            <div class="chart-wrap" style="height:200px"><canvas id="chart-crono-mes"></canvas></div>
+          </div>
+        </div>
+        <!-- Próximos eventos -->
+        <div class="col-12 col-lg-3">
+          <div class="chart-card" style="height:100%">
+            <h6><i class="bi bi-clock-fill me-2" style="color:#10B981"></i>Próximos eventos</h6>
+            <div id="crono-proximos-list" style="max-height:200px;overflow-y:auto"></div>
+          </div>
+        </div>
+      </div>
+
       <!-- Tabla de eventos -->
       <div class="card-panel" id="crono-tabla-card">
         <div class="table-responsive">
@@ -4948,6 +5002,93 @@ function renderCronograma() {
       + '<button class="btn btn-sm btn-outline-danger" onclick="eliminarEvento(' + ev.id + ')"><i class="bi bi-trash-fill"></i></button>'
       + '</td></tr>';
   }).join('') : emptyRow(7, 'No hay eventos registrados para este periodo.');
+
+  // Gráficas con todos los eventos del año (sin filtro de tipo/grado para que las stats sean completas)
+  var eventosAnio = DB.get('cronograma').filter(function(e){ return year ? e.fecha_ini.startsWith(year) : true; });
+  renderGraficasCronograma(eventosAnio);
+}
+
+var _chartCronoTipo = null;
+var _chartCronoMes  = null;
+
+function renderGraficasCronograma(eventos) {
+  if (typeof Chart === 'undefined') return;
+  const hoy = new Date().toISOString().slice(0,10);
+
+  // ── Stats ────────────────────────────────────────────────────────────────
+  var proximos = eventos.filter(function(e){ return e.fecha_ini > hoy; }).length;
+  var enCurso  = eventos.filter(function(e){ return e.fecha_ini <= hoy && (e.fecha_fin||e.fecha_ini) >= hoy; }).length;
+  var pasados  = eventos.filter(function(e){ return (e.fecha_fin||e.fecha_ini) < hoy; }).length;
+  var setS = function(id,v){ var el=document.getElementById(id); if(el) el.textContent=v; };
+  setS('cstat-total',    eventos.length);
+  setS('cstat-proximos', proximos);
+  setS('cstat-encurso',  enCurso);
+  setS('cstat-pasados',  pasados);
+
+  // ── Gráfica por tipo (donut) ─────────────────────────────────────────────
+  var tipoMap = {};
+  eventos.forEach(function(e){
+    var t = e.tipo || 'Sin tipo';
+    tipoMap[t] = (tipoMap[t]||0) + 1;
+  });
+  var tipoLabels = Object.keys(tipoMap);
+  var tipoData   = tipoLabels.map(function(t){ return tipoMap[t]; });
+  var tipoColors = tipoLabels.map(function(t){
+    var c = TIPO_COLORES[t] || TIPO_COLORES['Otro'];
+    return c ? c.txt : '#94A3B8';
+  });
+
+  var ctx1 = document.getElementById('chart-crono-tipo');
+  if (ctx1) {
+    if (_chartCronoTipo) _chartCronoTipo.destroy();
+    _chartCronoTipo = new Chart(ctx1, {
+      type: 'doughnut',
+      data: { labels: tipoLabels, datasets: [{ data: tipoData, backgroundColor: tipoColors.map(function(c){ return c+'CC'; }), borderColor:'#fff', borderWidth:3, hoverOffset:6 }] },
+      options: { plugins:{ legend:{ position:'bottom', labels:{ font:{size:10}, boxWidth:10, padding:6 } } }, cutout:'60%', maintainAspectRatio:false }
+    });
+  }
+
+  // ── Gráfica por mes (barras) ─────────────────────────────────────────────
+  var meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  var mesCounts = new Array(12).fill(0);
+  eventos.forEach(function(e){
+    var m = parseInt((e.fecha_ini||'').slice(5,7)) - 1;
+    if (m >= 0 && m < 12) mesCounts[m]++;
+  });
+  var mesColors = mesCounts.map(function(v,i){
+    var now = new Date().getMonth();
+    return i === now ? '#3B82F6' : '#93C5FD';
+  });
+
+  var ctx2 = document.getElementById('chart-crono-mes');
+  if (ctx2) {
+    if (_chartCronoMes) _chartCronoMes.destroy();
+    _chartCronoMes = new Chart(ctx2, {
+      type: 'bar',
+      data: { labels: meses, datasets: [{ data: mesCounts, backgroundColor: mesColors, borderRadius:5, borderSkipped:false }] },
+      options: { plugins:{ legend:{display:false} }, scales:{ y:{ beginAtZero:true, ticks:{stepSize:1, font:{size:9}}, grid:{color:'rgba(0,0,0,.04)'} }, x:{ ticks:{font:{size:9}}, grid:{display:false} } }, maintainAspectRatio:false }
+    });
+  }
+
+  // ── Próximos eventos (lista) ─────────────────────────────────────────────
+  var listEl = document.getElementById('crono-proximos-list');
+  if (listEl) {
+    var prox = eventos.filter(function(e){ return e.fecha_ini >= hoy; }).slice(0,6);
+    if (!prox.length) {
+      listEl.innerHTML = '<div style="text-align:center;padding:20px;color:#94A3B8;font-size:12px"><i class="bi bi-calendar-check" style="font-size:24px;display:block;margin-bottom:6px;opacity:.4"></i>Sin eventos próximos</div>';
+    } else {
+      listEl.innerHTML = prox.map(function(e){
+        var tc = TIPO_COLORES[e.tipo] || TIPO_COLORES['Otro'];
+        var d  = fmt(e.fecha_ini);
+        return '<div style="display:flex;align-items:center;gap:8px;padding:6px 4px;border-bottom:1px solid #F1F5F9">'
+          + '<div style="width:4px;min-width:4px;height:36px;border-radius:2px;background:'+(tc?tc.txt:'#94A3B8')+'"></div>'
+          + '<div style="flex:1;min-width:0">'
+          + '<div style="font-size:11px;font-weight:700;color:#1E293B;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + e.actividad + '</div>'
+          + '<div style="font-size:10px;color:#94A3B8">' + d + (e.hora_ini ? ' · '+e.hora_ini : '') + '</div>'
+          + '</div></div>';
+      }).join('');
+    }
+  }
 }
 
 function abrirEvento(id) {
