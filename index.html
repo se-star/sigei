@@ -1444,7 +1444,7 @@
             <div class="sc-top">
               <div class="icon" style="background:#DCFCE7;color:#15803D"><i class="bi bi-diagram-3-fill"></i></div>
             </div>
-            <div><h2 id="cnt-secciones">0</h2><p>Secciones activas</p></div>
+            <div><h2 id="cnt-secciones">0</h2><p>Grupos activos</p></div>
           </div>
         </div>
         <div class="col-6 col-md-4 col-lg-2">
@@ -1580,13 +1580,49 @@
           <h5 style="font-weight:700;color:var(--slate-800);margin:0"><i class="bi bi-diagram-3-fill me-2 text-primary"></i>Grados y Grupos</h5>
           <small class="text-muted">Selecciona un grado para ver sus grupos</small>
         </div>
-        <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="abrirSeccion()">
-          <i class="bi bi-plus-lg"></i> Nuevo grupo
-        </button>
+        <div class="d-flex gap-2">
+          <button class="btn btn-sm btn-outline-warning" onclick="crearGradoPreescolar()" title="Crear grado Preescolar/Transición si no existe">
+            <i class="bi bi-stars me-1"></i>+ Preescolar
+          </button>
+          <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="abrirSeccion()">
+            <i class="bi bi-plus-lg"></i> Nuevo grupo
+          </button>
+        </div>
       </div>
 
       <!-- Grid de tarjetas de grado -->
       <div id="grados-cards" class="row g-3 mb-3"></div>
+
+      <!-- ── Gráficas ───────────────────────────────────────────────────── -->
+      <div class="row g-3 mt-1" id="grados-charts-row">
+        <!-- Grupos por grado (barras) -->
+        <div class="col-12 col-lg-5">
+          <div class="chart-card">
+            <h6><i class="bi bi-bar-chart-fill me-2" style="color:#0284C7"></i>Grupos por grado</h6>
+            <div class="chart-wrap" style="height:220px">
+              <canvas id="chart-grupos-grado"></canvas>
+            </div>
+          </div>
+        </div>
+        <!-- Distribución por nivel (donut) -->
+        <div class="col-12 col-lg-3">
+          <div class="chart-card">
+            <h6><i class="bi bi-pie-chart-fill me-2" style="color:#7C3AED"></i>Grupos por nivel</h6>
+            <div class="chart-wrap" style="height:220px">
+              <canvas id="chart-nivel-donut"></canvas>
+            </div>
+          </div>
+        </div>
+        <!-- Capacidad total por nivel (barras horizontales) -->
+        <div class="col-12 col-lg-4">
+          <div class="chart-card">
+            <h6><i class="bi bi-people-fill me-2" style="color:#D97706"></i>Capacidad por nivel</h6>
+            <div class="chart-wrap" style="height:220px">
+              <canvas id="chart-capacidad-nivel"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <!-- tabla-secciones lives in offcanvasGrado -->
     </div>
@@ -3689,9 +3725,12 @@ function eliminarDocente(id) {
 // ══════════════════════════════════════════════
 // Nivel config for grado cards
 const NIVEL_CONFIG = {
+  'Preescolar':   { color:'#D97706', bg:'#FFFBEB', icon:'bi-stars' },
   'Primaria':     { color:'#0284C7', bg:'#F0F9FF', icon:'bi-mortarboard-fill' },
   'Secundaria':   { color:'#7C3AED', bg:'#F5F3FF', icon:'bi-book-fill' },
+  'Media':        { color:'#0D9488', bg:'#F0FDFA', icon:'bi-award-fill' },
   'Bachillerato': { color:'#0D9488', bg:'#F0FDFA', icon:'bi-award-fill' },
+  'Directivo':    { color:'#DC2626', bg:'#FEF2F2', icon:'bi-person-badge-fill' },
 };
 
 var _gradoSeleccionado = null;
@@ -3725,6 +3764,83 @@ function renderGrados() {
 
   // ── Si hay grado seleccionado, actualizar el detalle ─────────────────
   if (_gradoSeleccionado !== null) { mostrarSeccionesGrado(_gradoSeleccionado, true); }
+
+  // ── Gráficas ─────────────────────────────────────────────────────────
+  renderGraficasGrados(grados, secciones);
+}
+
+function crearGradoPreescolar() {
+  var grados = DB.get('grados');
+  var existe = grados.find(function(g){ return g.nombre === 'Preescolar' || g.nombre === 'Transición'; });
+  if (existe) { toast('El grado Preescolar/Transición ya existe.'); return; }
+  var nuevo = { id: DB.nextId('grados'), nombre: 'Preescolar', nivel: 'Preescolar' };
+  grados.unshift(nuevo);  // al inicio
+  DB.set('grados', grados);
+  renderGrados();
+  toast('Grado Preescolar creado. Ahora puedes agregar sus grupos.');
+}
+
+var _chartGruposGrado = null, _chartNivelDonut = null, _chartCapacidadNivel = null;
+
+function renderGraficasGrados(grados, secciones) {
+  if (typeof Chart === 'undefined') return;
+
+  // ── 1. Grupos por grado (barras) ────────────────────────────────────
+  var labelsGrado  = grados.map(function(g){ return g.nombre.replace(' Grado','°'); });
+  var dataGrupos   = grados.map(function(g){ return secciones.filter(function(s){ return s.grado_id==g.id; }).length; });
+  var coloresGrado = grados.map(function(g){ return (NIVEL_CONFIG[g.nivel]||{color:'#94A3B8'}).color; });
+
+  var ctx1 = document.getElementById('chart-grupos-grado');
+  if (ctx1) {
+    if (_chartGruposGrado) _chartGruposGrado.destroy();
+    _chartGruposGrado = new Chart(ctx1, {
+      type:'bar',
+      data:{ labels:labelsGrado, datasets:[{ data:dataGrupos, backgroundColor:coloresGrado.map(function(c){return c+'33';}), borderColor:coloresGrado, borderWidth:2, borderRadius:6 }] },
+      options:{ plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true,ticks:{stepSize:1,font:{size:10}},grid:{color:'rgba(0,0,0,.04)'}}, x:{ticks:{font:{size:9}},grid:{display:false}}}, maintainAspectRatio:false }
+    });
+  }
+
+  // ── 2. Grupos por nivel (donut) ─────────────────────────────────────
+  var nivelesMap = {};
+  grados.forEach(function(g){
+    var n = g.nivel || 'Sin nivel';
+    if (!nivelesMap[n]) nivelesMap[n] = 0;
+    nivelesMap[n] += secciones.filter(function(s){ return s.grado_id==g.id; }).length;
+  });
+  var nivelesLabels = Object.keys(nivelesMap);
+  var nivelesData   = nivelesLabels.map(function(n){ return nivelesMap[n]; });
+  var nivelesColors = nivelesLabels.map(function(n){ return (NIVEL_CONFIG[n]||{color:'#94A3B8'}).color; });
+
+  var ctx2 = document.getElementById('chart-nivel-donut');
+  if (ctx2) {
+    if (_chartNivelDonut) _chartNivelDonut.destroy();
+    _chartNivelDonut = new Chart(ctx2, {
+      type:'doughnut',
+      data:{ labels:nivelesLabels, datasets:[{ data:nivelesData, backgroundColor:nivelesColors.map(function(c){return c+'CC';}), borderColor:'#fff', borderWidth:3, hoverOffset:8 }] },
+      options:{ plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10,padding:8}}}, cutout:'65%', maintainAspectRatio:false }
+    });
+  }
+
+  // ── 3. Capacidad por nivel (barras horizontales) ────────────────────
+  var capMap = {};
+  grados.forEach(function(g){
+    var n = g.nivel || 'Sin nivel';
+    if (!capMap[n]) capMap[n] = 0;
+    capMap[n] += secciones.filter(function(s){ return s.grado_id==g.id; }).reduce(function(acc,s){ return acc+(s.capacidad||0); }, 0);
+  });
+  var capLabels = Object.keys(capMap);
+  var capData   = capLabels.map(function(n){ return capMap[n]; });
+  var capColors = capLabels.map(function(n){ return (NIVEL_CONFIG[n]||{color:'#94A3B8'}).color; });
+
+  var ctx3 = document.getElementById('chart-capacidad-nivel');
+  if (ctx3) {
+    if (_chartCapacidadNivel) _chartCapacidadNivel.destroy();
+    _chartCapacidadNivel = new Chart(ctx3, {
+      type:'bar',
+      data:{ labels:capLabels, datasets:[{ data:capData, backgroundColor:capColors.map(function(c){return c+'33';}), borderColor:capColors, borderWidth:2, borderRadius:6 }] },
+      options:{ indexAxis:'y', plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true,ticks:{font:{size:10}},grid:{color:'rgba(0,0,0,.04)'}}, y:{ticks:{font:{size:10}},grid:{display:false}}}, maintainAspectRatio:false }
+    });
+  }
 }
 
 function mostrarSeccionesGrado(gradoId, refresh) {
