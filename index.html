@@ -5802,6 +5802,9 @@ async function descargarPlantillaAsignaciones() {
   var listaGrados   = grados.map(function(g){ return g.nombre; });
   var listaGrupos   = Array.from(new Set(secciones.map(function(s){ return s.nombre; }))).sort();
   var listaDias     = ['Lunes','Martes','Miércoles','Jueves','Viernes'];
+  var listaHoras    = ['06:00','06:30','07:00','07:30','08:00','08:30','09:00','09:30',
+                       '10:00','10:30','11:00','11:30','12:00','12:30','13:00','13:30',
+                       '14:00','14:30','15:00','15:30','16:00','16:30','17:00'];
 
   // ── Hoja Asignaciones ────────────────────────────────────────────
   var headers = ['DOCENTE','MATERIA','GRADO','GRUPO','DÍA','HORA INICIO (HH:MM)','HORA FIN (HH:MM)'];
@@ -5817,22 +5820,22 @@ async function descargarPlantillaAsignaciones() {
   XLSX.utils.book_append_sheet(wb, ws1, 'Asignaciones');
 
   // ── Hoja Listas (oculta — alimenta los dropdowns) ───────────────────────
-  var maxL = Math.max(listaDocentes.length, listaMaterias.length, listaGrados.length, listaGrupos.length, listaDias.length);
+  var maxL = Math.max(listaDocentes.length, listaMaterias.length, listaGrados.length, listaGrupos.length, listaDias.length, listaHoras.length);
   var listasData = [];
   for (var i = 0; i < maxL; i++) {
-    listasData.push([listaDocentes[i]||'', listaMaterias[i]||'', listaGrados[i]||'', listaGrupos[i]||'', listaDias[i]||'']);
+    listasData.push([listaDocentes[i]||'', listaMaterias[i]||'', listaGrados[i]||'', listaGrupos[i]||'', listaDias[i]||'', listaHoras[i]||'']);
   }
   var wsL = XLSX.utils.aoa_to_sheet(listasData);
   XLSX.utils.book_append_sheet(wb, wsL, 'Listas');
 
   // ── Hoja Referencia (visible, solo consulta) ─────────────────────────
   var maxRef = maxL;
-  var refRows = [['DOCENTES','MATERIAS','GRADOS','GRUPOS','DÍAS']];
+  var refRows = [['DOCENTES','MATERIAS','GRADOS','GRUPOS','DÍAS','HORAS']];
   for (var i = 0; i < maxRef; i++) {
-    refRows.push([listaDocentes[i]||'', listaMaterias[i]||'', listaGrados[i]||'', listaGrupos[i]||'', listaDias[i]||'']);
+    refRows.push([listaDocentes[i]||'', listaMaterias[i]||'', listaGrados[i]||'', listaGrupos[i]||'', listaDias[i]||'', listaHoras[i]||'']);
   }
   var ws2 = XLSX.utils.aoa_to_sheet(refRows);
-  ws2['!cols'] = [{wch:32},{wch:26},{wch:16},{wch:10},{wch:14}];
+  ws2['!cols'] = [{wch:32},{wch:26},{wch:16},{wch:10},{wch:14},{wch:10}];
   XLSX.utils.book_append_sheet(wb, ws2, 'Referencia');
 
   // ── Inyectar validaciones y ocultar hoja Listas con JSZip ────────────────
@@ -5848,19 +5851,22 @@ async function descargarPlantillaAsignaciones() {
       var nG   = listaGrados.length   || 1;
       var nS   = listaGrupos.length   || 1;
       var nDia = listaDias.length     || 5;
+      var nH   = listaHoras.length    || 23;
 
       // Quitar dataValidations previos si existen
-      s1xml = s1xml.replace(/<dataValidations[\s\S]*?<\/dataValidations>/, '');
+      s1xml = s1xml.replace(/<dataValidations[\s\S]*?<\/dataValidations>/, function(){ return ''; });
 
-      var dv = '<dataValidations count="5">'
+      var dv = '<dataValidations count="7">'
         + '<dataValidation type="list" allowBlank="1" showDropDown="0" showInputMessage="1" showErrorAlert="1" sqref="A2:A200"><formula1>Listas!$A$1:$A$' + nD   + '</formula1></dataValidation>'
         + '<dataValidation type="list" allowBlank="1" showDropDown="0" showInputMessage="1" showErrorAlert="1" sqref="B2:B200"><formula1>Listas!$B$1:$B$' + nM   + '</formula1></dataValidation>'
         + '<dataValidation type="list" allowBlank="1" showDropDown="0" showInputMessage="1" showErrorAlert="1" sqref="C2:C200"><formula1>Listas!$C$1:$C$' + nG   + '</formula1></dataValidation>'
         + '<dataValidation type="list" allowBlank="1" showDropDown="0" showInputMessage="1" showErrorAlert="1" sqref="D2:D200"><formula1>Listas!$D$1:$D$' + nS   + '</formula1></dataValidation>'
         + '<dataValidation type="list" allowBlank="1" showDropDown="0" showInputMessage="1" showErrorAlert="1" sqref="E2:E200"><formula1>Listas!$E$1:$E$' + nDia + '</formula1></dataValidation>'
+        + '<dataValidation type="list" allowBlank="1" showDropDown="0" showInputMessage="1" showErrorAlert="1" sqref="F2:F200"><formula1>Listas!$F$1:$F$' + nH + '</formula1></dataValidation>'
+        + '<dataValidation type="list" allowBlank="1" showDropDown="0" showInputMessage="1" showErrorAlert="1" sqref="G2:G200"><formula1>Listas!$F$1:$F$' + nH + '</formula1></dataValidation>'
         + '</dataValidations>';
 
-      s1xml = s1xml.replace(/<\/worksheet>/, dv + '</worksheet>');
+      s1xml = s1xml.replace(/<\/worksheet>/, function(){ return dv + '<\/worksheet>'; });
       zip.file('xl/worksheets/sheet1.xml', s1xml);
 
       // Ocultar hoja Listas en workbook.xml
