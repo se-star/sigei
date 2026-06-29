@@ -3252,7 +3252,7 @@ function uid()  { return Date.now() + Math.floor(Math.random()*1000); }
 function fmt(d) { if (!d) return '—'; const [y,m,dy] = d.split('-'); return `${dy}/${m}/${y}`; }
 function nombreDocente(id) {
   const d = DB.get('docentes').find(x => x.id == id);
-  return d ? `${d.p_nombre} ${d.p_apellido}` : '—';
+  return d ? [d.p_nombre, d.s_nombre, d.p_apellido, d.s_apellido].filter(Boolean).join(' ') : '—';
 }
 function nombreGrado(id) {
   const g = DB.get('grados').find(x => x.id == id);
@@ -4541,14 +4541,14 @@ function renderAsignaciones() {
   const curDoc = fDoc.value;
   fDoc.innerHTML = '<option value="">Todos los docentes</option>' +
     docentes.map(d => '<option value="' + d.id + '"' + (d.id == curDoc ? ' selected' : '') + '>' +
-      d.p_nombre + ' ' + d.p_apellido + '</option>').join('');
+      [d.p_nombre, d.s_nombre, d.p_apellido, d.s_apellido].filter(Boolean).join(' ') + '</option>').join('');
 
   // Populate hidden tablero selector
   const tSel   = document.getElementById('tablero-doc-sel');
   const curTab = tSel.value;
   tSel.innerHTML = '<option value="">Seleccionar docente...</option>' +
     docentes.map(d => '<option value="' + d.id + '"' + (d.id == curTab ? ' selected' : '') + '>' +
-      d.p_nombre + ' ' + d.p_apellido + '</option>').join('');
+      [d.p_nombre, d.s_nombre, d.p_apellido, d.s_apellido].filter(Boolean).join(' ') + '</option>').join('');
 
   let asigs = DB.get('asignaciones');
   if (curDoc) asigs = asigs.filter(a => a.docente_id == curDoc);
@@ -4640,7 +4640,7 @@ function abrirAsignacion(id) {
   const dSel = document.getElementById('asig-docente');
   dSel.innerHTML = '<option value="">Seleccionar docente...</option>' +
     DB.get('docentes').filter(d => d.estado === 'Activo')
-      .map(d => '<option value="' + d.id + '">' + d.p_nombre + ' ' + d.p_apellido + '</option>').join('');
+      .map(d => '<option value="' + d.id + '">' + [d.p_nombre, d.s_nombre, d.p_apellido, d.s_apellido].filter(Boolean).join(' ') + '</option>').join('');
 
   const mSel = document.getElementById('asig-materia');
   mSel.innerHTML = '<option value="">Seleccionar materia...</option>' +
