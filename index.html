@@ -4394,7 +4394,7 @@ function abrirSeccion(id=null) {
 
   const dSel = document.getElementById('sec-docente');
   dSel.innerHTML = '<option value="">Sin asignar</option>' +
-    DB.get('docentes').filter(d=>d.estado==='Activo').map(d=>`<option value="${d.id}">${d.p_nombre} ${d.p_apellido}</option>`).join('');
+    DB.get('docentes').filter(d=>d.estado==='Activo' && d.nivel!=='Directivo').map(d=>`<option value="${d.id}">${d.p_nombre} ${d.p_apellido}</option>`).join('');
 
 
   if (id) {
@@ -5928,7 +5928,7 @@ function renderDocentesDisponibles(dia, horariosTodos, fechasPorDia) {
   var now      = new Date();
   var ahoraMin = now.getHours() * 60 + now.getMinutes();
 
-  var docentes = DB.get('docentes').filter(function(d){ return d.estado === 'Activo'; });
+  var docentes = DB.get('docentes').filter(function(d){ return d.estado === 'Activo' && d.nivel !== 'Directivo'; });
 
   // ── Permisos aprobados para la fecha exacta ──────────────────────────
   var permisos = DB.get('permisos').filter(function(p) {
@@ -6265,7 +6265,7 @@ function editarHorario(id) {
 
   const dSel = document.getElementById('hor-docente');
   dSel.innerHTML = '<option value="">Sin asignar</option>' +
-    DB.get('docentes').filter(d=>d.estado==='Activo').map(d=>`<option value="${d.id}">${d.p_nombre} ${d.p_apellido}</option>`).join('');
+    DB.get('docentes').filter(d=>d.estado==='Activo' && d.nivel!=='Directivo').map(d=>`<option value="${d.id}">${d.p_nombre} ${d.p_apellido}</option>`).join('');
 
 
   ['hor-id','hor-materia','hor-inicio','hor-fin'].forEach(x => {
@@ -6696,6 +6696,7 @@ function docentesSedePrincipal() {
   var spId = getSedePrincipalId();
   return (DB.get('docentes') || []).filter(function(d){
     if (d.estado !== 'Activo') return false;
+    if (d.nivel === 'Directivo') return false;       // excluir nivel directivo
     if (!spId) return true;                         // sin sede principal → todos
     return !d.sede_id || d.sede_id == spId;         // sin sede asignada o coincide
   });
@@ -8175,7 +8176,7 @@ function _segGetEstado(docId, periodo, año, key) {
 function renderSeguimiento() {
   var periodo = parseInt((document.getElementById('seg-filtro-periodo')||{}).value) || 1;
   var año     = parseInt((document.getElementById('seg-filtro-año')||{}).value)    || 2026;
-  var docentes = (DB.get('docentes')||[]).filter(function(d){ return d.estado === 'Activo'; });
+  var docentes = (DB.get('docentes')||[]).filter(function(d){ return d.estado === 'Activo' && d.nivel !== 'Directivo'; });
 
   var thead = document.getElementById('seg-matrix-head');
   var tbody = document.getElementById('seg-matrix-body');
@@ -8368,7 +8369,7 @@ function guardarSeguimientoDocente() {
 function exportarSeguimientoExcel() {
   var periodo  = parseInt((document.getElementById('seg-filtro-periodo')||{}).value) || 1;
   var año      = parseInt((document.getElementById('seg-filtro-año')||{}).value)    || 2026;
-  var docentes = (DB.get('docentes')||[]).filter(function(d){ return d.estado === 'Activo'; });
+  var docentes = (DB.get('docentes')||[]).filter(function(d){ return d.estado === 'Activo' && d.nivel !== 'Directivo'; });
   var headers  = ['Docente'].concat(SEG_ENTREGABLES.map(function(e){ return e.label; })).concat(['Aprobados','Avance %']);
   var rows = docentes.map(function(doc) {
     var nombre  = doc.p_nombre + ' ' + doc.p_apellido;
