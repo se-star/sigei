@@ -7895,6 +7895,7 @@ _auth.onAuthStateChanged(async function(user) {
     const btn = document.getElementById('login-btn');
     if (btn) { btn.textContent = 'Cargando...'; btn.disabled = true; }
     try {
+      await initEncKey(user.uid);   // deriva clave AES-GCM del UID antes de cargar datos
       await DB.loadAll();
     } catch(e) {
       const errEl = document.getElementById('login-error');
