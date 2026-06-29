@@ -93,7 +93,16 @@
   #sidebar .brand button:hover { background: rgba(255,255,255,.12); color: #fff; }
 
   /* Nav */
-  #sidebar nav { padding: 8px 0; flex: 1; overflow-y: auto; overflow-x: hidden; }
+  #sidebar nav {
+    padding: 8px 0;
+    flex: 1 1 0;
+    min-height: 0;          /* clave: permite que flex shrink funcione */
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;  /* scroll con inercia en iOS */
+    overscroll-behavior: contain;
+    touch-action: pan-y;
+  }
   #sidebar nav::-webkit-scrollbar { width: 3px; }
   #sidebar nav::-webkit-scrollbar-track { background: transparent; }
   #sidebar nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,.12); border-radius: 3px; }
@@ -2389,6 +2398,34 @@
       </div>
     </div>
     <div id="usr-modal-error" class="alert alert-danger mt-3 d-none" style="font-size:13px"></div>
+
+    <!-- Sección 2FA — visible solo al editar el usuario propio -->
+    <div id="usr-2fa-section" style="display:none;margin-top:24px">
+      <div class="det-sec-title" style="margin-bottom:14px"><i class="bi bi-shield-lock-fill me-1"></i>Autenticación en dos pasos</div>
+      <div id="usr-2fa-status" style="margin-bottom:12px"></div>
+
+      <!-- Flow de configuración -->
+      <div id="usr-2fa-setup-flow" style="display:none">
+        <p style="font-size:12px;color:var(--slate-600);margin-bottom:12px">
+          Escanea este código QR con <strong>Google Authenticator</strong>:<br>
+          <span style="font-size:11px;color:var(--slate-400)">Si no puedes escanear, ingresa la clave manual.</span>
+        </p>
+        <div id="usr-2fa-qr" style="background:#fff;padding:12px;border-radius:12px;display:inline-block;margin-bottom:10px"></div>
+        <div style="font-size:11px;color:var(--slate-500);margin-bottom:14px;word-break:break-all">
+          Clave manual: <code id="usr-2fa-secret-display" style="font-size:11px;letter-spacing:1px;color:var(--blue-600)"></code>
+        </div>
+        <label class="form-label" style="font-size:12px;font-weight:600">Código de verificación</label>
+        <input type="text" class="form-control form-control-sm mb-2" id="usr-2fa-verify-input"
+          maxlength="6" inputmode="numeric" placeholder="Ingresa el código de 6 dígitos"
+          style="text-align:center;font-size:18px;font-weight:700;letter-spacing:6px">
+        <div class="d-flex gap-2">
+          <button class="btn btn-sm text-white flex-fill" style="background:#6366F1" onclick="confirmar2FA()">
+            <i class="bi bi-check-circle me-1"></i>Activar 2FA
+          </button>
+          <button class="btn btn-sm btn-outline-secondary" onclick="cancelar2FA()">Cancelar</button>
+        </div>
+      </div>
+    </div>
   </div>
   <div class="border-top p-3 d-flex gap-2 justify-content-end oc-footer">
     <button class="btn btn-sm btn-secondary" data-bs-dismiss="offcanvas">Cancelar</button>
@@ -3219,6 +3256,7 @@
 ══════════════════════════════════════ -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script>
 'use strict';
@@ -7632,6 +7670,22 @@ function abrirUsuario(id) {
     if (emailHint) emailHint.textContent = 'Se usará para iniciar sesión en el SIGEI.';
     document.getElementById('usr-email').readOnly = false;
   }
+
+  // Mostrar sección 2FA solo al editar el propio usuario
+  var sec2fa = document.getElementById('usr-2fa-section');
+  var currentEmail = (firebase.auth().currentUser||{}).email || '';
+  if (id && sec2fa) {
+    var u2 = (DB.get('usuarios')||[]).find(function(x){ return x.id===id; });
+    if (u2 && u2.email === currentEmail) {
+      sec2fa.style.display = '';
+      render2FAStatus(u2);
+    } else {
+      sec2fa.style.display = 'none';
+    }
+  } else if (sec2fa) {
+    sec2fa.style.display = 'none';
+  }
+
   bootstrap.Offcanvas.getOrCreateInstance(document.getElementById('offcanvasUsuario')).show();
 }
 
@@ -8082,6 +8136,200 @@ function guardarPermisosRoles() {
   toast('Permisos de acceso actualizados correctamente.');
 }
 
+// ════════════════════════════════════════════════
+//  AUTENTICACIÓN EN DOS PASOS — TOTP (RFC 6238)
+//  Implementado con Web Crypto API nativo (sin librerías)
+// ════════════════════════════════════════════════
+
+// Decodifica una cadena Base32 a Uint8Array
+function _b32decode(s) {
+  var ABC = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  s = s.toUpperCase().replace(/=+$/, '').replace(/[^A-Z2-7]/g, '');
+  var bits = 0, val = 0, out = [];
+  for (var i = 0; i < s.length; i++) {
+    val = (val << 5) | ABC.indexOf(s[i]);
+    bits += 5;
+    if (bits >= 8) { bits -= 8; out.push((val >>> bits) & 0xFF); }
+  }
+  return new Uint8Array(out);
+}
+
+// Genera un secreto Base32 aleatorio de 20 bytes
+function generateTOTPSecret() {
+  var ABC = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  var buf = crypto.getRandomValues(new Uint8Array(20));
+  return Array.from(buf).map(function(b){ return ABC[b % 32]; }).join('');
+}
+
+// Verifica un código TOTP (acepta ±1 ventana de 30s para desfases de reloj)
+async function verifyTOTPCode(secret, token) {
+  var keyBytes = _b32decode(secret);
+  var key;
+  try {
+    key = await crypto.subtle.importKey('raw', keyBytes, { name: 'HMAC', hash: 'SHA-1' }, false, ['sign']);
+  } catch(e) { return false; }
+  var t = Math.floor(Date.now() / 1000 / 30);
+  for (var i = -1; i <= 1; i++) {
+    var counter = new ArrayBuffer(8);
+    new DataView(counter).setUint32(4, t + i, false);
+    var hmac = new Uint8Array(await crypto.subtle.sign('HMAC', key, counter));
+    var offset = hmac[19] & 0x0F;
+    var code = ((hmac[offset] & 0x7F) << 24 | hmac[offset+1] << 16 | hmac[offset+2] << 8 | hmac[offset+3]) % 1000000;
+    if (String(code).padStart(6, '0') === String(token).padStart(6, '0')) return true;
+  }
+  return false;
+}
+
+// Construye la URI otpauth para el QR
+function _totpURI(secret, email) {
+  return 'otpauth://totp/SIGEI%3A' + encodeURIComponent(email)
+    + '?secret=' + secret + '&issuer=SIGEI-IER&algorithm=SHA1&digits=6&period=30';
+}
+
+// Renderiza el estado actual de 2FA en el offcanvas usuario
+function render2FAStatus(u) {
+  var statusDiv = document.getElementById('usr-2fa-status');
+  if (!statusDiv) return;
+  if (u && u.totp_enabled) {
+    statusDiv.innerHTML =
+      '<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px;margin-bottom:10px">'
+      + '<i class="bi bi-shield-fill-check" style="color:#16A34A;font-size:18px"></i>'
+      + '<div><div style="font-size:12px;font-weight:700;color:#166534">2FA Activo</div>'
+      + '<div style="font-size:11px;color:#15803D">Tu cuenta está protegida con Google Authenticator</div></div></div>'
+      + '<button class="btn btn-sm btn-outline-danger" onclick="desactivar2FA()">'
+      + '<i class="bi bi-shield-x me-1"></i>Desactivar 2FA</button>';
+  } else {
+    statusDiv.innerHTML =
+      '<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--slate-50);border:1px solid var(--slate-200);border-radius:10px;margin-bottom:10px">'
+      + '<i class="bi bi-shield" style="color:var(--slate-400);font-size:18px"></i>'
+      + '<div><div style="font-size:12px;font-weight:700;color:var(--slate-600)">2FA Inactivo</div>'
+      + '<div style="font-size:11px;color:var(--slate-400)">Agrega una capa extra de seguridad a tu cuenta</div></div></div>'
+      + '<button class="btn btn-sm text-white" style="background:#6366F1" onclick="iniciar2FA()">'
+      + '<i class="bi bi-shield-lock-fill me-1"></i>Activar 2FA</button>';
+  }
+  document.getElementById('usr-2fa-setup-flow').style.display = 'none';
+}
+
+// Inicia el setup de 2FA: genera secreto y muestra QR
+function iniciar2FA() {
+  var email = document.getElementById('usr-email').value || (firebase.auth().currentUser||{}).email || '';
+  var secret = generateTOTPSecret();
+  window._totp_pending_secret = secret;
+  // Mostrar secreto en texto
+  var secEl = document.getElementById('usr-2fa-secret-display');
+  if (secEl) secEl.textContent = secret.match(/.{1,4}/g).join(' ');
+  // Generar QR
+  var qrDiv = document.getElementById('usr-2fa-qr');
+  if (qrDiv) {
+    qrDiv.innerHTML = '';
+    QRCode.toCanvas(document.createElement('canvas'), _totpURI(secret, email), { width: 180, margin: 1 }, function(err, canvas) {
+      if (!err) qrDiv.appendChild(canvas);
+      else qrDiv.innerHTML = '<div style="font-size:11px;color:var(--slate-500)">Error generando QR. Usa la clave manual.</div>';
+    });
+  }
+  document.getElementById('usr-2fa-verify-input').value = '';
+  document.getElementById('usr-2fa-setup-flow').style.display = '';
+}
+
+// Confirma el código y guarda el secreto
+async function confirmar2FA() {
+  var code = document.getElementById('usr-2fa-verify-input').value.replace(/\s/g, '');
+  if (code.length !== 6) { toast('Ingresa el código de 6 dígitos de Google Authenticator.', false); return; }
+  var secret = window._totp_pending_secret;
+  if (!secret) { toast('Error: inicia el proceso de nuevo.', false); return; }
+  var ok = await verifyTOTPCode(secret, code);
+  if (!ok) { toast('Código incorrecto. Intenta de nuevo.', false); return; }
+  // Guardar en usuario
+  var email = (firebase.auth().currentUser||{}).email;
+  var usuarios = DB.get('usuarios');
+  var idx = usuarios.findIndex(function(u){ return u.email === email; });
+  if (idx === -1) { toast('Usuario no encontrado.', false); return; }
+  usuarios[idx].totp_enabled = true;
+  usuarios[idx].totp_secret  = secret;
+  DB.set('usuarios', usuarios);
+  window._totp_pending_secret = null;
+  render2FAStatus(usuarios[idx]);
+  toast('¡2FA activado correctamente! Tu cuenta ahora está protegida.');
+}
+
+// Cancela el setup sin guardar
+function cancelar2FA() {
+  window._totp_pending_secret = null;
+  document.getElementById('usr-2fa-setup-flow').style.display = 'none';
+}
+
+// Desactiva 2FA
+function desactivar2FA() {
+  if (!confirmar('¿Desactivar la autenticación en dos pasos? Tu cuenta quedará protegida solo con contraseña.')) return;
+  var email = (firebase.auth().currentUser||{}).email;
+  var usuarios = DB.get('usuarios');
+  var idx = usuarios.findIndex(function(u){ return u.email === email; });
+  if (idx === -1) return;
+  delete usuarios[idx].totp_enabled;
+  delete usuarios[idx].totp_secret;
+  DB.set('usuarios', usuarios);
+  render2FAStatus(usuarios[idx]);
+  toast('2FA desactivado.');
+}
+
+// ─── Login 2FA ───────────────────────────────────────────────────────────────
+var _totpFailCount = 0;
+
+async function submitTOTPLogin() {
+  var input = document.getElementById('totp-login-input');
+  var code  = (input.value || '').replace(/\s/g, '');
+  var errEl = document.getElementById('totp-login-error');
+  var btn   = document.getElementById('totp-login-btn');
+
+  if (code.length !== 6) {
+    errEl.textContent = 'Ingresa los 6 dígitos del código.';
+    errEl.style.display = ''; return;
+  }
+  btn.textContent = 'Verificando...'; btn.disabled = true;
+
+  var u = window._pendingTOTPUser;
+  if (!u || !u.totp_secret) { _auth.signOut(); return; }
+
+  var ok = await verifyTOTPCode(u.totp_secret, code);
+  btn.textContent = 'Verificar código'; btn.disabled = false;
+
+  if (!ok) {
+    _totpFailCount++;
+    if (_totpFailCount >= 3) {
+      toast('Demasiados intentos fallidos. Cerrando sesión.', false);
+      setTimeout(function(){ _auth.signOut(); }, 1500);
+      return;
+    }
+    errEl.textContent = 'Código incorrecto. Intentos restantes: ' + (3 - _totpFailCount);
+    errEl.style.display = '';
+    input.value = ''; input.focus();
+    return;
+  }
+
+  // Verificación exitosa — abrir la app
+  _totpFailCount = 0;
+  window._pendingTOTPUser = null;
+  document.getElementById('totp-login-panel').style.display = 'none';
+
+  var overlay = document.getElementById('login-overlay');
+  overlay.style.display = 'none';
+  var emailEl = document.getElementById('user-email-display');
+  if (emailEl) emailEl.textContent = u.email;
+  if (!_appLoaded) {
+    var dateEl = document.getElementById('topbar-date');
+    if (dateEl) dateEl.textContent = new Date().toLocaleDateString('es-CO',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+    applyDarkPref(); cargarRolUsuario();
+    Object.keys(_cache).forEach(function(c){ _cache['_prev_'+c]=(_cache[c]||[]).slice(); });
+    renderDashboard(); navigate('dashboard'); _appLoaded = true;
+  }
+}
+
+function cancelTOTPLogin() {
+  window._pendingTOTPUser = null;
+  _totpFailCount = 0;
+  _auth.signOut();
+}
+
 function exportarDatos() {
   const data = {};
   ['docentes','secciones','grados','horarios','aulas','sedes','permisos'].forEach(k => { data[k] = DB.get(k); });
@@ -8301,6 +8549,27 @@ _auth.onAuthStateChanged(async function(user) {
       if (loadEl) loadEl.style.display = 'none';
       return;
     }
+    // Comprobar si el usuario tiene 2FA activado
+    const userRecord = (DB.get('usuarios')||[]).find(function(u){ return u.email === user.email; });
+    if (userRecord && userRecord.totp_enabled && userRecord.totp_secret) {
+      // Mostrar panel 2FA en lugar de abrir la app
+      const loginForm   = overlay.querySelector('form, [id="login-error"]')?.closest('[style]');
+      document.querySelectorAll('#login-overlay > div:last-child > *:not(#totp-login-panel)').forEach(function(el){
+        el.style.display = 'none';
+      });
+      document.getElementById('totp-login-panel').style.display = '';
+      var emailSpan = document.getElementById('totp-login-email');
+      if (emailSpan) emailSpan.textContent = user.email;
+      document.getElementById('totp-login-input').value = '';
+      var errEl = document.getElementById('totp-login-error');
+      if (errEl) { errEl.style.display='none'; errEl.textContent=''; }
+      window._pendingTOTPUser = userRecord;
+      setTimeout(function(){ var el=document.getElementById('totp-login-input'); if(el) el.focus(); }, 100);
+      if (loadEl) loadEl.style.display = 'none';
+      if (btn) { btn.textContent = 'Iniciar sesión'; btn.disabled = false; }
+      return; // No abrir la app todavía
+    }
+
     overlay.style.display = 'none';
     const emailEl = document.getElementById('user-email-display');
     if (emailEl) emailEl.textContent = user.email;
@@ -8388,6 +8657,36 @@ _auth.onAuthStateChanged(async function(user) {
     <div style="text-align:center;margin-top:24px">
       <span style="font-size:11px;color:rgba(255,255,255,.25)">IER SANTANDERCITO &middot; ALFATIC &middot; &copy; 2026</span>
     </div>
+
+    <!-- ── PANEL 2FA (oculto hasta que se necesite) ── -->
+    <div id="totp-login-panel" style="display:none">
+      <div style="text-align:center;margin-bottom:28px">
+        <div style="font-size:48px;margin-bottom:12px">🔐</div>
+        <h2 style="font-size:20px;font-weight:800;color:#fff;margin:0 0 8px">Verificación en dos pasos</h2>
+        <p style="font-size:13px;color:rgba(255,255,255,.5);margin:0;line-height:1.5">
+          Abre <strong style="color:rgba(255,255,255,.75)">Google Authenticator</strong> e ingresa<br>el código de 6 dígitos para <span id="totp-login-email" style="color:#93c5fd"></span>
+        </p>
+      </div>
+      <div id="totp-login-error" style="display:none;background:rgba(239,68,68,.18);color:#fca5a5;padding:11px 15px;border-radius:10px;font-size:13px;margin-bottom:18px;border:1px solid rgba(239,68,68,.3);font-weight:500;text-align:center"></div>
+      <input type="text" id="totp-login-input" class="lf-input"
+        maxlength="6" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code"
+        placeholder="000 000"
+        style="text-align:center;font-size:28px;font-weight:700;letter-spacing:10px;margin-bottom:20px"
+        onkeydown="if(event.key==='Enter')submitTOTPLogin()"
+        oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+      <button onclick="submitTOTPLogin()" id="totp-login-btn"
+        style="width:100%;padding:14px;background:linear-gradient(135deg,#6366F1,#4F46E5);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:12px;box-shadow:0 4px 18px rgba(99,102,241,.45)">
+        <i class="bi bi-shield-lock-fill me-2"></i>Verificar código
+      </button>
+      <button onclick="cancelTOTPLogin()"
+        style="width:100%;padding:11px;background:rgba(255,255,255,.06);color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.1);border-radius:12px;font-size:13px;cursor:pointer;font-family:inherit">
+        Cancelar y cerrar sesión
+      </button>
+      <div style="text-align:center;margin-top:18px">
+        <span style="font-size:11px;color:rgba(255,255,255,.25)">El código se renueva cada 30 segundos</span>
+      </div>
+    </div>
+    <!-- /PANEL 2FA -->
 
   </div>
 </div>
