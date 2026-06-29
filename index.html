@@ -970,9 +970,26 @@
   .rol-administrador { background: #EFF6FF; color: #1D4ED8; }
   .rol-coordinador   { background: #FEF3C7; color: #92400E; }
   .rol-docente       { background: #F0FDF4; color: #15803D; }
+  .rol-superadmin    { background: #1E1B4B; color: #A5B4FC; }
   body.dark-mode .rol-administrador { background:#162645; color:#60A5FA; }
   body.dark-mode .rol-coordinador   { background:#1c1507; color:#FCD34D; }
   body.dark-mode .rol-docente       { background:#052e16; color:#4ADE80; }
+  body.dark-mode .rol-superadmin    { background:#0f0d2e; color:#818CF8; }
+
+  /* ══ SUPERADMIN PAGE ═══════════════════════════════════════════════ */
+  #page-superadmin .card-panel { border-left-color: #6366F1; }
+  .sa-matrix-table th { font-size:11px; font-weight:700; text-align:center; background:var(--slate-50); white-space:nowrap; }
+  .sa-matrix-table td { font-size:12px; vertical-align:middle; }
+  .sa-matrix-table td:not(:first-child) { text-align:center; }
+  .sa-toggle { width:36px; height:20px; appearance:none; -webkit-appearance:none;
+    background:var(--slate-200); border-radius:20px; cursor:pointer; position:relative; transition:.2s; }
+  .sa-toggle:checked { background:#6366F1; }
+  .sa-toggle::after { content:''; position:absolute; width:14px; height:14px;
+    background:#fff; border-radius:50%; top:3px; left:3px; transition:.2s; }
+  .sa-toggle:checked::after { left:19px; }
+  .sa-toggle:disabled { opacity:.35; cursor:not-allowed; }
+  .sa-act-row { font-size:12px; }
+  .sa-act-row td { padding:6px 10px !important; vertical-align:middle; }
 
 
   /* ══ GLASS MORPHISM ══════════════════════════════════════════════════ */
@@ -1379,6 +1396,9 @@
     <div class="nav-section">Administración</div>
     <a href="#" onclick="navigate('usuarios')" data-sb-label="Usuarios" title="Usuarios" data-page="usuarios">
       <i class="bi bi-people-fill"></i><span>Usuarios</span>
+    </a>
+    <a href="#" onclick="navigate('superadmin')" data-sb-label="Superadmin" title="Panel Superadmin" data-page="superadmin" id="sidebar-superadmin-link" style="display:none">
+      <i class="bi bi-shield-lock-fill" style="color:#A5B4FC"></i><span>Panel Superadmin</span>
     </a>
 
     <div class="nav-section">Infraestructura</div>
@@ -2119,6 +2139,7 @@
           <div class="d-flex gap-2 align-items-center">
             <select class="form-select form-select-sm" id="filtro-usr-rol" onchange="renderUsuarios()" style="width:160px">
               <option value="">Todos los roles</option>
+              <option>Superadmin</option>
               <option>Administrador</option>
               <option>Coordinador</option>
               <option>Docente</option>
@@ -2162,6 +2183,80 @@
         </div>
       </div>
     </div>
+
+    <!-- ── SUPERADMIN ─────────────────────────── -->
+    <div id="page-superadmin" class="d-none">
+
+      <!-- Stats rápidos -->
+      <div class="row g-3 mb-3" id="sa-stats-row">
+        <div class="col-6 col-md-3">
+          <div class="stat-card"><div class="stat-icon" style="background:linear-gradient(135deg,#6366F1,#8B5CF6)"><i class="bi bi-people-fill"></i></div><div class="stat-info"><span id="sa-cnt-usuarios">—</span><small>Usuarios</small></div></div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="stat-card"><div class="stat-icon" style="background:linear-gradient(135deg,#0EA5E9,#38BDF8)"><i class="bi bi-person-badge-fill"></i></div><div class="stat-info"><span id="sa-cnt-docentes">—</span><small>Docentes</small></div></div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="stat-card"><div class="stat-icon" style="background:linear-gradient(135deg,#10B981,#34D399)"><i class="bi bi-journal-bookmark-fill"></i></div><div class="stat-info"><span id="sa-cnt-asig">—</span><small>Asignaciones</small></div></div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="stat-card"><div class="stat-icon" style="background:linear-gradient(135deg,#F59E0B,#FBBF24)"><i class="bi bi-clock-history"></i></div><div class="stat-info"><span id="sa-cnt-act">—</span><small>Acciones Log</small></div></div>
+        </div>
+      </div>
+
+      <!-- Matriz de permisos por rol -->
+      <div class="card-panel mb-3">
+        <div class="panel-header">
+          <h6><i class="bi bi-shield-lock-fill me-2"></i>Control de Acceso — Módulos por Rol</h6>
+          <button class="btn btn-sm text-white" style="background:#6366F1" onclick="guardarPermisosRoles()">
+            <i class="bi bi-save me-1"></i>Guardar cambios
+          </button>
+        </div>
+        <p style="font-size:12px;color:var(--slate-500);margin:0 0 16px">
+          Activa o desactiva el acceso a cada módulo por rol. El Superadmin siempre tiene acceso total.
+        </p>
+        <div class="table-responsive">
+          <table class="sigei-table sa-matrix-table" id="sa-matrix-table">
+            <thead>
+              <tr>
+                <th style="text-align:left;min-width:160px">Módulo</th>
+                <th>Administrador</th>
+                <th>Coordinador</th>
+                <th>Docente</th>
+              </tr>
+            </thead>
+            <tbody id="sa-matrix-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Monitor de actividad -->
+      <div class="card-panel">
+        <div class="panel-header">
+          <h6><i class="bi bi-activity me-2"></i>Monitor de Actividad</h6>
+          <div class="d-flex gap-2">
+            <select class="form-select form-select-sm" id="sa-filtro-act-user" onchange="renderSuperadmin()" style="width:180px">
+              <option value="">Todos los usuarios</option>
+            </select>
+            <select class="form-select form-select-sm" id="sa-filtro-act-mod" onchange="renderSuperadmin()" style="width:160px">
+              <option value="">Todos los módulos</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="sigei-table">
+            <thead><tr>
+              <th>Fecha / Hora</th>
+              <th>Usuario</th>
+              <th>Módulo</th>
+              <th>Acción</th>
+              <th>Detalle</th>
+            </tr></thead>
+            <tbody id="sa-act-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /page-superadmin -->
 
   </div><!-- /content -->
 </div><!-- /main -->
@@ -2272,6 +2367,7 @@
         <label class="form-label" style="font-size:12px;font-weight:600">Rol *</label>
         <select class="form-select form-select-sm" id="usr-rol">
           <option value="">Seleccione</option>
+          <option value="Superadmin">Superadmin</option>
           <option value="Administrador">Administrador</option>
           <option value="Coordinador">Coordinador</option>
           <option value="Docente">Docente</option>
@@ -3177,7 +3273,7 @@ const DB = {
 
   // Load all collections from Firestore into memory
   loadAll: async function() {
-    const COLS = ['docentes','secciones','horarios','sedes','permisos','asignaciones','cronograma','grados','reuniones','actividad','usuarios'];
+    const COLS = ['docentes','secciones','horarios','sedes','permisos','asignaciones','cronograma','grados','reuniones','actividad','usuarios','permisos_roles'];
     const snaps = await Promise.all(COLS.map(k => _fs.collection('sigei').doc(k).get()));
     snaps.forEach((snap, i) => {
       _cache[COLS[i]] = snap.exists ? (snap.data().items || []) : [];
@@ -3220,6 +3316,7 @@ const PAGE_TITLES = {
   reuniones:    'Reuniones',
   actividad:    'Actividad Reciente',
   usuarios:     'Gestión de Usuarios',
+  superadmin:   'Panel Superadmin',
 };
 
 const PAGE_ICONS = {
@@ -3232,17 +3329,36 @@ const PAGE_ICONS = {
   'cronograma':   'bi-calendar-event-fill',
 
   'sedes':        'bi-building-fill',
+  'superadmin':   'bi-shield-lock-fill',
 };
 
 function navigate(page) {
   // Hide all page sections (use explicit list to avoid matching page-title)
   ['dashboard','docentes','grados','asignaciones','horarios','cronograma','reuniones',
-   'actividad','usuarios','sedes','permisos'].forEach(function(p) {
+   'actividad','usuarios','sedes','permisos','superadmin'].forEach(function(p) {
     var el = document.getElementById('page-' + p);
     if (el) el.classList.add('d-none');
   });
   var pageEl = document.getElementById('page-' + page);
   if (!pageEl) return false;
+
+  // Guard: Superadmin page only for Superadmin role
+  if (page === 'superadmin' && (window._SIGEI_USER||{}).rol !== 'Superadmin') {
+    toast('Acceso restringido al Panel Superadmin.', false); return false;
+  }
+  // Guard: check permisos_roles for current user (skip for Superadmin and dashboard)
+  if (page !== 'dashboard' && page !== 'superadmin') {
+    var _rol = (window._SIGEI_USER||{}).rol || '';
+    if (_rol && _rol !== 'Superadmin') {
+      var _prConfig = DB.get('permisos_roles') || [];
+      var _prEntry  = _prConfig.find(function(x){ return x.rol === _rol; });
+      if (_prEntry && _prEntry.modulos && !_prEntry.modulos.includes(page)) {
+        toast('No tienes permiso para acceder a este módulo.', false);
+        navigate('dashboard'); return false;
+      }
+    }
+  }
+
   pageEl.classList.remove('d-none');
   document.getElementById('page-title').textContent = PAGE_TITLES[page] || page;
   const iconEl = document.getElementById('topbar-icon');
@@ -3260,7 +3376,7 @@ function navigate(page) {
     reuniones:    renderReuniones,
     actividad:    renderActividad,
     usuarios:     renderUsuarios,
-   
+    superadmin:   renderSuperadmin,
     sedes:        renderSedes,
     permisos:     renderPermisos,
   };
@@ -7429,8 +7545,12 @@ function renderUsuarios() {
   if (!users.length) { tb.innerHTML = emptyRow(6, 'No hay usuarios registrados. Crea el primero.'); return; }
 
   var rolBadge = function(rol) {
-    var cls = rol === 'Administrador' ? 'rol-administrador' : rol === 'Coordinador' ? 'rol-coordinador' : 'rol-docente';
-    var ico = rol === 'Administrador' ? 'bi-shield-fill-check' : rol === 'Coordinador' ? 'bi-person-badge-fill' : 'bi-person-fill';
+    var cls = rol === 'Superadmin' ? 'rol-superadmin'
+            : rol === 'Administrador' ? 'rol-administrador'
+            : rol === 'Coordinador'   ? 'rol-coordinador' : 'rol-docente';
+    var ico = rol === 'Superadmin'    ? 'bi-shield-lock-fill'
+            : rol === 'Administrador' ? 'bi-shield-fill-check'
+            : rol === 'Coordinador'   ? 'bi-person-badge-fill' : 'bi-person-fill';
     return '<span class="rol-badge '+cls+'"><i class="bi '+ico+'"></i>'+rol+'</span>';
   };
 
@@ -7639,6 +7759,7 @@ function guardarUsuario() {
     if (email === currentEmail) {
       var roleEl = document.getElementById('sidebar-role');
       if (roleEl) roleEl.textContent = rol;
+      if (idx !== -1) { window._SIGEI_USER = usuarios[idx]; applyRoleRestrictions(); }
     }
     bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasUsuario')).hide();
     renderUsuarios();
@@ -7730,7 +7851,9 @@ function cargarRolUsuario() {
   if (yo) {
     if (!yo.uid && uid) { yo.uid = uid; DB.set('usuarios', usuarios); }
     syncRoleDoc(yo);
+    window._SIGEI_USER = yo;
     if (roleEl) roleEl.textContent = yo.rol || 'Docente';
+    applyRoleRestrictions();
     return;
   }
   if (!email) return;
@@ -7741,12 +7864,172 @@ function cargarRolUsuario() {
     usuarios.push(newEntry);
     DB.set('usuarios', usuarios);
     syncRoleDoc(newEntry);
+    window._SIGEI_USER = newEntry;
     if (roleEl) roleEl.textContent = 'Administrador';
+    applyRoleRestrictions();
   } else {
     // Cuenta autenticada pero no registrada como usuario del sistema: sin acceso.
     toast('Tu cuenta no está autorizada en SIGEI. Contacta a un administrador.');
     _auth.signOut();
   }
+}
+
+// ════════════════════════════════════════════════
+//  SUPERADMIN — Control de acceso y monitoreo
+// ════════════════════════════════════════════════
+
+// Módulos configurables (el Superadmin siempre los tiene todos)
+var SA_MODULOS = [
+  { key: 'dashboard',    label: 'Dashboard',             icon: 'bi-grid-1x2-fill' },
+  { key: 'docentes',     label: 'Docentes',              icon: 'bi-person-badge-fill' },
+  { key: 'grados',       label: 'Grupos y Grados',       icon: 'bi-diagram-3-fill' },
+  { key: 'asignaciones', label: 'Asignación Académica',  icon: 'bi-journal-bookmark-fill' },
+  { key: 'horarios',     label: 'Horarios',              icon: 'bi-clock-fill' },
+  { key: 'permisos',     label: 'Permisos y Licencias',  icon: 'bi-calendar2-check-fill' },
+  { key: 'cronograma',   label: 'POA / Cronograma',      icon: 'bi-calendar-event-fill' },
+  { key: 'reuniones',    label: 'Reuniones',             icon: 'bi-people-fill' },
+  { key: 'actividad',    label: 'Actividad Reciente',    icon: 'bi-clock-history' },
+  { key: 'sedes',        label: 'Sedes',                 icon: 'bi-building-fill' },
+  { key: 'usuarios',     label: 'Gestión de Usuarios',   icon: 'bi-people-fill' },
+];
+
+var SA_ROLES = ['Administrador', 'Coordinador', 'Docente'];
+
+// Defaults: qué ve cada rol si no hay configuración guardada
+var SA_DEFAULTS = {
+  Administrador: ['dashboard','docentes','grados','asignaciones','horarios','permisos','cronograma','reuniones','actividad','sedes','usuarios'],
+  Coordinador:   ['dashboard','docentes','grados','asignaciones','horarios','permisos','cronograma','reuniones','actividad'],
+  Docente:       ['dashboard','grados','horarios','cronograma','reuniones'],
+};
+
+// Lee la configuración guardada o usa defaults
+function getPermisosRoles() {
+  var saved = DB.get('permisos_roles') || [];
+  var result = {};
+  SA_ROLES.forEach(function(rol) {
+    var entry = saved.find(function(x){ return x.rol === rol; });
+    result[rol] = entry ? (entry.modulos || []) : (SA_DEFAULTS[rol] || []);
+  });
+  return result;
+}
+
+// Oculta en el sidebar los links a módulos no permitidos para el rol actual
+function applyRoleRestrictions() {
+  var user = window._SIGEI_USER || {};
+  var rol  = user.rol || '';
+
+  // Mostrar/ocultar link Superadmin en sidebar
+  var saLink = document.getElementById('sidebar-superadmin-link');
+  if (saLink) saLink.style.display = rol === 'Superadmin' ? '' : 'none';
+
+  // Superadmin ve todo, no restringir
+  if (!rol || rol === 'Superadmin') return;
+
+  var config  = getPermisosRoles();
+  var allowed = config[rol] || SA_DEFAULTS[rol] || [];
+
+  document.querySelectorAll('#sidebar nav a[data-page]').forEach(function(a) {
+    var page = a.dataset.page;
+    if (page === 'superadmin') return; // ya controlado arriba
+    if (!allowed.includes(page)) {
+      a.style.display = 'none';
+    } else {
+      a.style.display = '';
+    }
+  });
+}
+
+// Renderiza el panel Superadmin
+function renderSuperadmin() {
+  // Stats
+  var set = function(id,v){ var el=document.getElementById(id); if(el) el.textContent=v; };
+  set('sa-cnt-usuarios', (DB.get('usuarios')||[]).filter(function(u){return u.estado!=='Eliminado';}).length);
+  set('sa-cnt-docentes', (DB.get('docentes')||[]).filter(function(d){return d.estado==='Activo';}).length);
+  set('sa-cnt-asig',     (DB.get('asignaciones')||[]).filter(function(a){return a.estado==='Activo';}).length);
+  set('sa-cnt-act',      (DB.get('actividad')||[]).length);
+
+  // Matriz de permisos
+  var config = getPermisosRoles();
+  var tbody  = document.getElementById('sa-matrix-body');
+  if (tbody) {
+    tbody.innerHTML = SA_MODULOS.map(function(mod) {
+      var cols = SA_ROLES.map(function(rol) {
+        var checked = config[rol] && config[rol].includes(mod.key) ? 'checked' : '';
+        var disabled = mod.key === 'dashboard' ? 'disabled' : ''; // dashboard siempre activo
+        return '<td><input type="checkbox" class="sa-toggle" id="sa-perm-'+rol+'-'+mod.key+'" '+checked+' '+disabled+'></td>';
+      }).join('');
+      return '<tr>'
+        + '<td><i class="bi '+mod.icon+' me-2" style="color:var(--slate-400)"></i>'+mod.label+'</td>'
+        + cols
+        + '</tr>';
+    }).join('');
+  }
+
+  // Monitor de actividad — poblar filtros
+  var actividad = (DB.get('actividad') || []).slice().reverse();
+  var userSel = document.getElementById('sa-filtro-act-user');
+  var modSel  = document.getElementById('sa-filtro-act-mod');
+  if (userSel && userSel.options.length <= 1) {
+    var users = [...new Set(actividad.map(function(a){ return a.usuario || a.user || ''; }).filter(Boolean))];
+    users.forEach(function(u) {
+      var o = document.createElement('option'); o.value=u; o.textContent=u; userSel.appendChild(o);
+    });
+  }
+  if (modSel && modSel.options.length <= 1) {
+    var mods = [...new Set(actividad.map(function(a){ return a.coleccion || a.collection || ''; }).filter(Boolean))];
+    mods.forEach(function(m) {
+      var o = document.createElement('option'); o.value=m; o.textContent=m.charAt(0).toUpperCase()+m.slice(1); modSel.appendChild(o);
+    });
+  }
+
+  var filterUser = (userSel||{}).value || '';
+  var filterMod  = (modSel||{}).value  || '';
+  var filtered   = actividad.filter(function(a) {
+    var u = a.usuario || a.user || '';
+    var m = a.coleccion || a.collection || '';
+    if (filterUser && u !== filterUser) return false;
+    if (filterMod  && m !== filterMod)  return false;
+    return true;
+  }).slice(0, 200);
+
+  var actBody = document.getElementById('sa-act-body');
+  if (!actBody) return;
+  if (!filtered.length) {
+    actBody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--slate-400);font-size:12px;padding:20px">No hay actividad registrada.</td></tr>';
+    return;
+  }
+  actBody.innerHTML = filtered.map(function(a) {
+    var ts   = a.timestamp ? new Date(a.timestamp).toLocaleString('es-CO',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '—';
+    var user = a.usuario || a.user || '—';
+    var mod  = a.coleccion || a.collection || '—';
+    var acc  = a.accion  || a.action  || '—';
+    var det  = a.detalle || a.detail  || a.nombre || '';
+    var accColor = acc === 'crear' || acc === 'create' ? '#10B981'
+                 : acc === 'editar' || acc === 'edit' ? '#3B82F6'
+                 : acc === 'eliminar' || acc === 'delete' ? '#EF4444' : 'var(--slate-500)';
+    return '<tr class="sa-act-row">'
+      + '<td style="color:var(--slate-500);white-space:nowrap">'+ts+'</td>'
+      + '<td><strong style="font-size:11px">'+user+'</strong></td>'
+      + '<td><span style="background:var(--slate-100);border-radius:8px;padding:2px 8px;font-size:11px">'+mod+'</span></td>'
+      + '<td><span style="color:'+accColor+';font-weight:700;font-size:11px;text-transform:capitalize">'+acc+'</span></td>'
+      + '<td style="color:var(--slate-500);font-size:11px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+det+'</td>'
+      + '</tr>';
+  }).join('');
+}
+
+// Guarda la configuración de permisos por rol en Firebase
+function guardarPermisosRoles() {
+  var config = SA_ROLES.map(function(rol) {
+    var modulos = SA_MODULOS.filter(function(mod) {
+      if (mod.key === 'dashboard') return true; // dashboard siempre incluido
+      var el = document.getElementById('sa-perm-'+rol+'-'+mod.key);
+      return el && el.checked;
+    }).map(function(mod){ return mod.key; });
+    return { rol: rol, modulos: modulos };
+  });
+  DB.set('permisos_roles', config);
+  applyRoleRestrictions();
+  toast('Permisos de acceso actualizados correctamente.');
 }
 
 function exportarDatos() {
