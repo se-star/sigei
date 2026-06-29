@@ -2108,6 +2108,48 @@
           </div>
         </div>
       </div>
+      <!-- KPI Cards -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:16px" id="seg-kpi-row">
+        <div class="card-panel" style="padding:16px 18px;display:flex;align-items:center;gap:14px">
+          <div style="width:42px;height:42px;border-radius:12px;background:#EEF2FF;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <i class="bi bi-people-fill" style="color:#4F46E5;font-size:18px"></i></div>
+          <div><div style="font-size:22px;font-weight:800;color:var(--slate-800)" id="seg-kpi-docentes">—</div>
+          <div style="font-size:11px;color:var(--slate-500)">Docentes</div></div>
+        </div>
+        <div class="card-panel" style="padding:16px 18px;display:flex;align-items:center;gap:14px">
+          <div style="width:42px;height:42px;border-radius:12px;background:#F0FDF4;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <i class="bi bi-check-circle-fill" style="color:#16A34A;font-size:18px"></i></div>
+          <div><div style="font-size:22px;font-weight:800;color:var(--slate-800)" id="seg-kpi-aprobados">—</div>
+          <div style="font-size:11px;color:var(--slate-500)">Entregables aprobados</div></div>
+        </div>
+        <div class="card-panel" style="padding:16px 18px;display:flex;align-items:center;gap:14px">
+          <div style="width:42px;height:42px;border-radius:12px;background:#EFF6FF;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <i class="bi bi-graph-up" style="color:#2563EB;font-size:18px"></i></div>
+          <div><div style="font-size:22px;font-weight:800;color:var(--slate-800)" id="seg-kpi-pct">—</div>
+          <div style="font-size:11px;color:var(--slate-500)">Avance general</div></div>
+        </div>
+        <div class="card-panel" style="padding:16px 18px;display:flex;align-items:center;gap:14px">
+          <div style="width:42px;height:42px;border-radius:12px;background:#FFF7ED;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <i class="bi bi-trophy-fill" style="color:#D97706;font-size:18px"></i></div>
+          <div><div style="font-size:22px;font-weight:800;color:var(--slate-800)" id="seg-kpi-completos">—</div>
+          <div style="font-size:11px;color:var(--slate-500)">Docentes al 100%</div></div>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div style="display:grid;grid-template-columns:1fr 2fr;gap:14px;margin-bottom:16px" id="seg-charts-row">
+        <div class="card-panel" style="padding:18px">
+          <div style="font-size:12px;font-weight:700;color:var(--slate-600);margin-bottom:14px"><i class="bi bi-pie-chart-fill me-1" style="color:#4F46E5"></i>Estado general</div>
+          <div style="position:relative;height:180px"><canvas id="seg-chart-donut"></canvas></div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;justify-content:center" id="seg-donut-legend"></div>
+        </div>
+        <div class="card-panel" style="padding:18px">
+          <div style="font-size:12px;font-weight:700;color:var(--slate-600);margin-bottom:14px"><i class="bi bi-bar-chart-fill me-1" style="color:#16A34A"></i>Aprobados por entregable</div>
+          <div style="position:relative;height:200px"><canvas id="seg-chart-bar"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Matriz -->
       <div class="card-panel" style="padding:0;overflow:hidden">
         <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
           <table class="sigei-table seg-matrix-table" style="min-width:900px">
@@ -8173,6 +8215,107 @@ function _segGetEstado(docId, periodo, año, key) {
   return rec.entregables[key].estado || 'Pendiente';
 }
 
+// ─── Seguimiento: gráficas superiores ───────────────────────────────────────
+var _segChartDonut = null;
+var _segChartBar   = null;
+
+function renderSegCharts(docentes, periodo, año) {
+  // Calcular conteos por estado
+  var conteos = { 'Pendiente': 0, 'Entregado': 0, 'Aprobado': 0, 'No aplica': 0 };
+  var aprobPorEntregable = SEG_ENTREGABLES.map(function(){ return 0; });
+  var totalAprobados = 0;
+  var docentesCompletos = 0;
+
+  docentes.forEach(function(doc) {
+    var estados = SEG_ENTREGABLES.map(function(e){ return _segGetEstado(doc.id, periodo, año, e.key); });
+    var aprobados = 0;
+    var noAplica  = 0;
+    estados.forEach(function(s, i) {
+      conteos[s] = (conteos[s] || 0) + 1;
+      if (s === 'Aprobado') { aprobPorEntregable[i]++; aprobados++; totalAprobados++; }
+      if (s === 'No aplica') noAplica++;
+    });
+    var aplicables = SEG_ENTREGABLES.length - noAplica;
+    if (aplicables > 0 && aprobados === aplicables) docentesCompletos++;
+  });
+
+  var total = docentes.length;
+  var totalCeldas = total * SEG_ENTREGABLES.length;
+  var pctGeneral = totalCeldas > 0 ? Math.round(totalAprobados / totalCeldas * 100) : 0;
+
+  // KPI cards
+  var el = function(id){ return document.getElementById(id); };
+  if (el('seg-kpi-docentes'))  el('seg-kpi-docentes').textContent  = total;
+  if (el('seg-kpi-aprobados')) el('seg-kpi-aprobados').textContent = totalAprobados;
+  if (el('seg-kpi-pct'))       el('seg-kpi-pct').textContent       = pctGeneral + '%';
+  if (el('seg-kpi-completos')) el('seg-kpi-completos').textContent = docentesCompletos;
+
+  // Chart de dona
+  var cDonut = document.getElementById('seg-chart-donut');
+  if (cDonut && typeof Chart !== 'undefined') {
+    if (_segChartDonut) { try { _segChartDonut.destroy(); } catch(e){} }
+    var donutColors   = ['#EF4444','#2563EB','#16A34A','#94A3B8'];
+    var donutBg       = ['#FEE2E2','#DBEAFE','#DCFCE7','#F1F5F9'];
+    var donutData     = SEG_ESTADOS.map(function(s){ return conteos[s] || 0; });
+    _segChartDonut = new Chart(cDonut, {
+      type: 'doughnut',
+      data: {
+        labels: SEG_ESTADOS,
+        datasets: [{ data: donutData, backgroundColor: donutColors, borderColor: donutBg, borderWidth: 3, hoverOffset: 6 }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, cutout: '68%',
+        plugins: { legend: { display: false }, tooltip: { callbacks: {
+          label: function(ctx){ return ' ' + ctx.label + ': ' + ctx.raw + ' celdas'; }
+        }}}
+      }
+    });
+    // Leyenda manual
+    var legEl = document.getElementById('seg-donut-legend');
+    if (legEl) {
+      legEl.innerHTML = SEG_ESTADOS.map(function(s, i){
+        return '<span style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--slate-600)">'
+          + '<span style="width:8px;height:8px;border-radius:50%;background:' + donutColors[i] + ';flex-shrink:0"></span>'
+          + s + ' <b>' + (conteos[s]||0) + '</b></span>';
+      }).join('');
+    }
+  }
+
+  // Chart de barras horizontales
+  var cBar = document.getElementById('seg-chart-bar');
+  if (cBar && typeof Chart !== 'undefined') {
+    if (_segChartBar) { try { _segChartBar.destroy(); } catch(e){} }
+    var barLabels = SEG_ENTREGABLES.map(function(e){ return e.short; });
+    var barData   = aprobPorEntregable;
+    _segChartBar = new Chart(cBar, {
+      type: 'bar',
+      data: {
+        labels: barLabels,
+        datasets: [{
+          label: 'Docentes con aprobado',
+          data: barData,
+          backgroundColor: barData.map(function(v){
+            var pct = total > 0 ? v / total : 0;
+            return pct >= 0.75 ? '#16A34A' : pct >= 0.4 ? '#2563EB' : '#EF4444';
+          }),
+          borderRadius: 6, borderSkipped: false
+        }]
+      },
+      options: {
+        indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { callbacks: {
+          label: function(ctx){ return ' ' + ctx.raw + ' de ' + total + ' docentes'; }
+        }}},
+        scales: {
+          x: { beginAtZero: true, max: total || 1, ticks: { stepSize: 1, font: { size: 10 } },
+               grid: { color: 'rgba(0,0,0,.06)' } },
+          y: { ticks: { font: { size: 10 } }, grid: { display: false } }
+        }
+      }
+    });
+  }
+}
+
 function renderSeguimiento() {
   var periodo = parseInt((document.getElementById('seg-filtro-periodo')||{}).value) || 1;
   var año     = parseInt((document.getElementById('seg-filtro-año')||{}).value)    || 2026;
@@ -8181,6 +8324,9 @@ function renderSeguimiento() {
   var thead = document.getElementById('seg-matrix-head');
   var tbody = document.getElementById('seg-matrix-body');
   if (!thead || !tbody) return;
+
+  // Gráficas superiores
+  renderSegCharts(docentes, periodo, año);
 
   // Cabecera
   thead.innerHTML = '<tr style="background:var(--slate-50)">'
