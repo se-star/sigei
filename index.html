@@ -1694,6 +1694,9 @@
             <button class="btn btn-sm btn-outline-secondary" onclick="importarAsignacionesExcel()" title="Cargar asignaciones desde plantilla Excel">
               <i class="bi bi-file-earmark-arrow-up-fill me-1"></i> Importar Excel
             </button>
+            <button class="btn btn-sm btn-outline-success" onclick="exportarAsignacionesExcel()" title="Descargar asignaciones actuales en formato Excel compatible con importación">
+              <i class="bi bi-file-earmark-arrow-down-fill me-1"></i> Exportar Excel
+            </button>
           </div>
         </div>
       </div>
@@ -6196,6 +6199,44 @@ function descargarPlantillaAsignaciones() {
   toast('✅ Plantilla descargada. Usa la hoja “Referencia” para ver los valores válidos.');
 }
 
+
+function exportarAsignacionesExcel() {
+  var asignaciones = (DB.get('asignaciones') || []).filter(function(a){ return a.estado === 'Activo'; });
+  if (!asignaciones.length) { toast('No hay asignaciones activas para exportar.', false); return; }
+
+  var docentes  = DB.get('docentes')  || [];
+  var secciones = DB.get('secciones') || [];
+  var grados    = DB.get('grados')    || [];
+
+  // Cabecera igual a la que espera el importador
+  var rows = [['DOCENTE', 'MATERIA', 'GRADO', 'SECCIÓN', 'DÍA', 'HORA INICIO', 'HORA FIN']];
+
+  asignaciones.forEach(function(asig) {
+    var doc = docentes.find(function(d){ return d.id == asig.docente_id; });
+    var nombreDoc = doc ? (doc.p_nombre + ' ' + doc.p_apellido) : 'Desconocido';
+    (asig.cursos || []).forEach(function(curso) {
+      var sec  = secciones.find(function(s){ return s.id == curso.seccion_id; });
+      var grad = sec ? grados.find(function(g){ return g.id == sec.grado_id; }) : null;
+      var nombreGrad = grad ? grad.nombre : '';
+      var nombreSec  = sec  ? sec.nombre  : '';
+      var materia = curso.materia || asig.materia || '';
+      (curso.dias || []).forEach(function(d) {
+        rows.push([nombreDoc, materia, nombreGrad, nombreSec, d.dia, d.hora_inicio, d.hora_fin]);
+      });
+    });
+  });
+
+  var wb = XLSX.utils.book_new();
+  var ws = XLSX.utils.aoa_to_sheet(rows);
+
+  // Ancho de columnas
+  ws['!cols'] = [{ wch: 30 }, { wch: 20 }, { wch: 16 }, { wch: 12 }, { wch: 12 }, { wch: 14 }, { wch: 12 }];
+
+  XLSX.utils.book_append_sheet(wb, ws, 'Asignaciones');
+  var fecha = new Date().toISOString().slice(0, 10);
+  XLSX.writeFile(wb, 'Asignaciones_SIGEI_' + fecha + '.xlsx');
+  toast('Asignaciones exportadas: ' + (rows.length - 1) + ' filas.');
+}
 
 function importarAsignacionesExcel() {
   document.getElementById('import-asig-file').value = '';
