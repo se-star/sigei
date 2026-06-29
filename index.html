@@ -989,6 +989,27 @@
   body.dark-mode .rol-docente       { background:#052e16; color:#4ADE80; }
   body.dark-mode .rol-superadmin    { background:#0f0d2e; color:#818CF8; }
 
+  /* ══ SEGUIMIENTO PEDAGÓGICO ════════════════════════════════════════ */
+  .seg-matrix-table th { font-size:10px; font-weight:700; text-align:center; background:var(--slate-50); white-space:normal; line-height:1.3; padding:8px 4px; }
+  .seg-matrix-table td { padding:6px 4px; vertical-align:middle; }
+  .seg-matrix-table tr:hover td { background:var(--slate-50); }
+  .seg-chip {
+    display:inline-flex; align-items:center; justify-content:center;
+    width:30px; height:30px; border-radius:50%; font-size:14px;
+    transition:transform .15s; border:none; cursor:pointer;
+  }
+  .seg-chip:hover { transform:scale(1.25); }
+  .seg-oc-item {
+    border:1px solid var(--slate-200); border-radius:10px;
+    padding:12px 14px; margin-bottom:10px; transition:border-color .2s;
+  }
+  .seg-oc-item:hover { border-color:#C7D2FE; }
+  .seg-oc-item-header { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .seg-oc-num {
+    width:24px; height:24px; border-radius:50%; background:#EEF2FF; color:#4F46E5;
+    font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+
   /* ══ SUPERADMIN PAGE ═══════════════════════════════════════════════ */
   #page-superadmin .card-panel { border-left-color: #6366F1; }
   .sa-matrix-table th { font-size:11px; font-weight:700; text-align:center; background:var(--slate-50); white-space:nowrap; }
@@ -1399,8 +1420,8 @@
     <a href="#" onclick="navigate('cronograma')" data-sb-label="POA" title="POA" data-page="cronograma">
       <i class="bi bi-calendar-event-fill"></i><span>POA</span>
     </a>
-    <a href="#" onclick="navigate('reuniones')" data-sb-label="Reuniones" title="Reuniones" data-page="reuniones">
-      <i class="bi bi-people-fill"></i><span>Reuniones</span>
+    <a href="#" onclick="navigate('seguimiento')" data-sb-label="Seguimiento Pedagógico" title="Seguimiento Pedagógico" data-page="seguimiento">
+      <i class="bi bi-journal-check"></i><span>Seguimiento Pedagógico</span>
     </a>
     <a href="#" onclick="navigate('actividad')" data-sb-label="Actividad" title="Actividad" data-page="actividad">
       <i class="bi bi-clock-history"></i><span>Actividad</span>
@@ -2056,40 +2077,46 @@
 
 
     <!-- ── REUNIONES ──────────────────────── -->
-    <div id="page-reuniones" class="d-none">
+    <div id="page-seguimiento" class="d-none">
       <div class="card-panel mb-3" style="padding:0;overflow:hidden">
         <div class="module-header">
           <div class="module-header-left">
-            <div class="module-header-icon" style="background:#F0FDF4;color:#16A34A"><i class="bi bi-people-fill"></i></div>
-            <div><h5>Reuniones y Actas</h5><p>Registro de reuniones institucionales</p></div>
+            <div class="module-header-icon" style="background:#EEF2FF;color:#4F46E5"><i class="bi bi-journal-check"></i></div>
+            <div><h5>Seguimiento Pedagógico</h5><p>Control de entregables docentes por periodo académico</p></div>
           </div>
-          <div class="module-header-actions d-flex flex-wrap gap-2">
-          <div class="d-flex gap-2 align-items-center flex-wrap">
-            <select class="form-select form-select-sm" id="filtro-reunion-tipo" onchange="renderReuniones()" style="width:160px">
-              <option value="">Todos los tipos</option>
-              <option>General</option><option>Por área</option><option>Directiva</option>
-              <option>Capacitación</option><option>Otro</option>
+          <div class="module-header-actions d-flex gap-2 align-items-center flex-wrap">
+            <!-- Leyenda -->
+            <div class="d-flex gap-2 align-items-center" style="font-size:11px;color:var(--slate-500)">
+              <span><span style="color:#EF4444">●</span> Pendiente</span>
+              <span><span style="color:#2563EB">●</span> Entregado</span>
+              <span><span style="color:#16A34A">●</span> Aprobado</span>
+              <span><span style="color:#94A3B8">●</span> No aplica</span>
+            </div>
+            <select class="form-select form-select-sm" id="seg-filtro-periodo" onchange="renderSeguimiento()" style="width:130px">
+              <option value="1">Período 1</option>
+              <option value="2">Período 2</option>
+              <option value="3">Período 3</option>
             </select>
-            <select class="form-select form-select-sm" id="filtro-reunion-estado" onchange="renderReuniones()" style="width:140px">
-              <option value="">Todos</option>
-              <option>Programada</option><option>Realizada</option><option>Cancelada</option>
+            <select class="form-select form-select-sm" id="seg-filtro-año" onchange="renderSeguimiento()" style="width:100px">
+              <option value="2026">2026</option>
+              <option value="2025">2025</option>
+              <option value="2027">2027</option>
             </select>
-            <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="abrirReunion()">
-              <i class="bi bi-plus-lg"></i> Nueva reunión
+            <button class="btn btn-sm btn-outline-secondary" onclick="exportarSeguimientoExcel()">
+              <i class="bi bi-file-earmark-excel me-1"></i>Exportar
             </button>
           </div>
         </div>
       </div>
-      <div class="card-panel">
-        <div class="table-responsive">
-          <table class="sigei-table">
-            <thead><tr><th style="width:110px">Fecha</th><th>Tema</th><th>Tipo</th><th>Lugar</th><th>Asistentes</th><th>Estado</th><th style="width:90px">Acciones</th></tr></thead>
-            <tbody id="tabla-reuniones"></tbody>
+      <div class="card-panel" style="padding:0;overflow:hidden">
+        <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
+          <table class="sigei-table seg-matrix-table" style="min-width:900px">
+            <thead id="seg-matrix-head"></thead>
+            <tbody id="seg-matrix-body"></tbody>
           </table>
         </div>
       </div>
-    </div>
-    </div><!-- /page-reuniones -->
+    </div><!-- /page-seguimiento -->
 
 
     <!-- ── ACTIVIDAD ────────────────────── -->
@@ -2105,7 +2132,7 @@
               <option value="permisos">Permisos</option>
               <option value="horarios">Horarios</option>
               <option value="cronograma">POA</option>
-              <option value="reuniones">Reuniones</option>
+              <option value="seguimiento">Seguimiento Pedagógico</option>
             </select>
             <button class="btn btn-sm btn-outline-danger" onclick="limpiarActividad()">
               <i class="bi bi-trash-fill me-1"></i>Limpiar
@@ -2275,72 +2302,20 @@
 </div><!-- /main -->
 
 
-<!-- Modal Reunión -->
-<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasReunion" style="width:min(520px,96vw)">
+<!-- Offcanvas Seguimiento Pedagógico — Detalle por docente -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasSeguimiento" style="width:min(580px,96vw)">
   <div class="offcanvas-header border-bottom" style="background:var(--slate-900);padding:20px 24px">
     <div>
-      <h6 class="offcanvas-title text-white mb-0" style="font-weight:700;font-size:15px" id="offcanvasReunion-title">Nueva Reunión</h6>
-      <small class="text-white-50" style="font-size:11px">Reuniones Institucionales</small>
+      <h6 class="offcanvas-title text-white mb-0" style="font-weight:700;font-size:15px" id="seg-oc-docente-nombre">Docente</h6>
+      <small class="text-white-50" style="font-size:11px" id="seg-oc-periodo">Período · Año</small>
     </div>
     <button class="btn-close btn-close-white ms-3" data-bs-dismiss="offcanvas"></button>
   </div>
-  <div class="offcanvas-body" style="overflow-y:auto;padding:24px">
-    <input type="hidden" id="reunion-id">
-    <div class="row g-3">
-      <div class="col-6">
-        <label class="form-label" style="font-size:12px;font-weight:600">Fecha *</label>
-        <input type="date" class="form-control form-control-sm" id="reunion-fecha">
-      </div>
-      <div class="col-6">
-        <label class="form-label" style="font-size:12px;font-weight:600">Hora</label>
-        <input type="time" class="form-control form-control-sm" id="reunion-hora">
-      </div>
-      <div class="col-6">
-        <label class="form-label" style="font-size:12px;font-weight:600">Tipo *</label>
-        <select class="form-select form-select-sm" id="reunion-tipo">
-          <option value="">Seleccione</option>
-          <option>General</option><option>Por área</option>
-          <option>Directiva</option><option>Capacitación</option><option>Otro</option>
-        </select>
-      </div>
-      <div class="col-6">
-        <label class="form-label" style="font-size:12px;font-weight:600">Estado</label>
-        <select class="form-select form-select-sm" id="reunion-estado">
-          <option>Programada</option><option>Realizada</option><option>Cancelada</option>
-        </select>
-      </div>
-      <div class="col-12">
-        <label class="form-label" style="font-size:12px;font-weight:600">Tema / Agenda *</label>
-        <input type="text" class="form-control form-control-sm" id="reunion-tema" placeholder="Ej: Planificación del período académico">
-      </div>
-      <div class="col-12">
-        <label class="form-label" style="font-size:12px;font-weight:600">Lugar</label>
-        <input type="text" class="form-control form-control-sm" id="reunion-lugar" placeholder="Ej: Sala de reuniones">
-      </div>
-      <div class="col-12">
-        <label class="form-label" style="font-size:12px;font-weight:600">Área / Responsable</label>
-        <input type="text" class="form-control form-control-sm" id="reunion-area">
-      </div>
-      <div class="col-12">
-        <label class="form-label" style="font-size:12px;font-weight:600">Asistentes</label>
-        <div id="reunion-asistentes-wrap" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:6px;max-height:180px;overflow-y:auto;border:1px solid var(--slate-200);border-radius:8px;padding:10px">
-          <p class="text-muted" style="font-size:12px">Cargando docentes...</p>
-        </div>
-      </div>
-      <div class="col-12">
-        <label class="form-label" style="font-size:12px;font-weight:600">Compromisos / Acuerdos</label>
-        <textarea class="form-control form-control-sm" id="reunion-compromisos" rows="3" placeholder="Anota los acuerdos..."></textarea>
-      </div>
-      <div class="col-12">
-        <label class="form-label" style="font-size:12px;font-weight:600">Observaciones</label>
-        <textarea class="form-control form-control-sm" id="reunion-obs" rows="2"></textarea>
-      </div>
-    </div>
-  </div>
+  <div class="offcanvas-body" style="overflow-y:auto;padding:20px" id="seg-oc-body"></div>
   <div class="border-top p-3 d-flex gap-2 justify-content-end oc-footer">
     <button class="btn btn-sm btn-secondary" data-bs-dismiss="offcanvas">Cancelar</button>
-    <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="guardarReunion()">
-      <i class="bi bi-save me-1"></i>Guardar
+    <button class="btn btn-sm text-white" style="background:#4F46E5" onclick="guardarSeguimientoDocente()">
+      <i class="bi bi-save me-1"></i>Guardar cambios
     </button>
   </div>
 </div>
@@ -3283,7 +3258,7 @@ let _cache = {};
 const RENDER_BY_KEY = {
   docentes: 'renderDocentes', grados: 'renderGrados', asignaciones: 'renderAsignaciones',
   horarios: 'renderHorarios', sedes: 'renderSedes',
-  permisos: 'renderPermisos', cronograma: 'renderCronograma', reuniones: 'renderReuniones',
+  permisos: 'renderPermisos', cronograma: 'renderCronograma', seguimiento: 'renderSeguimiento',
   usuarios: 'renderUsuarios', actividad: 'renderActividad'
 };
 
@@ -3317,7 +3292,7 @@ const DB = {
 
   // Load all collections from Firestore into memory
   loadAll: async function() {
-    const COLS = ['docentes','secciones','horarios','sedes','permisos','asignaciones','cronograma','grados','reuniones','actividad','usuarios'];
+    const COLS = ['docentes','secciones','horarios','sedes','permisos','asignaciones','cronograma','grados','seguimiento','actividad','usuarios'];
     const snaps = await Promise.all(COLS.map(k => _fs.collection('sigei').doc(k).get()));
     snaps.forEach((snap, i) => {
       _cache[COLS[i]] = snap.exists ? (snap.data().items || []) : [];
@@ -3385,7 +3360,7 @@ const PAGE_TITLES = {
   sedes:        'Sedes',
   permisos:     'Permisos y Licencias',
   cronograma:   'POA - Plan Operativo Anual',
-  reuniones:    'Reuniones',
+  seguimiento:  'Seguimiento Pedagógico',
   actividad:    'Actividad Reciente',
   usuarios:     'Gestión de Usuarios',
   superadmin:   'Panel Superadmin',
@@ -3406,7 +3381,7 @@ const PAGE_ICONS = {
 
 function navigate(page) {
   // Hide all page sections (use explicit list to avoid matching page-title)
-  ['dashboard','docentes','grados','asignaciones','horarios','cronograma','reuniones',
+  ['dashboard','docentes','grados','asignaciones','horarios','cronograma','seguimiento',
    'actividad','usuarios','sedes','permisos','superadmin'].forEach(function(p) {
     var el = document.getElementById('page-' + p);
     if (el) el.classList.add('d-none');
@@ -3445,7 +3420,7 @@ function navigate(page) {
     asignaciones: renderAsignaciones,
     horarios:     renderHorarios,
     cronograma:   renderCronograma,
-    reuniones:    renderReuniones,
+    seguimiento:  renderSeguimiento,
     actividad:    renderActividad,
     usuarios:     renderUsuarios,
     superadmin:   renderSuperadmin,
@@ -7464,11 +7439,12 @@ function buscarGlobal(q) {
         fn: function(){ navigate('cronograma'); } });
     }
   });
-  DB.get('reuniones').forEach(function(r) {
-    if ((r.tema||'').toLowerCase().includes(q) || (r.tipo||'').toLowerCase().includes(q)) {
-      res.push({ g:'Reuniones', ico:'bi-people-fill', bg:'#EDE9FE', col:'#7C3AED',
-        t: r.tema, s:(r.tipo||'')+(r.fecha?' · '+r.fecha:''),
-        fn: function(){ navigate('reuniones'); } });
+  (DB.get('docentes')||[]).filter(function(d){ return d.estado === 'Activo'; }).forEach(function(d) {
+    var nombre = (d.p_nombre||'') + ' ' + (d.p_apellido||'');
+    if (nombre.toLowerCase().includes(q)) {
+      res.push({ g:'Seguimiento Pedagógico', ico:'bi-journal-check', bg:'#EEF2FF', col:'#4F46E5',
+        t: nombre, s:'Ver seguimiento del docente',
+        fn: function(){ navigate('seguimiento'); } });
     }
   });
   DB.get('asignaciones').forEach(function(a) {
@@ -7531,7 +7507,7 @@ function buscarGlobalKey(e) {
 var ACT_LABEL = {
   docentes:'Docentes', secciones:'Grupos', horarios:'Horarios',
   permisos:'Permisos', asignaciones:'Asignaciones', cronograma:'POA',
-  sedes:'Sedes', reuniones:'Reuniones'
+  sedes:'Sedes', seguimiento:'Seguimiento Pedagógico'
 };
 var ACT_ICON = {
   docentes:['bi-person-badge-fill','#EFF6FF','#2563EB'],
@@ -7542,7 +7518,7 @@ var ACT_ICON = {
   cronograma:['bi-calendar-event-fill','#FEF3C7','#B45309'],
 
   sedes:['bi-building-fill','#EDE9FE','#7C3AED'],
-  reuniones:['bi-people-fill','#EDE9FE','#7C3AED']
+  seguimiento:['bi-journal-check','#EEF2FF','#4F46E5']
 };
 
 function logAct(colName, newData) {
@@ -7975,7 +7951,7 @@ var SA_MODULOS = [
   { key: 'horarios',     label: 'Horarios',              icon: 'bi-clock-fill' },
   { key: 'permisos',     label: 'Permisos y Licencias',  icon: 'bi-calendar2-check-fill' },
   { key: 'cronograma',   label: 'POA / Cronograma',      icon: 'bi-calendar-event-fill' },
-  { key: 'reuniones',    label: 'Reuniones',             icon: 'bi-people-fill' },
+  { key: 'seguimiento',  label: 'Seguimiento Pedagógico', icon: 'bi-journal-check' },
   { key: 'actividad',    label: 'Actividad Reciente',    icon: 'bi-clock-history' },
   { key: 'sedes',        label: 'Sedes',                 icon: 'bi-building-fill' },
   { key: 'usuarios',     label: 'Gestión de Usuarios',   icon: 'bi-people-fill' },
@@ -7985,9 +7961,9 @@ var SA_ROLES = ['Administrador', 'Coordinador', 'Docente'];
 
 // Defaults: qué ve cada rol si no hay configuración guardada
 var SA_DEFAULTS = {
-  Administrador: ['dashboard','docentes','grados','asignaciones','horarios','permisos','cronograma','reuniones','actividad','sedes','usuarios'],
-  Coordinador:   ['dashboard','docentes','grados','asignaciones','horarios','permisos','cronograma','reuniones','actividad'],
-  Docente:       ['dashboard','grados','horarios','cronograma','reuniones'],
+  Administrador: ['dashboard','docentes','grados','asignaciones','horarios','permisos','cronograma','seguimiento','actividad','sedes','usuarios'],
+  Coordinador:   ['dashboard','docentes','grados','asignaciones','horarios','permisos','cronograma','seguimiento','actividad'],
+  Docente:       ['dashboard','grados','horarios','cronograma','seguimiento'],
 };
 
 // Lee la configuración guardada o usa defaults
@@ -8156,6 +8132,212 @@ function guardarPermisosRoles() {
   // Aplicar inmediatamente al sidebar
   applyRoleRestrictions();
   toast('Permisos de acceso actualizados correctamente.');
+}
+
+// ════════════════════════════════════════════════
+//  SEGUIMIENTO PEDAGÓGICO
+// ════════════════════════════════════════════════
+
+const SEG_ENTREGABLES = [
+  { key:'plan_area',          label:'Plan de Área',               short:'Plan de Área' },
+  { key:'estructura_curr',    label:'Estructura Curricular',      short:'Est. Curricular' },
+  { key:'malla_curr',         label:'Malla Curricular',           short:'Malla Curr.' },
+  { key:'piar',               label:'PIAR',                       short:'PIAR' },
+  { key:'proyectos_aula',     label:'Proyectos de Aula',          short:'Proy. Aula' },
+  { key:'plan_clase',         label:'Plan de Clase',              short:'Plan de Clase' },
+  { key:'registro_ped',       label:'Registro Pedagógico',        short:'Reg. Pedag.' },
+  { key:'notas',              label:'Notas',                      short:'Notas' },
+  { key:'alertas',            label:'Alertas Académicas',         short:'Alertas Acad.' },
+  { key:'plan_mejora',        label:'Plan de Mejora Estudiantil', short:'Plan Mejora' },
+  { key:'pruebas_periodo',    label:'Pruebas de Período I',       short:'Pruebas Per.' },
+];
+
+const SEG_ESTADOS = ['Pendiente','Entregado','Aprobado','No aplica'];
+const SEG_CFG = {
+  'Pendiente': { color:'#EF4444', bg:'#FEF2F2', icon:'bi-clock-fill' },
+  'Entregado': { color:'#2563EB', bg:'#EFF6FF', icon:'bi-send-check-fill' },
+  'Aprobado':  { color:'#16A34A', bg:'#F0FDF4', icon:'bi-check-circle-fill' },
+  'No aplica': { color:'#94A3B8', bg:'#F8FAFC', icon:'bi-dash-circle-fill' },
+};
+
+function _segFindRecord(docId, periodo, año) {
+  return (DB.get('seguimiento')||[]).find(function(r){
+    return r.docente_id == docId && r.periodo == periodo && r.año == año;
+  });
+}
+
+function _segGetEstado(docId, periodo, año, key) {
+  var rec = _segFindRecord(docId, periodo, año);
+  if (!rec || !rec.entregables || !rec.entregables[key]) return 'Pendiente';
+  return rec.entregables[key].estado || 'Pendiente';
+}
+
+function renderSeguimiento() {
+  var periodo = parseInt((document.getElementById('seg-filtro-periodo')||{}).value) || 1;
+  var año     = parseInt((document.getElementById('seg-filtro-año')||{}).value)    || 2026;
+  var docentes = (DB.get('docentes')||[]).filter(function(d){ return d.estado === 'Activo'; });
+
+  var thead = document.getElementById('seg-matrix-head');
+  var tbody = document.getElementById('seg-matrix-body');
+  if (!thead || !tbody) return;
+
+  // Cabecera
+  thead.innerHTML = '<tr style="background:var(--slate-50)">'
+    + '<th style="min-width:180px;text-align:left;position:sticky;left:0;z-index:2;background:var(--slate-50)">Docente</th>'
+    + SEG_ENTREGABLES.map(function(e){
+        return '<th title="' + e.label + '" style="min-width:90px">' + e.short + '</th>';
+      }).join('')
+    + '<th style="min-width:80px">Avance</th>'
+    + '</tr>';
+
+  if (!docentes.length) {
+    tbody.innerHTML = '<tr><td colspan="' + (SEG_ENTREGABLES.length + 2) + '" class="text-center text-muted py-4">No hay docentes activos registrados</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = docentes.map(function(doc) {
+    var nombre = doc.p_nombre + ' ' + doc.p_apellido;
+    var estados = SEG_ENTREGABLES.map(function(e){ return _segGetEstado(doc.id, periodo, año, e.key); });
+    var aprobados  = estados.filter(function(s){ return s === 'Aprobado'; }).length;
+    var noAplica   = estados.filter(function(s){ return s === 'No aplica'; }).length;
+    var aplicables = SEG_ENTREGABLES.length - noAplica;
+    var pct = aplicables > 0 ? Math.round(aprobados / aplicables * 100) : 0;
+    var pctColor = pct === 100 ? '#16A34A' : pct >= 50 ? '#2563EB' : '#6366F1';
+
+    return '<tr>'
+      + '<td style="position:sticky;left:0;z-index:1;background:#fff;font-weight:600;font-size:13px;cursor:pointer;white-space:nowrap" '
+      + 'onclick="abrirSeguimientoDocente(' + doc.id + ',' + periodo + ',' + año + ')" title="Ver detalle">'
+      + '<span style="color:#4F46E5;margin-right:6px"><i class="bi bi-person-circle"></i></span>' + nombre
+      + '</td>'
+      + SEG_ENTREGABLES.map(function(e, i){
+          var est = estados[i];
+          var cfg = SEG_CFG[est] || SEG_CFG['Pendiente'];
+          return '<td style="text-align:center">'
+            + '<button class="seg-chip" style="background:' + cfg.bg + ';color:' + cfg.color + '" '
+            + 'onclick="segCiclarEstado(' + doc.id + ',' + periodo + ',' + año + ',\'' + e.key + '\')" '
+            + 'title="' + e.label + ': ' + est + ' — Clic para cambiar">'
+            + '<i class="bi ' + cfg.icon + '"></i></button></td>';
+        }).join('')
+      + '<td style="text-align:center;padding:6px 8px">'
+      + '<div style="font-size:12px;font-weight:700;color:' + pctColor + ';margin-bottom:3px">' + aprobados + '/' + aplicables + '</div>'
+      + '<div style="width:54px;height:5px;background:var(--slate-200);border-radius:4px;margin:0 auto">'
+      + '<div style="width:' + pct + '%;height:100%;background:' + pctColor + ';border-radius:4px;transition:width .3s"></div></div>'
+      + '</td></tr>';
+  }).join('');
+}
+
+function segCiclarEstado(docId, periodo, año, key) {
+  var actual   = _segGetEstado(docId, periodo, año, key);
+  var idx      = SEG_ESTADOS.indexOf(actual);
+  var siguiente = SEG_ESTADOS[(idx + 1) % SEG_ESTADOS.length];
+  var all = (DB.get('seguimiento')||[]).slice();
+  var rIdx = all.findIndex(function(r){ return r.docente_id == docId && r.periodo == periodo && r.año == año; });
+  if (rIdx === -1) {
+    all.push({ id: DB.nextId('seguimiento'), docente_id: parseInt(docId), periodo: parseInt(periodo), año: parseInt(año), entregables: {} });
+    rIdx = all.length - 1;
+  }
+  if (!all[rIdx].entregables) all[rIdx].entregables = {};
+  var prev = all[rIdx].entregables[key] || {};
+  all[rIdx].entregables[key] = {
+    estado: siguiente,
+    fecha: (siguiente === 'Entregado' || siguiente === 'Aprobado') ? (prev.fecha || new Date().toISOString().split('T')[0]) : '',
+    obs: prev.obs || ''
+  };
+  DB.set('seguimiento', all);
+  renderSeguimiento();
+}
+
+function abrirSeguimientoDocente(docId, periodo, año) {
+  var doc = (DB.get('docentes')||[]).find(function(d){ return d.id == docId; });
+  if (!doc) return;
+  var nombre = doc.p_nombre + ' ' + doc.p_apellido;
+  document.getElementById('seg-oc-docente-nombre').textContent = nombre;
+  document.getElementById('seg-oc-periodo').textContent = 'Período ' + periodo + ' · ' + año;
+  window._segOC = { docId: parseInt(docId), periodo: parseInt(periodo), año: parseInt(año) };
+
+  var rec = _segFindRecord(docId, periodo, año);
+  var ents = rec ? (rec.entregables || {}) : {};
+
+  document.getElementById('seg-oc-body').innerHTML = SEG_ENTREGABLES.map(function(e, i) {
+    var ent = ents[e.key] || { estado:'Pendiente', fecha:'', obs:'' };
+    var cfg = SEG_CFG[ent.estado] || SEG_CFG['Pendiente'];
+    return '<div class="seg-oc-item">'
+      + '<div class="seg-oc-item-header">'
+      + '<div class="seg-oc-num">' + (i+1) + '</div>'
+      + '<div style="flex:1;font-size:13px;font-weight:600;color:var(--slate-700)">' + e.label + '</div>'
+      + '<select class="form-select form-select-sm seg-oc-sel" data-key="' + e.key + '" '
+      + 'style="width:130px;font-size:12px;color:' + cfg.color + ';border-color:' + cfg.color + '" '
+      + 'onchange="segOCSel(this)">'
+      + SEG_ESTADOS.map(function(s){ return '<option value="' + s + '"' + (s === ent.estado ? ' selected' : '') + '>' + s + '</option>'; }).join('')
+      + '</select></div>'
+      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">'
+      + '<div><label style="font-size:11px;color:var(--slate-500);font-weight:600;display:block;margin-bottom:3px">Fecha entrega</label>'
+      + '<input type="date" class="form-control form-control-sm seg-oc-fecha" data-key="' + e.key + '" value="' + (ent.fecha||'') + '"></div>'
+      + '<div><label style="font-size:11px;color:var(--slate-500);font-weight:600;display:block;margin-bottom:3px">Observaciones</label>'
+      + '<input type="text" class="form-control form-control-sm seg-oc-obs" data-key="' + e.key + '" value="' + (ent.obs||'').replace(/"/g,'&quot;') + '" placeholder="Opcional..."></div>'
+      + '</div></div>';
+  }).join('');
+
+  bootstrap.Offcanvas.getOrCreateInstance(document.getElementById('offcanvasSeguimiento')).show();
+}
+
+function segOCSel(sel) {
+  var estado = sel.value;
+  var cfg = SEG_CFG[estado] || SEG_CFG['Pendiente'];
+  sel.style.color       = cfg.color;
+  sel.style.borderColor = cfg.color;
+  // Auto-fill fecha if transitioning to Entregado/Aprobado
+  if (estado === 'Entregado' || estado === 'Aprobado') {
+    var key     = sel.dataset.key;
+    var fechaEl = document.querySelector('.seg-oc-fecha[data-key="' + key + '"]');
+    if (fechaEl && !fechaEl.value) fechaEl.value = new Date().toISOString().split('T')[0];
+  }
+}
+
+function guardarSeguimientoDocente() {
+  var ctx = window._segOC;
+  if (!ctx) return;
+  var all  = (DB.get('seguimiento')||[]).slice();
+  var rIdx = all.findIndex(function(r){ return r.docente_id == ctx.docId && r.periodo == ctx.periodo && r.año == ctx.año; });
+  if (rIdx === -1) {
+    all.push({ id: DB.nextId('seguimiento'), docente_id: ctx.docId, periodo: ctx.periodo, año: ctx.año, entregables: {} });
+    rIdx = all.length - 1;
+  }
+  if (!all[rIdx].entregables) all[rIdx].entregables = {};
+  document.querySelectorAll('.seg-oc-sel').forEach(function(sel) {
+    var key     = sel.dataset.key;
+    var fechaEl = document.querySelector('.seg-oc-fecha[data-key="' + key + '"]');
+    var obsEl   = document.querySelector('.seg-oc-obs[data-key="' + key + '"]');
+    all[rIdx].entregables[key] = {
+      estado: sel.value,
+      fecha:  fechaEl ? fechaEl.value : '',
+      obs:    obsEl   ? obsEl.value   : ''
+    };
+  });
+  DB.set('seguimiento', all);
+  bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasSeguimiento')).hide();
+  renderSeguimiento();
+  toast('Seguimiento guardado correctamente.');
+}
+
+function exportarSeguimientoExcel() {
+  var periodo  = parseInt((document.getElementById('seg-filtro-periodo')||{}).value) || 1;
+  var año      = parseInt((document.getElementById('seg-filtro-año')||{}).value)    || 2026;
+  var docentes = (DB.get('docentes')||[]).filter(function(d){ return d.estado === 'Activo'; });
+  var headers  = ['Docente'].concat(SEG_ENTREGABLES.map(function(e){ return e.label; })).concat(['Aprobados','Avance %']);
+  var rows = docentes.map(function(doc) {
+    var nombre  = doc.p_nombre + ' ' + doc.p_apellido;
+    var estados = SEG_ENTREGABLES.map(function(e){ return _segGetEstado(doc.id, periodo, año, e.key); });
+    var aprobados  = estados.filter(function(s){ return s === 'Aprobado'; }).length;
+    var noAplica   = estados.filter(function(s){ return s === 'No aplica'; }).length;
+    var aplicables = SEG_ENTREGABLES.length - noAplica;
+    var pct = aplicables > 0 ? Math.round(aprobados / aplicables * 100) : 0;
+    return [nombre].concat(estados).concat([aprobados + '/' + aplicables, pct + '%']);
+  });
+  var ws = XLSX.utils.aoa_to_sheet([headers].concat(rows));
+  var wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Seguimiento P' + periodo);
+  XLSX.writeFile(wb, 'Seguimiento_Pedagogico_P' + periodo + '_' + año + '.xlsx');
 }
 
 // ════════════════════════════════════════════════
