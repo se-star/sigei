@@ -3256,7 +3256,6 @@
 ══════════════════════════════════════ -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script>
 'use strict';
@@ -3328,6 +3327,25 @@ const DB = {
         try { localStorage.setItem('sigei_permisos_roles', JSON.stringify(_cache['permisos_roles'])); } catch(e) {}
       }
     } catch(e) { console.warn('loadAll permisos_roles:', e.message); }
+
+    // Leer datos TOTP del usuario actual desde roles/{uid} y fusionarlos en el array usuarios
+    try {
+      const me = _auth.currentUser;
+      if (me) {
+        const roleSnap = await _fs.collection('roles').doc(me.uid).get();
+        if (roleSnap.exists) {
+          const rd = roleSnap.data();
+          if (rd.totp_enabled !== undefined) {
+            const usrs = _cache['usuarios'] || [];
+            const uIdx = usrs.findIndex(u => u.email === me.email);
+            if (uIdx !== -1) {
+              usrs[uIdx].totp_enabled = rd.totp_enabled;
+              usrs[uIdx].totp_secret  = rd.totp_secret || null;
+            }
+          }
+        }
+      }
+    } catch(e) { console.warn('loadAll TOTP:', e.message); }
 
     // Purge horarios entries that were auto-generated from asignaciones (asignacion_id present).
     // These are shown virtually in renderHorarios — storing them causes duplicates.
@@ -8224,28 +8242,18 @@ function iniciar2FA() {
   document.getElementById('usr-2fa-verify-input').value = '';
   document.getElementById('usr-2fa-setup-flow').style.display = '';
 
-  // Generar QR con toDataURL (más compatible que toCanvas con DOM desconectado)
+  // Generar QR usando API pública de imagen (sin librería, sin problemas de compatibilidad)
   var qrDiv = document.getElementById('usr-2fa-qr');
   if (!qrDiv) return;
-  qrDiv.innerHTML = '<div style="font-size:11px;color:var(--slate-400);padding:8px">Generando QR...</div>';
-
-  try {
-    QRCode.toDataURL(_totpURI(secret, email), { width: 180, margin: 1, color: { dark: '#000000', light: '#ffffff' } },
-      function(err, url) {
-        if (!err && url) {
-          var img = document.createElement('img');
-          img.src = url;
-          img.style.cssText = 'width:180px;height:180px;border-radius:8px;display:block';
-          qrDiv.innerHTML = '';
-          qrDiv.appendChild(img);
-        } else {
-          qrDiv.innerHTML = '<div style="font-size:11px;color:var(--slate-500)">No se pudo generar el QR.<br>Usa la clave manual de arriba.</div>';
-        }
-      }
-    );
-  } catch(e) {
-    qrDiv.innerHTML = '<div style="font-size:11px;color:var(--slate-500)">Usa la clave manual de arriba.</div>';
-  }
+  var img = document.createElement('img');
+  img.style.cssText = 'width:180px;height:180px;border-radius:8px;display:block';
+  img.alt = 'Código QR para Google Authenticator';
+  img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=10&data=' + encodeURIComponent(_totpURI(secret, email));
+  img.onerror = function() {
+    qrDiv.innerHTML = '<div style="font-size:11px;color:var(--slate-500);padding:8px">No se pudo cargar el QR.<br>Usa la clave manual de arriba.</div>';
+  };
+  qrDiv.innerHTML = '';
+  qrDiv.appendChild(img);
 }
 
 // Confirma el código y guarda el secreto
@@ -8257,13 +8265,20 @@ async function confirmar2FA() {
   var ok = await verifyTOTPCode(secret, code);
   if (!ok) { toast('Código incorrecto. Intenta de nuevo.', false); return; }
   // Guardar en usuario
-  var email = (firebase.auth().currentUser||{}).email;
+  var currentUser = firebase.auth().currentUser;
+  var email = (currentUser||{}).email;
+  var uid   = (currentUser||{}).uid;
   var usuarios = DB.get('usuarios');
   var idx = usuarios.findIndex(function(u){ return u.email === email; });
   if (idx === -1) { toast('Usuario no encontrado.', false); return; }
+  // Actualizar caché local (sin DB.set para evitar error de permisos en sigei/usuarios)
   usuarios[idx].totp_enabled = true;
   usuarios[idx].totp_secret  = secret;
-  DB.set('usuarios', usuarios);
+  // Persistir en roles/{uid} donde el usuario tiene permisos de escritura
+  if (uid) {
+    _fs.collection('roles').doc(uid).set({ totp_enabled: true, totp_secret: secret }, { merge: true })
+      .catch(function(e){ console.warn('TOTP save error:', e.message); });
+  }
   window._totp_pending_secret = null;
   render2FAStatus(usuarios[idx]);
   toast('¡2FA activado correctamente! Tu cuenta ahora está protegida.');
@@ -8278,13 +8293,20 @@ function cancelar2FA() {
 // Desactiva 2FA
 function desactivar2FA() {
   if (!confirmar('¿Desactivar la autenticación en dos pasos? Tu cuenta quedará protegida solo con contraseña.')) return;
-  var email = (firebase.auth().currentUser||{}).email;
+  var currentUser = firebase.auth().currentUser;
+  var email = (currentUser||{}).email;
+  var uid   = (currentUser||{}).uid;
   var usuarios = DB.get('usuarios');
   var idx = usuarios.findIndex(function(u){ return u.email === email; });
   if (idx === -1) return;
+  // Actualizar caché local sin DB.set
   delete usuarios[idx].totp_enabled;
   delete usuarios[idx].totp_secret;
-  DB.set('usuarios', usuarios);
+  // Limpiar en roles/{uid}
+  if (uid) {
+    _fs.collection('roles').doc(uid).set({ totp_enabled: false, totp_secret: null }, { merge: true })
+      .catch(function(e){ console.warn('TOTP remove error:', e.message); });
+  }
   render2FAStatus(usuarios[idx]);
   toast('2FA desactivado.');
 }
