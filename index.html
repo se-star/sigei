@@ -8214,8 +8214,8 @@ function renderSeguimiento() {
           var cfg = SEG_CFG[est] || SEG_CFG['Pendiente'];
           return '<td style="text-align:center">'
             + '<button class="seg-chip" style="background:' + cfg.bg + ';color:' + cfg.color + '" '
-            + 'onclick="segCiclarEstado(' + doc.id + ',' + periodo + ',' + año + ',\'' + e.key + '\')" '
-            + 'title="' + e.label + ': ' + est + ' — Clic para cambiar">'
+            + 'onclick="segCiclarEstado(' + doc.id + ',' + periodo + ',' + año + ',\'' + e.key + '\',this);event.stopPropagation()" '
+            + 'title="' + e.label + ': ' + est + '">'
             + '<i class="bi ' + cfg.icon + '"></i></button></td>';
         }).join('')
       + '<td style="text-align:center;padding:6px 8px">'
@@ -8226,11 +8226,51 @@ function renderSeguimiento() {
   }).join('');
 }
 
-function segCiclarEstado(docId, periodo, año, key) {
-  var actual   = _segGetEstado(docId, periodo, año, key);
-  var idx      = SEG_ESTADOS.indexOf(actual);
-  var siguiente = SEG_ESTADOS[(idx + 1) % SEG_ESTADOS.length];
-  var all = (DB.get('seguimiento')||[]).slice();
+// Muestra dropdown flotante con las 4 opciones de estado
+function segCiclarEstado(docId, periodo, año, key, btnEl) {
+  // Cerrar cualquier dropdown abierto
+  segCerrarDropdown();
+
+  var actual = _segGetEstado(docId, periodo, año, key);
+  var dd = document.createElement('div');
+  dd.id = 'seg-estado-dd';
+  dd.style.cssText = 'position:fixed;z-index:9999;background:#fff;border:1px solid var(--slate-200);'
+    + 'border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.15);padding:6px;min-width:150px';
+
+  dd.innerHTML = SEG_ESTADOS.map(function(s) {
+    var cfg = SEG_CFG[s] || SEG_CFG['Pendiente'];
+    var active = s === actual ? 'font-weight:700;background:' + cfg.bg + ';' : '';
+    return '<div onclick="segElegirEstado(' + docId + ',' + periodo + ',' + año + ',\'' + key + '\',\'' + s + '\')" '
+      + 'style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:7px;cursor:pointer;' + active + 'color:' + cfg.color + '" '
+      + 'onmouseover="this.style.background=\'' + cfg.bg + '\'" onmouseout="this.style.background=\'' + (s===actual?cfg.bg:'') + '\'">'
+      + '<i class="bi ' + cfg.icon + '" style="font-size:14px"></i>'
+      + '<span style="font-size:13px;color:var(--slate-700)">' + s + '</span>'
+      + (s === actual ? '<i class="bi bi-check2 ms-auto" style="color:' + cfg.color + '"></i>' : '')
+      + '</div>';
+  }).join('');
+
+  document.body.appendChild(dd);
+
+  // Posicionar cerca del botón
+  var rect = btnEl.getBoundingClientRect();
+  var ddW = 160, ddH = 170;
+  var top  = rect.bottom + 4;
+  var left = rect.left - ddW / 2 + rect.width / 2;
+  if (left + ddW > window.innerWidth - 8)  left = window.innerWidth - ddW - 8;
+  if (left < 8) left = 8;
+  if (top + ddH > window.innerHeight - 8)  top  = rect.top - ddH - 4;
+  dd.style.top  = top  + 'px';
+  dd.style.left = left + 'px';
+
+  // Cerrar al hacer clic fuera
+  setTimeout(function() {
+    document.addEventListener('click', segCerrarDropdown, { once: true });
+  }, 0);
+}
+
+function segElegirEstado(docId, periodo, año, key, estado) {
+  segCerrarDropdown();
+  var all  = (DB.get('seguimiento')||[]).slice();
   var rIdx = all.findIndex(function(r){ return r.docente_id == docId && r.periodo == periodo && r.año == año; });
   if (rIdx === -1) {
     all.push({ id: DB.nextId('seguimiento'), docente_id: parseInt(docId), periodo: parseInt(periodo), año: parseInt(año), entregables: {} });
@@ -8239,12 +8279,17 @@ function segCiclarEstado(docId, periodo, año, key) {
   if (!all[rIdx].entregables) all[rIdx].entregables = {};
   var prev = all[rIdx].entregables[key] || {};
   all[rIdx].entregables[key] = {
-    estado: siguiente,
-    fecha: (siguiente === 'Entregado' || siguiente === 'Aprobado') ? (prev.fecha || new Date().toISOString().split('T')[0]) : '',
+    estado: estado,
+    fecha: (estado === 'Entregado' || estado === 'Aprobado') ? (prev.fecha || new Date().toISOString().split('T')[0]) : '',
     obs: prev.obs || ''
   };
   DB.set('seguimiento', all);
   renderSeguimiento();
+}
+
+function segCerrarDropdown() {
+  var dd = document.getElementById('seg-estado-dd');
+  if (dd) dd.remove();
 }
 
 function abrirSeguimientoDocente(docId, periodo, año) {
