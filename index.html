@@ -8215,20 +8215,37 @@ function iniciar2FA() {
   var email = document.getElementById('usr-email').value || (firebase.auth().currentUser||{}).email || '';
   var secret = generateTOTPSecret();
   window._totp_pending_secret = secret;
+
   // Mostrar secreto en texto
   var secEl = document.getElementById('usr-2fa-secret-display');
   if (secEl) secEl.textContent = secret.match(/.{1,4}/g).join(' ');
-  // Generar QR
-  var qrDiv = document.getElementById('usr-2fa-qr');
-  if (qrDiv) {
-    qrDiv.innerHTML = '';
-    QRCode.toCanvas(document.createElement('canvas'), _totpURI(secret, email), { width: 180, margin: 1 }, function(err, canvas) {
-      if (!err) qrDiv.appendChild(canvas);
-      else qrDiv.innerHTML = '<div style="font-size:11px;color:var(--slate-500)">Error generando QR. Usa la clave manual.</div>';
-    });
-  }
+
+  // Mostrar setup flow ya (antes del QR para que se vea rápido)
   document.getElementById('usr-2fa-verify-input').value = '';
   document.getElementById('usr-2fa-setup-flow').style.display = '';
+
+  // Generar QR con toDataURL (más compatible que toCanvas con DOM desconectado)
+  var qrDiv = document.getElementById('usr-2fa-qr');
+  if (!qrDiv) return;
+  qrDiv.innerHTML = '<div style="font-size:11px;color:var(--slate-400);padding:8px">Generando QR...</div>';
+
+  try {
+    QRCode.toDataURL(_totpURI(secret, email), { width: 180, margin: 1, color: { dark: '#000000', light: '#ffffff' } },
+      function(err, url) {
+        if (!err && url) {
+          var img = document.createElement('img');
+          img.src = url;
+          img.style.cssText = 'width:180px;height:180px;border-radius:8px;display:block';
+          qrDiv.innerHTML = '';
+          qrDiv.appendChild(img);
+        } else {
+          qrDiv.innerHTML = '<div style="font-size:11px;color:var(--slate-500)">No se pudo generar el QR.<br>Usa la clave manual de arriba.</div>';
+        }
+      }
+    );
+  } catch(e) {
+    qrDiv.innerHTML = '<div style="font-size:11px;color:var(--slate-500)">Usa la clave manual de arriba.</div>';
+  }
 }
 
 // Confirma el código y guarda el secreto
