@@ -2987,8 +2987,20 @@
       <div class="det-sec-title" style="margin-bottom:14px"><i class="bi bi-person-fill-check me-1"></i>Docente Reemplazo</div>
       <div class="row g-3 mb-4">
         <div class="col-6">
-          <label class="form-label" style="font-size:12px;font-weight:600">Fecha Reemplazo</label>
-          <input type="date" class="form-control form-control-sm" id="perm-fecha-reemplazo" onchange="actualizarBloquesSugeridos()">
+          <label class="form-label" style="font-size:12px;font-weight:600">Fecha Inicio Reemplazo</label>
+          <input type="date" class="form-control form-control-sm" id="perm-fecha-reemplazo-inicio" onchange="actualizarBloquesSugeridos()">
+        </div>
+        <div class="col-6">
+          <label class="form-label" style="font-size:12px;font-weight:600">Fecha Fin Reemplazo</label>
+          <input type="date" class="form-control form-control-sm" id="perm-fecha-reemplazo-fin" onchange="actualizarBloquesSugeridos()">
+        </div>
+        <div class="col-6">
+          <label class="form-label" style="font-size:12px;font-weight:600">Hora Inicio</label>
+          <input type="time" class="form-control form-control-sm" id="perm-hora-reemplazo-inicio" onchange="actualizarBloquesSugeridos()">
+        </div>
+        <div class="col-6">
+          <label class="form-label" style="font-size:12px;font-weight:600">Hora Fin</label>
+          <input type="time" class="form-control form-control-sm" id="perm-hora-reemplazo-fin" onchange="actualizarBloquesSugeridos()">
         </div>
         <div class="col-12">
           <div id="reemplazo-bloques-container">
@@ -6754,7 +6766,8 @@ function abrirPermiso(id) {
   }).join('');
 
   // Reset fields
-  ['perm-id','perm-fecha-novedad','perm-horas','perm-fecha-reemplazo','perm-autorizado','perm-radicado','perm-motivo']
+  ['perm-id','perm-fecha-novedad','perm-horas','perm-fecha-reemplazo-inicio','perm-fecha-reemplazo-fin',
+   'perm-hora-reemplazo-inicio','perm-hora-reemplazo-fin','perm-autorizado','perm-radicado','perm-motivo']
     .forEach(x => { const el=document.getElementById(x); if(el) el.value=''; });
   document.getElementById('perm-estado').value = 'Pendiente';
   Array.from(gradSel.options).forEach(o=>o.selected=false);
@@ -6769,7 +6782,10 @@ function abrirPermiso(id) {
     sv('perm-tipo',          p.tipo||'');
     sv('perm-horas',         p.horas_afectadas||'');
     sv('perm-reemplazo',     p.docente_reemplazo_id||'');
-    sv('perm-fecha-reemplazo', p.fecha_reemplazo||'');
+    sv('perm-fecha-reemplazo-inicio', p.fecha_reemplazo_inicio || p.fecha_reemplazo || '');
+    sv('perm-fecha-reemplazo-fin',    p.fecha_reemplazo_fin    || '');
+    sv('perm-hora-reemplazo-inicio',  p.hora_reemplazo_inicio  || '');
+    sv('perm-hora-reemplazo-fin',     p.hora_reemplazo_fin     || '');
     sv('perm-estado',        p.estado||'Pendiente');
     sv('perm-autorizado',    p.autorizado_por||'');
     sv('perm-radicado',      p.radicado||'');
@@ -6779,7 +6795,7 @@ function abrirPermiso(id) {
     Array.from(gradSel.options).forEach(o => { o.selected = gAfect.includes(parseInt(o.value)); });
     // Pre-load per-block replacements for restoration after actualizarBloquesSugeridos
     window._permBloquesRestaure = p.reemplazos_bloques || [];
-    if (p.fecha_reemplazo) actualizarBloquesSugeridos();
+    if (p.fecha_reemplazo_inicio || p.fecha_reemplazo) actualizarBloquesSugeridos();
   }
   bootstrap.Offcanvas.getOrCreateInstance(document.getElementById('offcanvasPermiso')).show();
 }
@@ -6872,9 +6888,11 @@ function docentesLibresEnBloque(dia, hora_inicio, hora_fin, excluirDocId) {
 
 // Renderiza la sección de bloques con selectores de reemplazo por hora
 function actualizarBloquesSugeridos() {
-  var docId  = parseInt(document.getElementById('perm-docente').value);
-  var fecha  = document.getElementById('perm-fecha-reemplazo').value;
-  var cont   = document.getElementById('reemplazo-bloques-container');
+  var docId   = parseInt(document.getElementById('perm-docente').value);
+  var fecha   = document.getElementById('perm-fecha-reemplazo-inicio').value;
+  var horaIni = document.getElementById('perm-hora-reemplazo-inicio').value;
+  var horaFin = document.getElementById('perm-hora-reemplazo-fin').value;
+  var cont    = document.getElementById('reemplazo-bloques-container');
   if (!cont) return;
 
   var placeholder = '<div style="font-size:12px;color:var(--slate-400);padding:10px;background:var(--slate-50);border-radius:8px;border:1px dashed var(--slate-200)">'
@@ -6900,6 +6918,14 @@ function actualizarBloquesSugeridos() {
       (asig.cursos || []).forEach(function(curso) {
         (curso.dias || []).forEach(function(d) {
           if (d.dia !== dia) return;
+          // Si se especificó rango horario, omitir bloques fuera del rango
+          if (horaIni && horaFin) {
+            var bIni = timeToMins(d.hora_inicio);
+            var bFin = timeToMins(d.hora_fin);
+            var rIni = timeToMins(horaIni);
+            var rFin = timeToMins(horaFin);
+            if (bFin <= rIni || bIni >= rFin) return;
+          }
           var sec  = secciones.find(function(s){ return s.id == curso.seccion_id; });
           var grad = sec ? grados.find(function(g){ return g.id == sec.grado_id; }) : null;
           bloques.push({
@@ -7000,7 +7026,11 @@ function guardarPermiso() {
     horas_afectadas:      parseInt(document.getElementById('perm-horas').value)||0,
     docente_reemplazo_id: reempId || null,
     reemplazos_bloques:   reemplazos_bloques,
-    fecha_reemplazo:      document.getElementById('perm-fecha-reemplazo').value,
+    fecha_reemplazo:         document.getElementById('perm-fecha-reemplazo-inicio').value, // compat
+    fecha_reemplazo_inicio:  document.getElementById('perm-fecha-reemplazo-inicio').value,
+    fecha_reemplazo_fin:     document.getElementById('perm-fecha-reemplazo-fin').value,
+    hora_reemplazo_inicio:   document.getElementById('perm-hora-reemplazo-inicio').value,
+    hora_reemplazo_fin:      document.getElementById('perm-hora-reemplazo-fin').value,
     estado:               document.getElementById('perm-estado').value,
     autorizado_por:       document.getElementById('perm-autorizado').value.trim(),
     radicado:             document.getElementById('perm-radicado').value.trim(),
