@@ -2144,16 +2144,8 @@
           <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;justify-content:center" id="seg-donut-legend"></div>
         </div>
         <div class="card-panel" style="padding:18px">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-            <div style="font-size:12px;font-weight:700;color:var(--slate-600)"><i class="bi bi-grid-3x3-gap-fill me-1" style="color:#16A34A"></i>Estado por entregable</div>
-            <div style="display:flex;gap:10px;flex-wrap:wrap">
-              <span style="font-size:10px;display:flex;align-items:center;gap:4px;color:var(--slate-500)"><span style="width:9px;height:9px;border-radius:50%;background:#EF4444;display:inline-block"></span>Pendiente</span>
-              <span style="font-size:10px;display:flex;align-items:center;gap:4px;color:var(--slate-500)"><span style="width:9px;height:9px;border-radius:50%;background:#2563EB;display:inline-block"></span>Entregado</span>
-              <span style="font-size:10px;display:flex;align-items:center;gap:4px;color:var(--slate-500)"><span style="width:9px;height:9px;border-radius:50%;background:#16A34A;display:inline-block"></span>Aprobado</span>
-              <span style="font-size:10px;display:flex;align-items:center;gap:4px;color:var(--slate-500)"><span style="width:9px;height:9px;border-radius:50%;background:#CBD5E1;display:inline-block"></span>No aplica</span>
-            </div>
-          </div>
-          <div id="seg-dot-matrix" style="overflow-x:auto"></div>
+          <div style="font-size:12px;font-weight:700;color:var(--slate-600);margin-bottom:14px"><i class="bi bi-grid-fill me-1" style="color:#16A34A"></i>Distribución por entregable</div>
+          <div id="seg-heatmap"></div>
         </div>
       </div>
 
@@ -8289,34 +8281,56 @@ function renderSegCharts(docentes, periodo, año) {
     }
   }
 
-  // Dot matrix por entregable
-  var dmEl = document.getElementById('seg-dot-matrix');
-  if (dmEl) {
-    var DOT_COLORS = { 'Pendiente':'#EF4444','Entregado':'#2563EB','Aprobado':'#16A34A','No aplica':'#CBD5E1' };
-    var DOT_BG    = { 'Pendiente':'#FEE2E2','Entregado':'#DBEAFE','Aprobado':'#DCFCE7','No aplica':'#F1F5F9' };
-    var rows = SEG_ENTREGABLES.map(function(ent, ei) {
-      var dots = docentes.map(function(doc) {
-        var est  = _segGetEstado(doc.id, periodo, año, ent.key);
-        var col  = DOT_COLORS[est] || '#CBD5E1';
-        var bg   = DOT_BG[est]    || '#F1F5F9';
-        var nom  = doc.p_nombre + ' ' + doc.p_apellido;
-        return '<span title="' + nom + ' — ' + est + '" '
-          + 'style="display:inline-block;width:11px;height:11px;border-radius:50%;'
-          + 'background:' + col + ';box-shadow:0 0 0 2px ' + bg + ';'
-          + 'margin:1.5px;cursor:default;transition:transform .15s" '
-          + 'onmouseenter="this.style.transform=\'scale(1.6)\'" '
-          + 'onmouseleave="this.style.transform=\'\'"></span>';
-      }).join('');
-      var aprobN = docentes.filter(function(doc){ return _segGetEstado(doc.id, periodo, año, ent.key) === 'Aprobado'; }).length;
-      var pct    = total > 0 ? Math.round(aprobN / total * 100) : 0;
-      var pctCol = pct >= 75 ? '#16A34A' : pct >= 40 ? '#2563EB' : '#EF4444';
-      return '<div style="display:flex;align-items:center;gap:8px;padding:3px 0;border-bottom:1px solid var(--slate-100)">'
-        + '<div style="min-width:90px;font-size:10px;color:var(--slate-500);text-align:right;white-space:nowrap">' + ent.short + '</div>'
-        + '<div style="flex:1;line-height:0">' + dots + '</div>'
-        + '<div style="min-width:36px;font-size:10px;font-weight:700;color:' + pctCol + ';text-align:right">' + pct + '%</div>'
-        + '</div>';
+  // Heatmap: filas = entregables, columnas = estados
+  var hmEl = document.getElementById('seg-heatmap');
+  if (hmEl) {
+    var HM_COLORS = {
+      'Pendiente': function(t) { return 'rgba(239,68,68,' + (0.08 + 0.72 * t) + ')'; },
+      'Entregado': function(t) { return 'rgba(37,99,235,' + (0.08 + 0.72 * t) + ')'; },
+      'Aprobado':  function(t) { return 'rgba(22,163,74,' + (0.08 + 0.72 * t) + ')'; },
+      'No aplica': function(t) { return 'rgba(148,163,184,' + (0.08 + 0.72 * t) + ')'; }
+    };
+    var HM_TEXT = {
+      'Pendiente': '#991B1B', 'Entregado': '#1E40AF',
+      'Aprobado': '#14532D',  'No aplica': '#475569'
+    };
+
+    // Calcular conteos por entregable × estado
+    var matrix = SEG_ENTREGABLES.map(function(ent) {
+      var cnts = {};
+      SEG_ESTADOS.forEach(function(s){ cnts[s] = 0; });
+      docentes.forEach(function(doc){ var s = _segGetEstado(doc.id, periodo, año, ent.key); cnts[s]++; });
+      return cnts;
     });
-    dmEl.innerHTML = rows.join('');
+
+    // Header
+    var html = '<table style="width:100%;border-collapse:separate;border-spacing:4px">'
+      + '<thead><tr>'
+      + '<th style="text-align:left;font-size:10px;color:var(--slate-400);font-weight:600;padding:0 4px;width:95px"></th>'
+      + SEG_ESTADOS.map(function(s){
+          return '<th style="font-size:10px;font-weight:700;color:var(--slate-500);text-align:center;padding-bottom:4px">' + s + '</th>';
+        }).join('')
+      + '</tr></thead><tbody>';
+
+    SEG_ENTREGABLES.forEach(function(ent, i) {
+      html += '<tr>';
+      html += '<td style="font-size:11px;color:var(--slate-600);white-space:nowrap;padding:2px 6px 2px 0;font-weight:600">' + ent.short + '</td>';
+      SEG_ESTADOS.forEach(function(s) {
+        var n   = matrix[i][s];
+        var t   = total > 0 ? n / total : 0;
+        var bg  = HM_COLORS[s] ? HM_COLORS[s](t) : '#eee';
+        var col = t > 0.45 ? '#fff' : (HM_TEXT[s] || '#333');
+        html += '<td title="' + ent.label + ' — ' + s + ': ' + n + ' docentes (' + Math.round(t*100) + '%)" '
+          + 'style="text-align:center;border-radius:8px;background:' + bg + ';padding:7px 4px;cursor:default">'
+          + '<div style="font-size:15px;font-weight:800;color:' + col + ';line-height:1">' + n + '</div>'
+          + '<div style="font-size:9px;color:' + col + ';opacity:.8;margin-top:1px">' + Math.round(t*100) + '%</div>'
+          + '</td>';
+      });
+      html += '</tr>';
+    });
+
+    html += '</tbody></table>';
+    hmEl.innerHTML = html;
   }
 }
 
