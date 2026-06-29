@@ -8198,10 +8198,9 @@ async function verifyTOTPCode(secret, token) {
   return false;
 }
 
-// Construye la URI otpauth para el QR
+// Construye la URI otpauth para el QR (sin pre-encodear — el encodeURIComponent del img.src lo hace una sola vez)
 function _totpURI(secret, email) {
-  return 'otpauth://totp/SIGEI%3A' + encodeURIComponent(email)
-    + '?secret=' + secret + '&issuer=SIGEI-IER&algorithm=SHA1&digits=6&period=30';
+  return 'otpauth://totp/SIGEI:' + email + '?secret=' + secret + '&issuer=SIGEI';
 }
 
 // Renderiza el estado actual de 2FA en el offcanvas usuario
