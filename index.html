@@ -1040,9 +1040,28 @@
     #seg-heatmap .seg-hm-pct { display:none; }
   }
 
-  .seg-matrix-table th { font-size:10px; font-weight:700; text-align:center; background:var(--slate-50); white-space:normal; line-height:1.3; padding:8px 4px; }
-  .seg-matrix-table td { padding:6px 4px; vertical-align:middle; }
-  .seg-matrix-table tr:hover td { background:var(--slate-50); }
+  /* Tarjetas docentes */
+  .seg-cards-grid {
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+    gap:12px;
+  }
+  .seg-doc-card {
+    background:#fff;
+    border:1px solid var(--slate-200);
+    border-radius:14px;
+    padding:16px;
+    cursor:pointer;
+    transition:box-shadow .18s,transform .18s;
+  }
+  .seg-doc-card:hover { box-shadow:0 6px 20px rgba(0,0,0,.1); transform:translateY(-2px); }
+  .seg-doc-avatar {
+    width:38px; height:38px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:14px; font-weight:700; color:#fff; flex-shrink:0;
+    background:linear-gradient(135deg,#6366F1,#4F46E5);
+  }
+  .seg-doc-chips { display:flex; flex-wrap:wrap; gap:5px; margin-top:12px; }
   .seg-chip {
     display:inline-flex; align-items:center; justify-content:center;
     width:30px; height:30px; border-radius:50%; font-size:14px;
@@ -2191,15 +2210,8 @@
         </div>
       </div>
 
-      <!-- Matriz -->
-      <div class="card-panel" style="padding:0;overflow:hidden">
-        <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
-          <table class="sigei-table seg-matrix-table" style="min-width:900px">
-            <thead id="seg-matrix-head"></thead>
-            <tbody id="seg-matrix-body"></tbody>
-          </table>
-        </div>
-      </div>
+      <!-- Tarjetas docentes -->
+      <div id="seg-cards-grid" class="seg-cards-grid"></div>
     </div><!-- /page-seguimiento -->
 
 
@@ -8381,55 +8393,52 @@ function renderSeguimiento() {
   var año     = parseInt((document.getElementById('seg-filtro-año')||{}).value)    || 2026;
   var docentes = (DB.get('docentes')||[]).filter(function(d){ return d.estado === 'Activo' && d.nivel !== 'Directivo'; });
 
-  var thead = document.getElementById('seg-matrix-head');
-  var tbody = document.getElementById('seg-matrix-body');
-  if (!thead || !tbody) return;
+  var grid = document.getElementById('seg-cards-grid');
+  if (!grid) return;
 
   // Gráficas superiores
   renderSegCharts(docentes, periodo, año);
 
-  // Cabecera
-  thead.innerHTML = '<tr style="background:var(--slate-50)">'
-    + '<th style="min-width:180px;text-align:left;position:sticky;left:0;z-index:2;background:var(--slate-50)">Docente</th>'
-    + SEG_ENTREGABLES.map(function(e){
-        return '<th title="' + e.label + '" style="min-width:90px">' + e.short + '</th>';
-      }).join('')
-    + '<th style="min-width:80px">Avance</th>'
-    + '</tr>';
-
   if (!docentes.length) {
-    tbody.innerHTML = '<tr><td colspan="' + (SEG_ENTREGABLES.length + 2) + '" class="text-center text-muted py-4">No hay docentes activos registrados</td></tr>';
+    grid.innerHTML = '<div class="text-center text-muted py-5">No hay docentes activos registrados</div>';
     return;
   }
 
-  tbody.innerHTML = docentes.map(function(doc) {
-    var nombre = doc.p_nombre + ' ' + doc.p_apellido;
-    var estados = SEG_ENTREGABLES.map(function(e){ return _segGetEstado(doc.id, periodo, año, e.key); });
+  grid.innerHTML = docentes.map(function(doc) {
+    var nombre   = doc.p_nombre + ' ' + doc.p_apellido;
+    var inicials = (doc.p_nombre[0]||'') + (doc.p_apellido[0]||'');
+    var estados  = SEG_ENTREGABLES.map(function(e){ return _segGetEstado(doc.id, periodo, año, e.key); });
     var aprobados  = estados.filter(function(s){ return s === 'Aprobado'; }).length;
     var noAplica   = estados.filter(function(s){ return s === 'No aplica'; }).length;
     var aplicables = SEG_ENTREGABLES.length - noAplica;
-    var pct = aplicables > 0 ? Math.round(aprobados / aplicables * 100) : 0;
+    var pct      = aplicables > 0 ? Math.round(aprobados / aplicables * 100) : 0;
     var pctColor = pct === 100 ? '#16A34A' : pct >= 50 ? '#2563EB' : '#6366F1';
 
-    return '<tr>'
-      + '<td style="position:sticky;left:0;z-index:1;background:#fff;font-weight:600;font-size:13px;cursor:pointer;white-space:nowrap" '
-      + 'onclick="abrirSeguimientoDocente(' + doc.id + ',' + periodo + ',' + año + ')" title="Ver detalle">'
-      + '<span style="color:#4F46E5;margin-right:6px"><i class="bi bi-person-circle"></i></span>' + nombre
-      + '</td>'
-      + SEG_ENTREGABLES.map(function(e, i){
-          var est = estados[i];
-          var cfg = SEG_CFG[est] || SEG_CFG['Pendiente'];
-          return '<td style="text-align:center">'
-            + '<button class="seg-chip" style="background:' + cfg.bg + ';color:' + cfg.color + '" '
-            + 'onclick="segCiclarEstado(' + doc.id + ',' + periodo + ',' + año + ',\'' + e.key + '\',this);event.stopPropagation()" '
-            + 'title="' + e.label + ': ' + est + '">'
-            + '<i class="bi ' + cfg.icon + '"></i></button></td>';
-        }).join('')
-      + '<td style="text-align:center;padding:6px 8px">'
-      + '<div style="font-size:12px;font-weight:700;color:' + pctColor + ';margin-bottom:3px">' + aprobados + '/' + aplicables + '</div>'
-      + '<div style="width:54px;height:5px;background:var(--slate-200);border-radius:4px;margin:0 auto">'
-      + '<div style="width:' + pct + '%;height:100%;background:' + pctColor + ';border-radius:4px;transition:width .3s"></div></div>'
-      + '</td></tr>';
+    var chips = SEG_ENTREGABLES.map(function(e, i){
+      var est = estados[i];
+      var cfg = SEG_CFG[est] || SEG_CFG['Pendiente'];
+      return '<button class="seg-chip" style="background:' + cfg.bg + ';color:' + cfg.color
+        + ';width:26px;height:26px;font-size:12px" '
+        + 'onclick="segCiclarEstado(' + doc.id + ',' + periodo + ',' + año + ',\'' + e.key + '\',this);event.stopPropagation()" '
+        + 'title="' + e.label + ': ' + est + '"><i class="bi ' + cfg.icon + '"></i></button>';
+    }).join('');
+
+    return '<div class="seg-doc-card" onclick="abrirSeguimientoDocente(' + doc.id + ',' + periodo + ',' + año + ')">'
+      + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">'
+      + '<div class="seg-doc-avatar">' + inicials.toUpperCase() + '</div>'
+      + '<div style="flex:1;min-width:0">'
+      + '<div style="font-size:13px;font-weight:700;color:var(--slate-800);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + nombre + '</div>'
+      + '<div style="font-size:10px;color:var(--slate-400)">' + (doc.cargo || doc.tipo_vinc || 'Docente') + '</div>'
+      + '</div>'
+      + '<div style="font-size:13px;font-weight:800;color:' + pctColor + ';white-space:nowrap">' + aprobados + '/' + aplicables + '</div>'
+      + '</div>'
+      // Barra de progreso
+      + '<div style="height:5px;background:var(--slate-100);border-radius:4px;margin-bottom:10px">'
+      + '<div style="width:' + pct + '%;height:100%;background:' + pctColor + ';border-radius:4px;transition:width .4s"></div>'
+      + '</div>'
+      // Chips compactos
+      + '<div class="seg-doc-chips">' + chips + '</div>'
+      + '</div>';
   }).join('');
 }
 
