@@ -4714,8 +4714,10 @@ function guardarAsignacion() {
   const idEdit = document.getElementById('asig-id').value;
 
   // ── Validar conflictos de horario para el mismo docente ───────────────
+  // Excluir la asignación que se está editando (comparación numérica para evitar falsos positivos)
+  const _editId = idEdit ? parseInt(idEdit) : -1;
   const asigsMismoDocente = DB.get('asignaciones').filter(function(a) {
-    return a.docente_id == parseInt(docente_id) && String(a.id) !== String(idEdit);
+    return a.docente_id == parseInt(docente_id) && parseInt(a.id) !== _editId;
   });
   for (const c of cursos) {
     for (const d of c.dias) {
@@ -4723,10 +4725,13 @@ function guardarAsignacion() {
       const fin = timeToMins(d.hora_fin);
       for (const otraAsig of asigsMismoDocente) {
         for (const otroCurso of (otraAsig.cursos || [])) {
+          // Saltar si es la misma sección + materia (duplicado en DB, no es conflicto real)
+          if (otroCurso.seccion_id == c.seccion_id && otraAsig.materia === materia) continue;
           for (const otroDia of (otroCurso.dias || [])) {
             if (otroDia.dia !== d.dia) continue;
             const otroIni = timeToMins(otroDia.hora_inicio);
             const otroFin = timeToMins(otroDia.hora_fin);
+            // Solapamiento real: los intervalos se cruzan (tocar el extremo no es conflicto)
             if (ini < otroFin && fin > otroIni) {
               const sec = DB.get('secciones').find(function(s){ return s.id == otroCurso.seccion_id; });
               const secNombre = sec ? (nombreGrado(sec.grado_id) + ' — ' + sec.nombre) : 'otro grupo';
