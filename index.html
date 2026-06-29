@@ -3277,13 +3277,16 @@ const DB = {
     const snaps = await Promise.all(COLS.map(k => _fs.collection('sigei').doc(k).get()));
     snaps.forEach((snap, i) => {
       _cache[COLS[i]] = snap.exists ? (snap.data().items || []) : [];
-      // Leer permisos_roles embebido en el documento usuarios
-      if (COLS[i] === 'usuarios' && snap.exists && snap.data()._permisos_roles) {
-        _cache['permisos_roles'] = snap.data()._permisos_roles;
-        // Sincronizar también en localStorage para acceso inmediato
-        try { localStorage.setItem('sigei_permisos_roles', JSON.stringify(snap.data()._permisos_roles)); } catch(e) {}
-      }
     });
+
+    // Leer permisos_roles desde roles/_config (misma colección que syncRoleDoc — tiene permisos de escritura)
+    try {
+      const configSnap = await _fs.collection('roles').doc('_config').get();
+      if (configSnap.exists && configSnap.data().permisos_roles) {
+        _cache['permisos_roles'] = configSnap.data().permisos_roles;
+        try { localStorage.setItem('sigei_permisos_roles', JSON.stringify(_cache['permisos_roles'])); } catch(e) {}
+      }
+    } catch(e) { console.warn('loadAll permisos_roles:', e.message); }
 
     // Purge horarios entries that were auto-generated from asignaciones (asignacion_id present).
     // These are shown virtually in renderHorarios — storing them causes duplicates.
@@ -8062,11 +8065,15 @@ function guardarPermisosRoles() {
   _cache['permisos_roles'] = config;
   // Guardar en localStorage (inmediato, funciona offline)
   try { localStorage.setItem('sigei_permisos_roles', JSON.stringify(config)); } catch(e) {}
-  // Guardar en Firestore embebido dentro de sigei/usuarios con merge (no toca el campo items)
-  _fs.collection('sigei').doc('usuarios').set(
-    { _permisos_roles: config },
-    { merge: true }
-  ).catch(function(e){ console.warn('permisos_roles Firestore write:', e.message); });
+  // Guardar en Firestore en roles/_config (misma colección que syncRoleDoc — permisos garantizados)
+  _fs.collection('roles').doc('_config').set({ permisos_roles: config })
+    .then(function(){ console.log('permisos_roles guardado en Firestore OK'); })
+    .catch(function(e){
+      console.warn('permisos_roles Firestore write a roles/_config falló:', e.message);
+      // Fallback: intentar dentro de sigei/usuarios con merge
+      _fs.collection('sigei').doc('usuarios').set({ _permisos_roles: config }, { merge: true })
+        .catch(function(e2){ console.warn('Fallback también falló:', e2.message); });
+    });
   // Aplicar inmediatamente al sidebar
   applyRoleRestrictions();
   toast('Permisos de acceso actualizados correctamente.');
