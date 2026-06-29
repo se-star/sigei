@@ -2956,7 +2956,7 @@
         </div>
         <div class="col-12">
           <label class="form-label" style="font-size:12px;font-weight:600">Docente con Novedad *</label>
-          <select class="form-select form-select-sm" id="perm-docente" onchange="autoFillPermisoFromDocente()"></select>
+          <select class="form-select form-select-sm" id="perm-docente" onchange="autoFillPermisoFromDocente();actualizarBloquesSugeridos()"></select>
         </div>
       </div>
 
@@ -2977,15 +2977,17 @@
       <!-- Sección 3: Reemplazo -->
       <div class="det-sec-title" style="margin-bottom:14px"><i class="bi bi-person-fill-check me-1"></i>Docente Reemplazo</div>
       <div class="row g-3 mb-4">
-        <div class="col-12">
-          <label class="form-label" style="font-size:12px;font-weight:600">Docente Reemplazo</label>
-          <select class="form-select form-select-sm" id="perm-reemplazo">
-            <option value="">— Sin reemplazo asignado —</option>
-          </select>
-        </div>
         <div class="col-6">
           <label class="form-label" style="font-size:12px;font-weight:600">Fecha Reemplazo</label>
-          <input type="date" class="form-control form-control-sm" id="perm-fecha-reemplazo">
+          <input type="date" class="form-control form-control-sm" id="perm-fecha-reemplazo" onchange="actualizarBloquesSugeridos()">
+        </div>
+        <div class="col-12">
+          <div id="reemplazo-bloques-container">
+            <div style="font-size:12px;color:var(--slate-400);padding:10px;background:var(--slate-50);border-radius:8px;border:1px dashed var(--slate-200)">
+              <i class="bi bi-info-circle me-1"></i>Seleccione el docente y la fecha de reemplazo para ver disponibilidad por bloque horario.
+            </div>
+          </div>
+          <input type="hidden" id="perm-reemplazo" value="">
         </div>
         <div class="col-6">
           <label class="form-label" style="font-size:12px;font-weight:600">Estado Resolución</label>
@@ -6741,6 +6743,9 @@ function abrirPermiso(id) {
     // Restore grados selection
     const gAfect = p.grados_afectados || [];
     Array.from(gradSel.options).forEach(o => { o.selected = gAfect.includes(parseInt(o.value)); });
+    // Pre-load per-block replacements for restoration after actualizarBloquesSugeridos
+    window._permBloquesRestaure = p.reemplazos_bloques || [];
+    if (p.fecha_reemplazo) actualizarBloquesSugeridos();
   }
   bootstrap.Offcanvas.getOrCreateInstance(document.getElementById('offcanvasPermiso')).show();
 }
@@ -6813,6 +6818,115 @@ function calcHorasLibresDocente(docId) {
   return Math.max(0, JORNADA_MAX - ocupadas);
 }
 
+// Devuelve docentes activos libres en un bloque específico (sin solapamiento)
+function docentesLibresEnBloque(dia, hora_inicio, hora_fin, excluirDocId) {
+  var ini = timeToMins(hora_inicio);
+  var fin = timeToMins(hora_fin);
+  return (DB.get('docentes') || []).filter(function(d) {
+    if (d.estado !== 'Activo' || d.id == excluirDocId) return false;
+    var asigs = (DB.get('asignaciones') || []).filter(function(a){ return a.docente_id == d.id && a.estado === 'Activo'; });
+    var ocupado = asigs.some(function(a) {
+      return (a.cursos || []).some(function(c) {
+        return (c.dias || []).some(function(dd) {
+          return dd.dia === dia && timeToMins(dd.hora_inicio) < fin && timeToMins(dd.hora_fin) > ini;
+        });
+      });
+    });
+    return !ocupado;
+  });
+}
+
+// Renderiza la sección de bloques con selectores de reemplazo por hora
+function actualizarBloquesSugeridos() {
+  var docId  = parseInt(document.getElementById('perm-docente').value);
+  var fecha  = document.getElementById('perm-fecha-reemplazo').value;
+  var cont   = document.getElementById('reemplazo-bloques-container');
+  if (!cont) return;
+
+  var placeholder = '<div style="font-size:12px;color:var(--slate-400);padding:10px;background:var(--slate-50);border-radius:8px;border:1px dashed var(--slate-200)">'
+    + '<i class="bi bi-info-circle me-1"></i>Seleccione el docente y la fecha de reemplazo para ver disponibilidad por bloque horario.</div>';
+
+  if (!docId || !fecha) { cont.innerHTML = placeholder; return; }
+
+  var DIAS = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  var dia  = DIAS[new Date(fecha + 'T12:00:00').getDay()];
+
+  if (dia === 'Sábado' || dia === 'Domingo') {
+    cont.innerHTML = '<div style="font-size:12px;color:var(--slate-400);padding:10px;background:var(--slate-50);border-radius:8px">'
+      + '<i class="bi bi-moon me-1"></i>No hay clases ese día (fin de semana).</div>';
+    return;
+  }
+
+  // Bloques del docente ausente en ese día
+  var secciones = DB.get('secciones') || [];
+  var grados    = DB.get('grados')    || [];
+  var bloques   = [];
+  (DB.get('asignaciones') || []).filter(function(a){ return a.docente_id == docId && a.estado === 'Activo'; })
+    .forEach(function(asig) {
+      (asig.cursos || []).forEach(function(curso) {
+        (curso.dias || []).forEach(function(d) {
+          if (d.dia !== dia) return;
+          var sec  = secciones.find(function(s){ return s.id == curso.seccion_id; });
+          var grad = sec ? grados.find(function(g){ return g.id == sec.grado_id; }) : null;
+          bloques.push({
+            hora_inicio: d.hora_inicio,
+            hora_fin:    d.hora_fin,
+            materia:     curso.materia || asig.materia || '',
+            seccion_id:  curso.seccion_id,
+            label:       (grad ? grad.nombre + ' ' : '') + (sec ? sec.nombre : 'Grupo ?'),
+          });
+        });
+      });
+    });
+
+  bloques.sort(function(a,b){ return timeToMins(a.hora_inicio) - timeToMins(b.hora_inicio); });
+
+  if (!bloques.length) {
+    cont.innerHTML = '<div style="font-size:12px;color:#10B981;padding:10px;background:#F0FDF4;border-radius:8px;border:1px solid #BBF7D0">'
+      + '<i class="bi bi-check-circle me-1"></i>El docente no tiene clases el <strong>' + dia + '</strong>.</div>';
+    return;
+  }
+
+  var html = '<div style="font-size:11px;font-weight:700;color:var(--slate-500);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">'
+    + '<i class="bi bi-calendar-week me-1"></i>' + dia + ' — Clases del docente ausente</div>';
+
+  bloques.forEach(function(bloque, idx) {
+    var libres = docentesLibresEnBloque(dia, bloque.hora_inicio, bloque.hora_fin, docId);
+    var opts   = '<option value="">— Sin reemplazo —</option>'
+      + libres.map(function(d){
+          return '<option value="'+d.id+'">'
+            + [d.p_nombre, d.s_nombre, d.p_apellido, d.s_apellido].filter(Boolean).join(' ')
+            + '</option>';
+        }).join('');
+
+    html += '<div style="border:1px solid var(--slate-200);border-radius:8px;padding:10px 12px;margin-bottom:8px;background:#fff">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
+      + '  <span style="font-size:12px;font-weight:700;color:var(--slate-700)">'
+      + '    <i class="bi bi-clock me-1" style="color:var(--blue-500)"></i>'
+      + bloque.hora_inicio + ' – ' + bloque.hora_fin + '</span>'
+      + '  <span style="font-size:11px;color:var(--slate-500);background:var(--slate-100);padding:2px 7px;border-radius:12px">'
+      + bloque.materia + ' · ' + bloque.label + '</span>'
+      + '</div>'
+      + '<select class="form-select form-select-sm reemplazo-bloque-sel"'
+      + '  data-hi="'+bloque.hora_inicio+'" data-hf="'+bloque.hora_fin+'"'
+      + '  data-sec="'+bloque.seccion_id+'" data-mat="'+encodeURIComponent(bloque.materia)+'">'
+      + opts + '</select>'
+      + '<div style="font-size:10px;color:var(--slate-400);margin-top:4px"><i class="bi bi-people me-1"></i>'
+      + libres.length + ' docente(s) disponible(s) en este horario</div>'
+      + '</div>';
+  });
+
+  cont.innerHTML = html;
+
+  // Restaurar selecciones previas si las hay (al editar un permiso existente)
+  var prevBloques = window._permBloquesRestaure || [];
+  prevBloques.forEach(function(pb) {
+    var sel = cont.querySelector('select[data-hi="'+pb.hora_inicio+'"][data-hf="'+pb.hora_fin+'"]');
+    if (sel && pb.docente_reemplazo_id) sel.value = pb.docente_reemplazo_id;
+  });
+  window._permBloquesRestaure = [];
+}
+
 function guardarPermiso() {
   const doc_id       = document.getElementById('perm-docente').value;
   const tipo         = document.getElementById('perm-tipo').value;
@@ -6827,14 +6941,31 @@ function guardarPermiso() {
 
   const perms  = DB.get('permisos');
   const idEdit = document.getElementById('perm-id').value;
-  const reempId = document.getElementById('perm-reemplazo').value;
+
+  // Recoger reemplazos por bloque
+  var reemplazos_bloques = [];
+  document.querySelectorAll('.reemplazo-bloque-sel').forEach(function(sel) {
+    if (sel.value) {
+      reemplazos_bloques.push({
+        hora_inicio:          sel.dataset.hi,
+        hora_fin:             sel.dataset.hf,
+        seccion_id:           parseInt(sel.dataset.sec),
+        materia:              decodeURIComponent(sel.dataset.mat || ''),
+        docente_reemplazo_id: parseInt(sel.value),
+      });
+    }
+  });
+  // docente_reemplazo_id principal: el primero asignado (compatibilidad con horarios)
+  var reempId = reemplazos_bloques.length ? reemplazos_bloques[0].docente_reemplazo_id : null;
+
   const data = {
     docente_id:           parseInt(doc_id),
     fecha_novedad:        fechaNovedad,
     tipo:                 tipo,
     grados_afectados:     gradosAfect,
     horas_afectadas:      parseInt(document.getElementById('perm-horas').value)||0,
-    docente_reemplazo_id: reempId ? parseInt(reempId) : null,
+    docente_reemplazo_id: reempId || null,
+    reemplazos_bloques:   reemplazos_bloques,
     fecha_reemplazo:      document.getElementById('perm-fecha-reemplazo').value,
     estado:               document.getElementById('perm-estado').value,
     autorizado_por:       document.getElementById('perm-autorizado').value.trim(),
