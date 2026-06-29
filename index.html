@@ -2909,6 +2909,15 @@
         <label class="form-label" style="font-size:12px;font-weight:600">Email</label>
         <input type="email" class="form-control form-control-sm" id="sede-email">
       </div>
+      <div class="col-12">
+        <div class="form-check mt-1">
+          <input class="form-check-input" type="checkbox" id="sede-principal">
+          <label class="form-check-label" for="sede-principal" style="font-size:12px;font-weight:600">
+            <i class="bi bi-star-fill me-1" style="color:#F59E0B"></i>Sede Principal
+            <span style="font-size:11px;font-weight:400;color:var(--slate-400);margin-left:4px">— usada para filtrar docentes en asignación, horarios y reemplazos</span>
+          </label>
+        </div>
+      </div>
     </div>
   </div>
   <div class="border-top p-3 d-flex gap-2 justify-content-end oc-footer">
@@ -4536,7 +4545,7 @@ function actualizarTotalHorasModal() {
 function renderAsignaciones() {
   migrarAsignaciones();
 
-  const docentes  = DB.get('docentes').filter(d => d.estado === 'Activo');
+  const docentes  = docentesSedePrincipal();
 
   // Populate docente filter
   const fDoc   = document.getElementById('filtro-asig-docente');
@@ -4641,7 +4650,7 @@ function abrirAsignacion(id) {
 
   const dSel = document.getElementById('asig-docente');
   dSel.innerHTML = '<option value="">Seleccionar docente...</option>' +
-    DB.get('docentes').filter(d => d.estado === 'Activo')
+    docentesSedePrincipal()
       .map(d => '<option value="' + d.id + '">' + [d.p_nombre, d.s_nombre, d.p_apellido, d.s_apellido].filter(Boolean).join(' ') + '</option>').join('');
 
   const mSel = document.getElementById('asig-materia');
@@ -5465,7 +5474,7 @@ function materiaBlockClass(m) {
 function renderHorarios() {
   const grados   = DB.get('grados');
   const secciones = DB.get('secciones');
-  const docentes  = DB.get('docentes').filter(d => d.estado === 'Activo');
+  const docentes  = docentesSedePrincipal();
 
   // Populate grado filter
   const fGrado = document.getElementById('filtro-horario-grado');
@@ -6497,12 +6506,32 @@ function confirmarImportAsig() {
 // ══════════════════════════════════════════════
 //  AULAS
 // ══════════════════════════════════════════════
+// Retorna el ID de la sede principal, o null si no hay ninguna marcada.
+// Detecta automáticamente la sede cuyo nombre contenga "santa maria" si ninguna tiene es_principal.
+function getSedePrincipalId() {
+  var sedes = DB.get('sedes') || [];
+  var principal = sedes.find(function(s){ return s.es_principal; });
+  if (!principal) principal = sedes.find(function(s){ return (s.nombre||'').toLowerCase().includes('santa maria'); });
+  return principal ? principal.id : null;
+}
+
+// Filtra docentes activos de la sede principal.
+// Si no hay sede principal configurada, devuelve todos los docentes activos.
+function docentesSedePrincipal() {
+  var spId = getSedePrincipalId();
+  return (DB.get('docentes') || []).filter(function(d){
+    if (d.estado !== 'Activo') return false;
+    if (!spId) return true;                         // sin sede principal → todos
+    return !d.sede_id || d.sede_id == spId;         // sin sede asignada o coincide
+  });
+}
+
 function renderSedes() {
   const sedes = DB.get('sedes');
   const tb = document.getElementById('tabla-sedes');
   tb.innerHTML = sedes.length ? sedes.map((s,i) => `<tr>
     <td>${i+1}</td>
-    <td><strong>${s.nombre}</strong></td>
+    <td><strong>${s.nombre}</strong>${s.es_principal || (s.nombre||'').toLowerCase().includes('santa maria') ? ' <span style="font-size:10px;background:#FEF3C7;color:#92400E;padding:1px 6px;border-radius:10px;font-weight:600"><i class="bi bi-star-fill me-1" style="color:#F59E0B"></i>Principal</span>' : ''}</td>
     <td>${s.direccion||'—'}</td>
     <td>${s.telefono||'—'}</td>
     <td>${s.email||'—'}</td>
@@ -6518,6 +6547,7 @@ function abrirSede(id=null) {
   ['sede-id','sede-nombre','sede-direccion','sede-telefono','sede-email'].forEach(x => {
     document.getElementById(x).value = '';
   });
+  document.getElementById('sede-principal').checked = false;
   if (id) {
     const s = DB.get('sedes').find(x=>x.id==id);
     if (!s) return;
@@ -6526,6 +6556,7 @@ function abrirSede(id=null) {
     document.getElementById('sede-direccion').value = s.direccion||'';
     document.getElementById('sede-telefono').value  = s.telefono||'';
     document.getElementById('sede-email').value     = s.email||'';
+    document.getElementById('sede-principal').checked = !!s.es_principal;
   }
   bootstrap.Offcanvas.getOrCreateInstance(document.getElementById('offcanvasSede')).show();
 }
@@ -6542,12 +6573,16 @@ function guardarSede() {
   if (!nombre) { toast('El nombre de la sede es obligatorio.', false); return; }
   const sedes  = DB.get('sedes');
   const idEdit = document.getElementById('sede-id').value;
+  const esPrincipal = document.getElementById('sede-principal').checked;
   const data   = {
     nombre,
-    direccion: document.getElementById('sede-direccion').value.trim(),
-    telefono:  document.getElementById('sede-telefono').value.trim(),
-    email:     document.getElementById('sede-email').value.trim(),
+    direccion:    document.getElementById('sede-direccion').value.trim(),
+    telefono:     document.getElementById('sede-telefono').value.trim(),
+    email:        document.getElementById('sede-email').value.trim(),
+    es_principal: esPrincipal,
   };
+  // Solo una sede puede ser principal: desmarcar las demás si esta se marca
+  if (esPrincipal) sedes.forEach(function(s){ if (String(s.id) !== String(idEdit)) s.es_principal = false; });
   if (!idEdit) { sedes.push({ id: DB.nextId('sedes'), ...data }); toast('Sede creada.'); }
   else { const idx=sedes.findIndex(s=>s.id==idEdit); Object.assign(sedes[idx],data); toast('Sede actualizada.'); }
   DB.set('sedes', sedes);
@@ -6705,10 +6740,9 @@ function abrirPermiso(id) {
   document.getElementById('modal-perm-title').textContent = id ? 'Editar Novedad' : 'Nueva Novedad / Permiso';
 
   // Populate docente dropdowns
-  const docOpts = DB.get('docentes').filter(d=>d.estado==='Activo')
-    .map(d => '<option value="'+d.id+'">'+d.p_nombre+' '+d.p_apellido+'</option>').join('');
+  const docOpts = docentesSedePrincipal()
+    .map(d => '<option value="'+d.id+'">' + [d.p_nombre,d.s_nombre,d.p_apellido,d.s_apellido].filter(Boolean).join(' ') + '</option>').join('');
   document.getElementById('perm-docente').innerHTML  = '<option value="">Seleccione docente...</option>' + docOpts;
-  document.getElementById('perm-reemplazo').innerHTML = '<option value="">— Sin reemplazo asignado —</option>' + docOpts;
 
   // Populate grados
   const gradSel = document.getElementById('perm-grados');
@@ -6792,7 +6826,7 @@ function autoFillPermisoFromDocente() {
 
   // Filter reemplazo: show all ACTIVE docentes except the one with novedad
   // Also exclude docentes who already have a conflict (simplified: just exclude same docente)
-  var docentes = DB.get('docentes').filter(function(d){ return d.estado==='Activo' && d.id != docId; });
+  var docentes = docentesSedePrincipal().filter(function(d){ return d.id != docId; });
   var rSel = document.getElementById('perm-reemplazo');
   rSel.innerHTML = '<option value="">— Sin reemplazo asignado —</option>'
     + docentes.map(function(d){
@@ -6822,8 +6856,8 @@ function calcHorasLibresDocente(docId) {
 function docentesLibresEnBloque(dia, hora_inicio, hora_fin, excluirDocId) {
   var ini = timeToMins(hora_inicio);
   var fin = timeToMins(hora_fin);
-  return (DB.get('docentes') || []).filter(function(d) {
-    if (d.estado !== 'Activo' || d.id == excluirDocId) return false;
+  return docentesSedePrincipal().filter(function(d) {
+    if (d.id == excluirDocId) return false;
     var asigs = (DB.get('asignaciones') || []).filter(function(a){ return a.docente_id == d.id && a.estado === 'Activo'; });
     var ocupado = asigs.some(function(a) {
       return (a.cursos || []).some(function(c) {
