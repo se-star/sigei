@@ -3273,10 +3273,16 @@ const DB = {
 
   // Load all collections from Firestore into memory
   loadAll: async function() {
-    const COLS = ['docentes','secciones','horarios','sedes','permisos','asignaciones','cronograma','grados','reuniones','actividad','usuarios','permisos_roles'];
+    const COLS = ['docentes','secciones','horarios','sedes','permisos','asignaciones','cronograma','grados','reuniones','actividad','usuarios'];
     const snaps = await Promise.all(COLS.map(k => _fs.collection('sigei').doc(k).get()));
     snaps.forEach((snap, i) => {
       _cache[COLS[i]] = snap.exists ? (snap.data().items || []) : [];
+      // Leer permisos_roles embebido en el documento usuarios
+      if (COLS[i] === 'usuarios' && snap.exists && snap.data()._permisos_roles) {
+        _cache['permisos_roles'] = snap.data()._permisos_roles;
+        // Sincronizar también en localStorage para acceso inmediato
+        try { localStorage.setItem('sigei_permisos_roles', JSON.stringify(snap.data()._permisos_roles)); } catch(e) {}
+      }
     });
 
     // Purge horarios entries that were auto-generated from asignaciones (asignacion_id present).
@@ -7903,8 +7909,15 @@ var SA_DEFAULTS = {
 };
 
 // Lee la configuración guardada o usa defaults
+// Orden de prioridad: caché Firestore (cargado al inicio) → localStorage → defaults
 function getPermisosRoles() {
-  var saved = DB.get('permisos_roles') || [];
+  var saved = _cache['permisos_roles'] || [];
+  if (!saved.length) {
+    try {
+      var ls = localStorage.getItem('sigei_permisos_roles');
+      if (ls) saved = JSON.parse(ls);
+    } catch(e) {}
+  }
   var result = {};
   SA_ROLES.forEach(function(rol) {
     var entry = saved.find(function(x){ return x.rol === rol; });
@@ -7922,8 +7935,13 @@ function applyRoleRestrictions() {
   var saLink = document.getElementById('sidebar-superadmin-link');
   if (saLink) saLink.style.display = rol === 'Superadmin' ? '' : 'none';
 
-  // Superadmin ve todo, no restringir
-  if (!rol || rol === 'Superadmin') return;
+  // Superadmin ve todo — solo restaurar todos los links y salir
+  if (!rol || rol === 'Superadmin') {
+    document.querySelectorAll('#sidebar nav a[data-page]').forEach(function(a) {
+      if (a.dataset.page !== 'superadmin') a.style.display = '';
+    });
+    return;
+  }
 
   var config  = getPermisosRoles();
   var allowed = config[rol] || SA_DEFAULTS[rol] || [];
@@ -7936,6 +7954,17 @@ function applyRoleRestrictions() {
     } else {
       a.style.display = '';
     }
+  });
+
+  // Ocultar también secciones de nav que queden sin links visibles
+  document.querySelectorAll('#sidebar .nav-section').forEach(function(sec) {
+    var next = sec.nextElementSibling;
+    var hasVisible = false;
+    while (next && !next.classList.contains('nav-section')) {
+      if (next.tagName === 'A' && next.style.display !== 'none') hasVisible = true;
+      next = next.nextElementSibling;
+    }
+    sec.style.display = hasVisible ? '' : 'none';
   });
 }
 
@@ -8017,7 +8046,9 @@ function renderSuperadmin() {
   }).join('');
 }
 
-// Guarda la configuración de permisos por rol en Firebase
+// Guarda la configuración de permisos por rol
+// Primero en localStorage (inmediato, sin restricciones de Firebase)
+// y luego intenta persistir en Firestore como respaldo
 function guardarPermisosRoles() {
   var config = SA_ROLES.map(function(rol) {
     var modulos = SA_MODULOS.filter(function(mod) {
@@ -8027,7 +8058,16 @@ function guardarPermisosRoles() {
     }).map(function(mod){ return mod.key; });
     return { rol: rol, modulos: modulos };
   });
-  DB.set('permisos_roles', config);
+  // Guardar en caché local
+  _cache['permisos_roles'] = config;
+  // Guardar en localStorage (inmediato, funciona offline)
+  try { localStorage.setItem('sigei_permisos_roles', JSON.stringify(config)); } catch(e) {}
+  // Guardar en Firestore embebido dentro de sigei/usuarios con merge (no toca el campo items)
+  _fs.collection('sigei').doc('usuarios').set(
+    { _permisos_roles: config },
+    { merge: true }
+  ).catch(function(e){ console.warn('permisos_roles Firestore write:', e.message); });
+  // Aplicar inmediatamente al sidebar
   applyRoleRestrictions();
   toast('Permisos de acceso actualizados correctamente.');
 }
