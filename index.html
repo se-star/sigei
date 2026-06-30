@@ -1079,6 +1079,46 @@
     font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0;
   }
 
+  /* ══ GOOGLE DRIVE VISOR ════════════════════════════════════════════ */
+  .seg-drive-section {
+    margin-top:10px;
+    border-top:1px solid var(--slate-100);
+    padding-top:8px;
+  }
+  .seg-drive-toggle {
+    display:flex;align-items:center;gap:6px;
+    font-size:11px;font-weight:600;color:#4F46E5;
+    background:none;border:none;padding:0;cursor:pointer;
+    margin-bottom:6px;
+  }
+  .seg-drive-toggle:hover { color:#3730A3; }
+  .seg-drive-files { display:flex;flex-direction:column;gap:4px; }
+  .seg-drive-file {
+    display:flex;align-items:center;gap:8px;
+    padding:7px 10px;border-radius:8px;
+    background:var(--slate-50);border:1px solid var(--slate-100);
+    text-decoration:none;transition:background .15s;
+  }
+  .seg-drive-file:hover { background:#EEF2FF;border-color:#C7D2FE; }
+  .seg-drive-file-icon { font-size:16px;flex-shrink:0; }
+  .seg-drive-file-info { flex:1;min-width:0; }
+  .seg-drive-file-name {
+    display:block;font-size:12px;font-weight:600;
+    color:var(--slate-700);white-space:nowrap;
+    overflow:hidden;text-overflow:ellipsis;
+  }
+  .seg-drive-file-meta { display:block;font-size:10px;color:var(--slate-400);margin-top:1px; }
+  .seg-drive-empty {
+    font-size:11px;color:var(--slate-400);
+    display:flex;align-items:center;gap:6px;padding:6px 0;
+  }
+  .seg-drive-loading {
+    font-size:11px;color:#4F46E5;
+    display:flex;align-items:center;gap:6px;padding:6px 0;
+  }
+  .seg-spin { animation:spin .8s linear infinite;display:inline-block; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
   /* ══ SUPERADMIN PAGE ═══════════════════════════════════════════════ */
   #page-superadmin .card-panel { border-left-color: #6366F1; }
   .sa-matrix-table th { font-size:11px; font-weight:700; text-align:center; background:var(--slate-50); white-space:nowrap; }
@@ -2365,6 +2405,36 @@
         </div>
       </div>
 
+      <!-- Configuración Google Drive -->
+      <div class="card-panel mb-3">
+        <div class="panel-header">
+          <h6><i class="bi bi-google me-2" style="color:#4285F4"></i>Integración Google Drive</h6>
+        </div>
+        <p style="font-size:12px;color:var(--slate-500);margin:0 0 14px">
+          Conecta SIGEI con Google Drive para visualizar los archivos que los docentes suben a sus carpetas.
+          Necesitas una <b>API Key</b> de Google Cloud Console con la API de Drive habilitada.
+        </p>
+        <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;max-width:540px">
+          <div>
+            <label style="font-size:11px;font-weight:600;color:var(--slate-600);display:block;margin-bottom:4px">
+              Google Drive API Key
+            </label>
+            <input type="password" id="sa-drive-api-key" class="form-control form-control-sm"
+              placeholder="AIzaSy…" autocomplete="off">
+          </div>
+          <button class="btn btn-sm text-white" style="background:#4285F4;white-space:nowrap"
+            onclick="guardarDriveApiKey()">
+            <i class="bi bi-save me-1"></i>Guardar
+          </button>
+        </div>
+        <div style="font-size:10px;color:var(--slate-400);margin-top:8px">
+          <i class="bi bi-info-circle me-1"></i>
+          La API Key se guarda cifrada en Firestore y solo se usa para leer archivos compartidos de Drive.
+          <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener"
+             style="color:#4285F4">Crear API Key en Google Cloud →</a>
+        </div>
+      </div>
+
       <!-- Monitor de actividad -->
       <div class="card-panel">
         <div class="panel-header">
@@ -2758,6 +2828,17 @@
         <select class="form-select form-select-sm" id="doc-sede-id">
           <option value="">Sin sede asignada</option>
         </select>
+      </div>
+      <div class="col-12">
+        <hr style="margin:4px 0 8px">
+        <label class="form-label" style="font-size:12px;font-weight:600">
+          <i class="bi bi-google me-1" style="color:#4285F4"></i>ID Carpeta Google Drive
+        </label>
+        <input type="text" class="form-control form-control-sm" id="doc-drive-folder-id"
+          placeholder="Ej: 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms">
+        <div style="font-size:10px;color:var(--slate-400);margin-top:4px">
+          El ID está en la URL de la carpeta Drive del docente: drive.google.com/drive/folders/<b style="color:#4F46E5">[ID aquí]</b>
+        </div>
       </div>
     </div>
   </div>
@@ -3393,6 +3474,11 @@ const DB = {
     snaps.forEach((snap, i) => {
       _cache[COLS[i]] = snap.exists ? (snap.data().items || []) : [];
     });
+    // Cargar config de app (API keys, etc.)
+    try {
+      const cfgSnap = await _fs.collection('sigei').doc('app_config').get();
+      _cache['app_config'] = cfgSnap.exists ? cfgSnap.data() : {};
+    } catch(e) { _cache['app_config'] = {}; }
 
     // Leer permisos_roles desde roles/_config (misma colección que syncRoleDoc — tiene permisos de escritura)
     try {
@@ -3870,8 +3956,9 @@ async function abrirDocente(id=null) {
     document.getElementById('doc-area').value      = d.area||'';
     document.getElementById('doc-tipo-vinc').value = d.tipo_vinc||'';
     document.getElementById('doc-decreto').value   = d.decreto||'';
-    document.getElementById('doc-nivel').value     = d.nivel||'';
-    document.getElementById('doc-sede-id').value   = d.sede_id||'';
+    document.getElementById('doc-nivel').value          = d.nivel||'';
+    document.getElementById('doc-sede-id').value         = d.sede_id||'';
+    document.getElementById('doc-drive-folder-id').value = d.drive_folder_id||'';
   }
   bootstrap.Offcanvas.getOrCreateInstance(document.getElementById('offcanvasDocente')).show();
 }
@@ -3901,8 +3988,9 @@ async function guardarDocente() {
     area:       document.getElementById('doc-area').value.trim(),
     tipo_vinc:  document.getElementById('doc-tipo-vinc').value,
     decreto:    document.getElementById('doc-decreto').value.trim(),
-    nivel:      document.getElementById('doc-nivel').value,
-    sede_id:    document.getElementById('doc-sede-id').value || null,
+    nivel:            document.getElementById('doc-nivel').value,
+    sede_id:          document.getElementById('doc-sede-id').value || null,
+    drive_folder_id:  document.getElementById('doc-drive-folder-id').value.trim() || null,
   };
 
   if (!idEdit) {
@@ -8132,6 +8220,14 @@ function renderSuperadmin() {
   set('sa-cnt-asig',     (DB.get('asignaciones')||[]).filter(function(a){return a.estado==='Activo';}).length);
   set('sa-cnt-act',      (DB.get('actividad')||[]).length);
 
+  // Pre-poblar API Key de Drive si ya está configurada
+  var driveKeyEl = document.getElementById('sa-drive-api-key');
+  if (driveKeyEl) {
+    var cfg = DB.get('app_config') || {};
+    driveKeyEl.value = cfg.drive_api_key ? '••••••••••••••••' : '';
+    driveKeyEl.placeholder = cfg.drive_api_key ? 'API Key configurada (editar para cambiar)' : 'AIzaSy…';
+  }
+
   // Matriz de permisos
   var config = getPermisosRoles();
   var tbody  = document.getElementById('sa-matrix-body');
@@ -8536,7 +8632,14 @@ function abrirSeguimientoDocente(docId, periodo, año) {
       + '<input type="date" class="form-control form-control-sm seg-oc-fecha" data-key="' + e.key + '" value="' + (ent.fecha||'') + '"></div>'
       + '<div><label style="font-size:11px;color:var(--slate-500);font-weight:600;display:block;margin-bottom:3px">Observaciones</label>'
       + '<input type="text" class="form-control form-control-sm seg-oc-obs" data-key="' + e.key + '" value="' + (ent.obs||'').replace(/"/g,'&quot;') + '" placeholder="Opcional..."></div>'
-      + '</div></div>';
+      + '</div>'
+      // Sección Drive
+      + '<div class="seg-drive-section">'
+      + '<button class="seg-drive-toggle" onclick="driveToggle(this,' + parseInt(docId) + ',' + parseInt(periodo) + ',\'' + e.key + '\')">'
+      + '<i class="bi bi-paperclip"></i> Ver archivos en Drive</button>'
+      + '<div style="display:none"></div>'
+      + '</div>'
+      + '</div>';
   }).join('');
 
   bootstrap.Offcanvas.getOrCreateInstance(document.getElementById('offcanvasSeguimiento')).show();
@@ -8599,6 +8702,166 @@ function exportarSeguimientoExcel() {
   var wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Seguimiento P' + periodo);
   XLSX.writeFile(wb, 'Seguimiento_Pedagogico_P' + periodo + '_' + año + '.xlsx');
+}
+
+// ════════════════════════════════════════════════
+//  GOOGLE DRIVE API — VISOR DE ENTREGABLES
+// ════════════════════════════════════════════════
+
+var _driveFolderCache = {};
+
+function _driveApiKey() {
+  var cfg = DB.get('app_config') || {};
+  return cfg.drive_api_key || null;
+}
+
+async function _driveFindFolder(parentId, name, apiKey) {
+  var cacheKey = parentId + ':' + name;
+  if (_driveFolderCache[cacheKey]) return _driveFolderCache[cacheKey];
+  var q = "name='" + name.replace(/'/g, "\\'") + "' and '" + parentId
+    + "' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false";
+  var url = 'https://www.googleapis.com/drive/v3/files?q=' + encodeURIComponent(q)
+    + '&fields=files(id)&key=' + encodeURIComponent(apiKey);
+  try {
+    var resp = await fetch(url);
+    var data = await resp.json();
+    if (data.files && data.files.length) {
+      _driveFolderCache[cacheKey] = data.files[0].id;
+      return data.files[0].id;
+    }
+  } catch(e) { console.warn('Drive findFolder error:', e); }
+  return null;
+}
+
+async function _driveListFiles(folderId, apiKey) {
+  var q = "'" + folderId + "' in parents and trashed=false";
+  var fields = 'files(id,name,mimeType,modifiedTime,size,webViewLink)';
+  var url = 'https://www.googleapis.com/drive/v3/files?q=' + encodeURIComponent(q)
+    + '&fields=' + encodeURIComponent(fields)
+    + '&orderBy=modifiedTime+desc&key=' + encodeURIComponent(apiKey);
+  try {
+    var resp = await fetch(url);
+    var data = await resp.json();
+    return data.files || [];
+  } catch(e) { console.warn('Drive listFiles error:', e); return []; }
+}
+
+function _driveFileIcon(mimeType) {
+  if (!mimeType) return '<i class="bi bi-file-earmark" style="color:#6366F1"></i>';
+  if (mimeType === 'application/pdf')
+    return '<i class="bi bi-file-earmark-pdf" style="color:#EF4444"></i>';
+  if (mimeType.includes('word') || mimeType === 'application/vnd.google-apps.document')
+    return '<i class="bi bi-file-earmark-word" style="color:#2563EB"></i>';
+  if (mimeType.includes('sheet') || mimeType === 'application/vnd.google-apps.spreadsheet')
+    return '<i class="bi bi-file-earmark-excel" style="color:#16A34A"></i>';
+  if (mimeType.includes('presentation') || mimeType === 'application/vnd.google-apps.presentation')
+    return '<i class="bi bi-file-earmark-ppt" style="color:#D97706"></i>';
+  if (mimeType.startsWith('image/'))
+    return '<i class="bi bi-file-earmark-image" style="color:#7C3AED"></i>';
+  if (mimeType === 'application/vnd.google-apps.folder')
+    return '<i class="bi bi-folder-fill" style="color:#D97706"></i>';
+  return '<i class="bi bi-file-earmark" style="color:#6366F1"></i>';
+}
+
+function _driveFormatBytes(bytes) {
+  if (!bytes) return '';
+  bytes = parseInt(bytes);
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / 1048576).toFixed(1) + ' MB';
+}
+
+async function driveCargarArchivos(docId, periodo, entKey, containerEl) {
+  var apiKey = _driveApiKey();
+  if (!apiKey) {
+    containerEl.innerHTML = '<div class="seg-drive-empty"><i class="bi bi-key"></i>'
+      + ' API Key no configurada. Ve a <b>Superadmin → Configuración Drive</b>.</div>';
+    return;
+  }
+  var doc = (DB.get('docentes') || []).find(function(d){ return d.id == docId; });
+  if (!doc || !doc.drive_folder_id) {
+    containerEl.innerHTML = '<div class="seg-drive-empty"><i class="bi bi-folder-x"></i>'
+      + ' Carpeta de Drive no asignada a este docente.</div>';
+    return;
+  }
+
+  containerEl.innerHTML = '<div class="seg-drive-loading">'
+    + '<i class="bi bi-arrow-repeat seg-spin"></i> Buscando archivos en Drive…</div>';
+
+  try {
+    var periodoName = 'Periodo ' + periodo;
+    var entObj = SEG_ENTREGABLES.find(function(e){ return e.key === entKey; });
+    var entName = entObj ? entObj.label : entKey;
+
+    var periodoId = await _driveFindFolder(doc.drive_folder_id, periodoName, apiKey);
+    if (!periodoId) {
+      containerEl.innerHTML = '<div class="seg-drive-empty"><i class="bi bi-folder-x"></i>'
+        + ' Carpeta "<b>' + periodoName + '</b>" no encontrada en Drive.</div>';
+      return;
+    }
+    var entId = await _driveFindFolder(periodoId, entName, apiKey);
+    if (!entId) {
+      containerEl.innerHTML = '<div class="seg-drive-empty"><i class="bi bi-folder-x"></i>'
+        + ' Carpeta "<b>' + entName + '</b>" no encontrada.</div>';
+      return;
+    }
+    var files = await _driveListFiles(entId, apiKey);
+    if (!files.length) {
+      containerEl.innerHTML = '<div class="seg-drive-empty"><i class="bi bi-inbox"></i>'
+        + ' Sin archivos subidos aún.</div>';
+      return;
+    }
+    containerEl.innerHTML = '<div class="seg-drive-files">'
+      + files.map(function(f) {
+          var date = f.modifiedTime
+            ? new Date(f.modifiedTime).toLocaleDateString('es-CO', { day:'2-digit', month:'short', year:'numeric' })
+            : '';
+          var size = _driveFormatBytes(f.size);
+          var meta = [date, size].filter(Boolean).join(' · ');
+          return '<a class="seg-drive-file" href="' + f.webViewLink + '" target="_blank" rel="noopener">'
+            + '<span class="seg-drive-file-icon">' + _driveFileIcon(f.mimeType) + '</span>'
+            + '<span class="seg-drive-file-info">'
+            + '<span class="seg-drive-file-name">' + f.name + '</span>'
+            + (meta ? '<span class="seg-drive-file-meta">' + meta + '</span>' : '')
+            + '</span>'
+            + '<i class="bi bi-box-arrow-up-right" style="color:#A5B4FC;font-size:11px;flex-shrink:0"></i>'
+            + '</a>';
+        }).join('')
+      + '</div>';
+  } catch(e) {
+    containerEl.innerHTML = '<div class="seg-drive-empty" style="color:#EF4444">'
+      + '<i class="bi bi-exclamation-triangle"></i> Error: ' + e.message + '</div>';
+  }
+}
+
+function driveToggle(btn, docId, periodo, entKey) {
+  var wrap = btn.nextElementSibling;
+  var open  = wrap.style.display !== 'none';
+  if (open) {
+    wrap.style.display = 'none';
+    btn.innerHTML = '<i class="bi bi-paperclip"></i> Ver archivos en Drive';
+  } else {
+    wrap.style.display = '';
+    btn.innerHTML = '<i class="bi bi-chevron-up"></i> Ocultar archivos';
+    if (!wrap.dataset.loaded) {
+      wrap.dataset.loaded = '1';
+      driveCargarArchivos(docId, periodo, entKey, wrap);
+    }
+  }
+}
+
+// Carga y guarda la API key de Drive (colección app_config en Firestore)
+async function guardarDriveApiKey() {
+  var key = (document.getElementById('sa-drive-api-key') || {}).value || '';
+  key = key.trim();
+  if (!key) { toast('Ingresa una API Key válida.', false); return; }
+  try {
+    await _fs.collection('sigei').doc('app_config').set({ drive_api_key: key }, { merge: true });
+    var cfg = DB.get('app_config') || {};
+    cfg.drive_api_key = key;
+    _cache['app_config'] = cfg;
+    toast('API Key de Google Drive guardada.');
+  } catch(e) { toast('Error al guardar: ' + e.message, false); }
 }
 
 // ════════════════════════════════════════════════
