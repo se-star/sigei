@@ -3491,11 +3491,11 @@ const DB = {
     snaps.forEach((snap, i) => {
       _cache[COLS[i]] = snap.exists ? (snap.data().items || []) : [];
     });
-    // Cargar config de app (API keys, etc.)
+    // Cargar config de app (API keys, etc.) — se guarda aparte, no como array
     try {
       const cfgSnap = await _fs.collection('sigei').doc('app_config').get();
-      _cache['app_config'] = cfgSnap.exists ? cfgSnap.data() : {};
-    } catch(e) { _cache['app_config'] = {}; }
+      window._SIGEI_APP_CONFIG = cfgSnap.exists ? cfgSnap.data() : {};
+    } catch(e) { window._SIGEI_APP_CONFIG = {}; }
 
     // Leer permisos_roles desde roles/_config (misma colección que syncRoleDoc — tiene permisos de escritura)
     try {
@@ -8240,9 +8240,11 @@ function renderSuperadmin() {
   // Pre-poblar API Key de Drive si ya está configurada
   var driveKeyEl = document.getElementById('sa-drive-api-key');
   if (driveKeyEl) {
-    var cfg = DB.get('app_config') || {};
-    driveKeyEl.value = cfg.drive_api_key ? '••••••••••••••••' : '';
-    driveKeyEl.placeholder = cfg.drive_api_key ? 'API Key configurada (editar para cambiar)' : 'AIzaSy…';
+    var cfg = window._SIGEI_APP_CONFIG || {};
+    driveKeyEl.value = '';
+    driveKeyEl.placeholder = cfg.drive_api_key
+      ? '✓ API Key configurada (ingresa una nueva para cambiarla)'
+      : 'AIzaSy…';
   }
 
   // Matriz de permisos
@@ -8728,7 +8730,7 @@ function exportarSeguimientoExcel() {
 var _driveFolderCache = {};
 
 function _driveApiKey() {
-  var cfg = DB.get('app_config') || {};
+  var cfg = window._SIGEI_APP_CONFIG || {};
   return cfg.drive_api_key || null;
 }
 
@@ -8742,11 +8744,16 @@ async function _driveFindFolder(parentId, name, apiKey) {
   try {
     var resp = await fetch(url);
     var data = await resp.json();
+    console.log('[Drive] Buscar "' + name + '" en ' + parentId + ':', JSON.stringify(data));
+    if (data.error) throw new Error(data.error.message + ' (código ' + data.error.code + ')');
     if (data.files && data.files.length) {
       _driveFolderCache[cacheKey] = data.files[0].id;
       return data.files[0].id;
     }
-  } catch(e) { console.warn('Drive findFolder error:', e); }
+  } catch(e) {
+    console.error('[Drive] Error buscando "' + name + '":', e);
+    throw e;
+  }
   return null;
 }
 
@@ -8943,12 +8950,17 @@ function descargarPlantillaDrive() {
 async function guardarDriveApiKey() {
   var key = (document.getElementById('sa-drive-api-key') || {}).value || '';
   key = key.trim();
-  if (!key) { toast('Ingresa una API Key válida.', false); return; }
+  if (!key || key.includes('•')) {
+    toast('Ingresa la API Key real (empieza por AIzaSy…).', false);
+    return;
+  }
   try {
     await _fs.collection('sigei').doc('app_config').set({ drive_api_key: key }, { merge: true });
-    var cfg = DB.get('app_config') || {};
-    cfg.drive_api_key = key;
-    _cache['app_config'] = cfg;
+    window._SIGEI_APP_CONFIG = window._SIGEI_APP_CONFIG || {};
+    window._SIGEI_APP_CONFIG.drive_api_key = key;
+    // Limpiar campo y mostrar confirmación
+    var el = document.getElementById('sa-drive-api-key');
+    if (el) { el.value = ''; el.placeholder = '✓ API Key guardada correctamente (ingresa una nueva para cambiarla)'; }
     toast('API Key de Google Drive guardada.');
   } catch(e) { toast('Error al guardar: ' + e.message, false); }
 }
@@ -9159,7 +9171,7 @@ async function submitTOTPLogin() {
     var dateEl = document.getElementById('topbar-date');
     if (dateEl) dateEl.textContent = new Date().toLocaleDateString('es-CO',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
     applyDarkPref(); cargarRolUsuario();
-    Object.keys(_cache).forEach(function(c){ _cache['_prev_'+c]=(_cache[c]||[]).slice(); });
+    Object.keys(_cache).forEach(function(c){ if(Array.isArray(_cache[c])) _cache['_prev_'+c]=_cache[c].slice(); });
     renderDashboard(); navigate('dashboard'); _appLoaded = true;
   }
 }
