@@ -2429,9 +2429,26 @@
         </div>
         <div style="font-size:10px;color:var(--slate-400);margin-top:8px">
           <i class="bi bi-info-circle me-1"></i>
-          La API Key se guarda cifrada en Firestore y solo se usa para leer archivos compartidos de Drive.
+          La API Key se guarda en Firestore y solo se usa para leer archivos compartidos de Drive.
           <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener"
              style="color:#4285F4">Crear API Key en Google Cloud →</a>
+        </div>
+
+        <hr style="margin:16px 0">
+
+        <div style="display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap">
+          <div style="flex:1;min-width:220px">
+            <div style="font-size:12px;font-weight:700;color:var(--slate-700);margin-bottom:4px">
+              <i class="bi bi-file-earmark-arrow-down me-1" style="color:#16A34A"></i>Plantilla de docentes
+            </div>
+            <div style="font-size:11px;color:var(--slate-500);line-height:1.5">
+              Descarga el listado de docentes activos en formato Excel listo para usar con el script de Google Apps Script. Los nombres ya están escritos correctamente para que las carpetas se creen sin errores.
+            </div>
+          </div>
+          <button class="btn btn-sm" style="background:#16A34A;color:#fff;white-space:nowrap;align-self:center"
+            onclick="descargarPlantillaDrive()">
+            <i class="bi bi-download me-1"></i>Descargar plantilla
+          </button>
         </div>
       </div>
 
@@ -8848,6 +8865,78 @@ function driveToggle(btn, docId, periodo, entKey) {
       driveCargarArchivos(docId, periodo, entKey, wrap);
     }
   }
+}
+
+// Descarga plantilla Excel para el script de creación de carpetas Drive
+function descargarPlantillaDrive() {
+  var docentes = (DB.get('docentes') || []).filter(function(d) {
+    return d.estado === 'Activo' && d.nivel !== 'Directivo';
+  });
+
+  if (!docentes.length) {
+    toast('No hay docentes activos registrados.', false);
+    return;
+  }
+
+  // Encabezados
+  var headers = ['Nombre', 'ID Carpeta Drive', 'Cédula', 'Área'];
+
+  // Filas — una por docente
+  var rows = docentes.map(function(d) {
+    var nombre = [d.p_nombre, d.s_nombre, d.p_apellido, d.s_apellido]
+      .filter(Boolean).join(' ');
+    return [
+      nombre,
+      d.drive_folder_id || '',   // Si ya tiene ID asignado, lo muestra
+      d.cedula || '',
+      d.area || ''
+    ];
+  });
+
+  var data = [headers].concat(rows);
+  var ws   = XLSX.utils.aoa_to_sheet(data);
+
+  // Ancho de columnas
+  ws['!cols'] = [{ wch: 35 }, { wch: 45 }, { wch: 18 }, { wch: 22 }];
+
+  // Estilo de encabezado (fondo verde oscuro, texto blanco) — solo visual en Excel
+  var range = XLSX.utils.decode_range(ws['!ref']);
+  for (var C = range.s.c; C <= range.e.c; C++) {
+    var addr = XLSX.utils.encode_cell({ r: 0, c: C });
+    if (!ws[addr]) continue;
+    ws[addr].s = {
+      font:    { bold: true, color: { rgb: 'FFFFFF' } },
+      fill:    { fgColor: { rgb: '166534' } },
+      alignment: { horizontal: 'center' }
+    };
+  }
+
+  // Instrucciones en una segunda hoja
+  var instrucciones = [
+    ['INSTRUCCIONES DE USO'],
+    [''],
+    ['1. Abre Google Sheets y crea una hoja llamada exactamente: Docentes'],
+    ['2. Copia las columnas "Nombre" e "ID Carpeta Drive" de la hoja anterior a esa hoja'],
+    ['3. Abre Extensions → Apps Script y pega el código SIGEI_CrearCarpetas_Drive.gs'],
+    ['4. Reemplaza PARENT_FOLDER_ID con el ID de tu carpeta raíz en Google Drive'],
+    ['5. Ejecuta crearCarpetasDocentes()'],
+    ['6. Los IDs de carpeta aparecerán en la columna B'],
+    ['7. Cópialos y pégalos en SIGEI → Docentes → editar → campo "ID Carpeta Google Drive"'],
+    [''],
+    ['IMPORTANTE: Los nombres en la columna A deben coincidir EXACTAMENTE con los'],
+    ['nombres de las carpetas que se crearán en Google Drive.'],
+    [''],
+    ['Generado desde SIGEI — ' + new Date().toLocaleDateString('es-CO')]
+  ];
+  var wsInstr = XLSX.utils.aoa_to_sheet(instrucciones);
+  wsInstr['!cols'] = [{ wch: 80 }];
+
+  var wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws,      'Docentes');
+  XLSX.utils.book_append_sheet(wb, wsInstr, 'Instrucciones');
+
+  XLSX.writeFile(wb, 'Plantilla_Drive_SIGEI_' + new Date().getFullYear() + '.xlsx');
+  toast('Plantilla descargada con ' + docentes.length + ' docentes.');
 }
 
 // Carga y guarda la API key de Drive (colección app_config en Firestore)
