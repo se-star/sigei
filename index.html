@@ -2161,20 +2161,33 @@
               <h6 style="margin:0"><i class="bi bi-journal-check me-2" style="color:#4F46E5"></i>Seguimiento Pedagógico — Periodo actual</h6>
               <a href="#" onclick="navigate('seguimiento')" style="font-size:12px;color:var(--indigo-600);font-weight:600;white-space:nowrap">Ver detalle →</a>
             </div>
-            <!-- Círculo de progreso -->
-            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 16px 24px;gap:8px">
-              <div style="position:relative;width:120px;height:120px">
-                <svg width="120" height="120" viewBox="0 0 120 120" style="transform:rotate(-90deg)">
-                  <circle cx="60" cy="60" r="50" fill="none" stroke="#E2E8F0" stroke-width="11"/>
-                  <circle id="dash-seg-ring" cx="60" cy="60" r="50" fill="none" stroke="#4F46E5" stroke-width="11"
-                    stroke-linecap="round" stroke-dasharray="314.16" stroke-dashoffset="314.16"
-                    style="transition:stroke-dashoffset .8s ease,stroke .3s"/>
-                </svg>
-                <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
-                  <span id="dash-seg-pct" style="font-size:26px;font-weight:800;color:var(--slate-800);line-height:1">—</span>
+            <!-- Círculo de progreso + cupos -->
+            <div style="display:flex;align-items:center;justify-content:center;gap:24px;padding:12px 24px 24px;flex-wrap:wrap">
+              <!-- Círculo seguimiento -->
+              <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+                <div style="position:relative;width:120px;height:120px">
+                  <svg width="120" height="120" viewBox="0 0 120 120" style="transform:rotate(-90deg)">
+                    <circle cx="60" cy="60" r="50" fill="none" stroke="#E2E8F0" stroke-width="11"/>
+                    <circle id="dash-seg-ring" cx="60" cy="60" r="50" fill="none" stroke="#4F46E5" stroke-width="11"
+                      stroke-linecap="round" stroke-dasharray="314.16" stroke-dashoffset="314.16"
+                      style="transition:stroke-dashoffset .8s ease,stroke .3s"/>
+                  </svg>
+                  <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+                    <span id="dash-seg-pct" style="font-size:26px;font-weight:800;color:var(--slate-800);line-height:1">—</span>
+                  </div>
                 </div>
+                <span style="font-size:12px;font-weight:600;color:var(--slate-500)">Avance general</span>
               </div>
-              <span style="font-size:12px;font-weight:600;color:var(--slate-500)">Avance general</span>
+              <!-- Divisor -->
+              <div style="width:1px;height:80px;background:var(--slate-100);flex-shrink:0"></div>
+              <!-- Cupos totales -->
+              <div style="display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer" onclick="navigate('grados')">
+                <div style="width:56px;height:56px;border-radius:16px;background:#FEF3C7;display:flex;align-items:center;justify-content:center">
+                  <i class="bi bi-people-fill" style="font-size:24px;color:#D97706"></i>
+                </div>
+                <span id="cnt-cupos" style="font-size:26px;font-weight:800;color:var(--slate-800);line-height:1">—</span>
+                <span style="font-size:12px;font-weight:600;color:var(--slate-500)">Cupos totales</span>
+              </div>
             </div>
             <div id="dash-seg-empty" style="display:none;padding:20px;text-align:center;color:var(--slate-400);font-size:13px">
               <i class="bi bi-journal-x" style="font-size:28px;display:block;margin-bottom:8px;opacity:.4"></i>Sin datos de seguimiento para este periodo.
@@ -4481,7 +4494,9 @@ function renderDashboard() {
   _animCount(document.getElementById('cnt-horarios'),  hors.length);
   const _pendCount = perms.filter(p=>p.estado==='Pendiente').length;
   _animCount(document.getElementById('cnt-permisos'),  _pendCount);
-  _animCount(document.getElementById('cnt-sedes'),     sedes.length);
+  _animCount(document.getElementById('cnt-sedes'), sedes.length);
+  const _cuposTotales = secs.reduce(function(acc, s){ return acc + (s.capacidad || 0); }, 0);
+  _animCount(document.getElementById('cnt-cupos'), _cuposTotales);
   // Alert pulse on pending permisos card
   const _permCard = document.getElementById('cnt-permisos');
   if (_permCard) (_permCard.closest('.stat-card')||{}).dataset && (_permCard.closest('.stat-card').dataset.pulse = _pendCount > 0 ? 'true' : '');
