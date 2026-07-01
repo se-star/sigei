@@ -5766,7 +5766,6 @@ function renderAsignaciones() {
     byDoc[a.docente_id].push(a);
   });
 
-  const grid = document.getElementById('asig-cards-grid');
   const docIds = Object.keys(byDoc);
 
   if (!docIds.length) {
