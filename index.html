@@ -2181,12 +2181,27 @@
           </div>
         </div>
         <div class="col-md-3">
-          <div class="chart-card h-100" style="cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:24px 16px" onclick="navigate('grados')">
-            <div style="width:60px;height:60px;border-radius:18px;background:#FEF3C7;display:flex;align-items:center;justify-content:center">
-              <i class="bi bi-people-fill" style="font-size:26px;color:#D97706"></i>
+          <div class="chart-card h-100" style="cursor:pointer;padding:18px 16px;display:flex;flex-direction:column;gap:14px" onclick="navigate('grados')">
+            <!-- Grados y Grupos -->
+            <div style="display:flex;gap:8px">
+              <div style="flex:1;background:#EEF2FF;border-radius:12px;padding:8px 10px;text-align:center">
+                <div style="font-size:18px;font-weight:800;color:#4F46E5;line-height:1" id="cnt-dash-grados">—</div>
+                <div style="font-size:10px;font-weight:600;color:#6366F1;margin-top:2px">Grados</div>
+              </div>
+              <div style="flex:1;background:#DCFCE7;border-radius:12px;padding:8px 10px;text-align:center">
+                <div style="font-size:18px;font-weight:800;color:#15803D;line-height:1" id="cnt-dash-grupos">—</div>
+                <div style="font-size:10px;font-weight:600;color:#16A34A;margin-top:2px">Grupos</div>
+              </div>
             </div>
-            <span id="cnt-cupos" style="font-size:32px;font-weight:900;color:var(--slate-800);line-height:1">—</span>
-            <span style="font-size:12px;font-weight:600;color:var(--slate-500);text-align:center">Cupos totales</span>
+            <div style="height:1px;background:var(--slate-100)"></div>
+            <!-- Cupos + Estudiantes -->
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;justify-content:center">
+              <div style="width:48px;height:48px;border-radius:14px;background:#FEF3C7;display:flex;align-items:center;justify-content:center">
+                <i class="bi bi-people-fill" style="font-size:22px;color:#D97706"></i>
+              </div>
+              <span id="cnt-cupos" style="font-size:30px;font-weight:900;color:var(--slate-800);line-height:1.1">—</span>
+              <span style="font-size:11px;font-weight:600;color:var(--slate-400)">Cupos · Total estudiantes</span>
+            </div>
           </div>
         </div>
       </div>
@@ -4492,6 +4507,8 @@ function renderDashboard() {
   _animCount(document.getElementById('cnt-sedes'), sedes.length);
   const _cuposTotales = secs.reduce(function(acc, s){ return acc + (s.capacidad || 0); }, 0);
   _animCount(document.getElementById('cnt-cupos'), _cuposTotales);
+  _animCount(document.getElementById('cnt-dash-grados'), DB.get('grados').length);
+  _animCount(document.getElementById('cnt-dash-grupos'), secs.length);
   // Alert pulse on pending permisos card
   const _permCard = document.getElementById('cnt-permisos');
   if (_permCard) (_permCard.closest('.stat-card')||{}).dataset && (_permCard.closest('.stat-card').dataset.pulse = _pendCount > 0 ? 'true' : '');
