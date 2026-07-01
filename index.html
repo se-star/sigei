@@ -1020,26 +1020,43 @@
   }
 
   /* Tarjetas docentes */
-  .seg-cards-grid {
-    display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
-    gap:12px;
+  /* Lista docentes seguimiento */
+  .seg-doc-list { display:flex; flex-direction:column; }
+  .seg-doc-row {
+    display:flex; align-items:center; gap:14px;
+    padding:12px 20px; cursor:pointer;
+    border-bottom:1px solid var(--slate-100);
+    transition:background .15s;
   }
-  .seg-doc-card {
-    background:#fff;
-    border:1px solid var(--slate-200);
-    border-radius:14px;
-    padding:16px;
-    cursor:pointer;
-    transition:box-shadow .18s,transform .18s;
-  }
-  .seg-doc-card:hover { box-shadow:0 6px 20px rgba(0,0,0,.1); transform:translateY(-2px); }
+  .seg-doc-row:last-child { border-bottom:none; }
+  .seg-doc-row:hover { background:var(--indigo-50); }
   .seg-doc-avatar {
     width:38px; height:38px; border-radius:50%;
     display:flex; align-items:center; justify-content:center;
-    font-size:14px; font-weight:700; color:#fff; flex-shrink:0;
-    background:linear-gradient(135deg,#6366F1,#4F46E5);
+    font-size:14px; font-weight:700; flex-shrink:0;
+    background:var(--indigo-100); color:var(--indigo-600);
   }
+  .seg-doc-info { flex:1; min-width:0; }
+  .seg-doc-name { font-size:13px;font-weight:700;color:var(--slate-800);white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+  .seg-doc-sub  { font-size:11px;color:var(--slate-400);margin-top:1px; }
+  .seg-doc-prog { display:flex;align-items:center;gap:8px;flex-shrink:0; }
+  .seg-prog-bar { width:80px;height:5px;background:var(--slate-100);border-radius:4px; }
+  .seg-prog-fill { height:100%;border-radius:4px;transition:width .4s; }
+  .seg-prog-pct  { font-size:12px;font-weight:700;min-width:32px;text-align:right; }
+  /* Tarjetas entregables en modal */
+  .seg-ent-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px;padding:20px; }
+  .seg-ent-card {
+    background:#fff;border-radius:14px;padding:16px;
+    border:1px solid rgba(79,70,229,.1);
+    box-shadow:0 2px 6px rgba(79,70,229,.06);
+  }
+  .seg-ent-card-head { display:flex;align-items:flex-start;gap:10px;margin-bottom:12px; }
+  .seg-ent-num {
+    width:26px;height:26px;border-radius:8px;background:var(--indigo-50);color:var(--indigo-600);
+    display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;
+  }
+  .seg-ent-lbl { font-size:12px;font-weight:700;color:var(--slate-700);flex:1;line-height:1.4; }
+  /* chips legacy */
   .seg-doc-chips { display:flex; flex-wrap:wrap; gap:5px; margin-top:12px; }
   .seg-chip {
     display:inline-flex; align-items:center; justify-content:center;
@@ -2634,7 +2651,7 @@
       </div>
 
       <!-- Tarjetas docentes -->
-      <div id="seg-cards-grid" class="seg-cards-grid"></div>
+      <div class="card-panel mt-3" style="overflow:hidden"><div id="seg-cards-grid" class="seg-doc-list"></div></div>
     </div><!-- /page-seguimiento -->
 
 
@@ -2869,20 +2886,45 @@
 
 
 <!-- Offcanvas Seguimiento Pedagógico — Detalle por docente -->
-<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasSeguimiento" style="width:min(580px,96vw)">
-  <div class="offcanvas-header border-bottom" style="background:var(--slate-900);padding:20px 24px">
-    <div>
-      <h6 class="offcanvas-title text-white mb-0" style="font-weight:700;font-size:15px" id="seg-oc-docente-nombre">Docente</h6>
-      <small class="text-white-50" style="font-size:11px" id="seg-oc-periodo">Período · Año</small>
+<div class="modal fade" tabindex="-1" id="modalSeguimientoDocente" aria-modal="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable" style="max-width:min(960px,96vw)">
+    <div class="modal-content" style="border-radius:18px;overflow:hidden;border:none;box-shadow:0 24px 64px rgba(0,0,0,.18)">
+      <div class="modal-header" style="background:var(--sb-bg);padding:18px 24px;border:none;flex-wrap:nowrap;gap:12px">
+        <div class="d-flex align-items-center gap-3" style="flex:1;min-width:0">
+          <div class="seg-doc-avatar" id="seg-modal-avatar" style="width:44px;height:44px;font-size:16px;background:rgba(255,255,255,.15);color:#fff;flex-shrink:0">—</div>
+          <div style="min-width:0">
+            <div id="seg-oc-docente-nombre" style="font-size:15px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Docente</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.55);margin-top:1px" id="seg-modal-cargo">—</div>
+          </div>
+        </div>
+        <div class="d-flex align-items-center gap-2 flex-shrink-0">
+          <select class="form-select form-select-sm" id="seg-modal-periodo" onchange="renderModalSeguimiento()" style="width:120px;font-size:12px">
+            <option value="1">Período 1</option>
+            <option value="2">Período 2</option>
+            <option value="3">Período 3</option>
+          </select>
+          <select class="form-select form-select-sm" id="seg-modal-año" onchange="renderModalSeguimiento()" style="width:90px;font-size:12px">
+            <option value="2026">2026</option>
+            <option value="2025">2025</option>
+            <option value="2027">2027</option>
+          </select>
+          <button type="button" class="btn-close btn-close-white ms-1" data-bs-dismiss="modal"></button>
+        </div>
+      </div>
+      <div style="height:4px;background:var(--slate-100)">
+        <div id="seg-modal-prog-bar" style="height:100%;background:var(--indigo-600);transition:width .4s;width:0%"></div>
+      </div>
+      <div id="seg-modal-kpi" style="display:flex;border-bottom:1px solid var(--slate-100);background:var(--indigo-50)"></div>
+      <div class="modal-body p-0" style="overflow-y:auto;background:var(--page-bg)">
+        <div id="seg-oc-body" class="seg-ent-grid"></div>
+      </div>
+      <div class="modal-footer" style="padding:12px 20px;border-top:1px solid var(--slate-100)">
+        <button class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn btn-sm text-white" style="background:var(--indigo-600)" onclick="guardarSeguimientoDocente()">
+          <i class="bi bi-save me-1"></i>Guardar cambios
+        </button>
+      </div>
     </div>
-    <button class="btn-close btn-close-white ms-3" data-bs-dismiss="offcanvas"></button>
-  </div>
-  <div class="offcanvas-body" style="overflow-y:auto;padding:20px" id="seg-oc-body"></div>
-  <div class="border-top p-3 d-flex gap-2 justify-content-end oc-footer">
-    <button class="btn btn-sm btn-secondary" data-bs-dismiss="offcanvas">Cancelar</button>
-    <button class="btn btn-sm text-white" style="background:#4F46E5" onclick="guardarSeguimientoDocente()">
-      <i class="bi bi-save me-1"></i>Guardar cambios
-    </button>
   </div>
 </div>
 
@@ -8970,7 +9012,7 @@ function renderSeguimiento() {
 
   grid.innerHTML = docentes.map(function(doc) {
     var nombre   = doc.p_nombre + ' ' + doc.p_apellido;
-    var inicials = (doc.p_nombre[0]||'') + (doc.p_apellido[0]||'');
+    var inicials = ((doc.p_nombre||'')[0]||'') + ((doc.p_apellido||'')[0]||'');
     var estados  = SEG_ENTREGABLES.map(function(e){ return _segGetEstado(doc.id, periodo, año, e.key); });
     var aprobados  = estados.filter(function(s){ return s === 'Aprobado'; }).length;
     var noAplica   = estados.filter(function(s){ return s === 'No aplica'; }).length;
@@ -8978,30 +9020,17 @@ function renderSeguimiento() {
     var pct      = aplicables > 0 ? Math.round(aprobados / aplicables * 100) : 0;
     var pctColor = pct === 100 ? '#16A34A' : pct >= 50 ? '#2563EB' : '#6366F1';
 
-    var chips = SEG_ENTREGABLES.map(function(e, i){
-      var est = estados[i];
-      var cfg = SEG_CFG[est] || SEG_CFG['Pendiente'];
-      return '<button class="seg-chip" style="background:' + cfg.bg + ';color:' + cfg.color
-        + ';width:26px;height:26px;font-size:12px" '
-        + 'onclick="segCiclarEstado(' + doc.id + ',' + periodo + ',' + año + ',\'' + e.key + '\',this);event.stopPropagation()" '
-        + 'title="' + e.label + ': ' + est + '"><i class="bi ' + cfg.icon + '"></i></button>';
-    }).join('');
-
-    return '<div class="seg-doc-card" onclick="abrirSeguimientoDocente(' + doc.id + ',' + periodo + ',' + año + ')">'
-      + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">'
+    return '<div class="seg-doc-row" onclick="abrirSeguimientoDocente(' + doc.id + ',' + periodo + ',' + año + ')">'
       + '<div class="seg-doc-avatar">' + inicials.toUpperCase() + '</div>'
-      + '<div style="flex:1;min-width:0">'
-      + '<div style="font-size:13px;font-weight:700;color:var(--slate-800);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + nombre + '</div>'
-      + '<div style="font-size:10px;color:var(--slate-400)">' + (doc.cargo || doc.tipo_vinc || 'Docente') + '</div>'
+      + '<div class="seg-doc-info">'
+      + '<div class="seg-doc-name">' + nombre + '</div>'
+      + '<div class="seg-doc-sub">' + (doc.cargo || doc.tipo_vinc || 'Docente') + '</div>'
       + '</div>'
-      + '<div style="font-size:13px;font-weight:800;color:' + pctColor + ';white-space:nowrap">' + aprobados + '/' + aplicables + '</div>'
+      + '<div class="seg-doc-prog">'
+      + '<div class="seg-prog-bar"><div class="seg-prog-fill" style="width:' + pct + '%;background:' + pctColor + '"></div></div>'
+      + '<div class="seg-prog-pct" style="color:' + pctColor + '">' + aprobados + '/' + aplicables + '</div>'
+      + '<i class="bi bi-chevron-right" style="font-size:11px;color:var(--slate-300)"></i>'
       + '</div>'
-      // Barra de progreso
-      + '<div style="height:5px;background:var(--slate-100);border-radius:4px;margin-bottom:10px">'
-      + '<div style="width:' + pct + '%;height:100%;background:' + pctColor + ';border-radius:4px;transition:width .4s"></div>'
-      + '</div>'
-      // Chips compactos
-      + '<div class="seg-doc-chips">' + chips + '</div>'
       + '</div>';
   }).join('');
 }
@@ -9075,42 +9104,76 @@ function segCerrarDropdown() {
 function abrirSeguimientoDocente(docId, periodo, año) {
   var doc = (DB.get('docentes')||[]).find(function(d){ return d.id == docId; });
   if (!doc) return;
-  var nombre = doc.p_nombre + ' ' + doc.p_apellido;
+  var nombre   = doc.p_nombre + ' ' + doc.p_apellido;
+  var inicials = ((doc.p_nombre||'')[0]||'') + ((doc.p_apellido||'')[0]||'');
   document.getElementById('seg-oc-docente-nombre').textContent = nombre;
-  document.getElementById('seg-oc-periodo').textContent = 'Período ' + periodo + ' · ' + año;
-  window._segOC = { docId: parseInt(docId), periodo: parseInt(periodo), año: parseInt(año) };
+  document.getElementById('seg-modal-avatar').textContent = inicials.toUpperCase();
+  document.getElementById('seg-modal-cargo').textContent = doc.cargo || doc.tipo_vinc || 'Docente';
+  document.getElementById('seg-modal-periodo').value = periodo;
+  document.getElementById('seg-modal-año').value = año;
+  window._segOC = { docId: parseInt(docId) };
+  renderModalSeguimiento();
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('modalSeguimientoDocente')).show();
+}
 
-  var rec = _segFindRecord(docId, periodo, año);
+function renderModalSeguimiento() {
+  var ctx = window._segOC; if (!ctx) return;
+  var docId   = ctx.docId;
+  var periodo = parseInt(document.getElementById('seg-modal-periodo').value) || 1;
+  var año     = parseInt(document.getElementById('seg-modal-año').value)     || 2026;
+  ctx.periodo = periodo; ctx.año = año;
+
+  var rec  = _segFindRecord(docId, periodo, año);
   var ents = rec ? (rec.entregables || {}) : {};
+
+  var aprobados  = SEG_ENTREGABLES.filter(function(e){ return (_segGetEstado(docId,periodo,año,e.key))==='Aprobado'; }).length;
+  var entregados = SEG_ENTREGABLES.filter(function(e){ return (_segGetEstado(docId,periodo,año,e.key))==='Entregado'; }).length;
+  var pendientes = SEG_ENTREGABLES.filter(function(e){ return (_segGetEstado(docId,periodo,año,e.key))==='Pendiente'; }).length;
+  var noAplica   = SEG_ENTREGABLES.filter(function(e){ return (_segGetEstado(docId,periodo,año,e.key))==='No aplica'; }).length;
+  var aplicables = SEG_ENTREGABLES.length - noAplica;
+  var pct        = aplicables > 0 ? Math.round(aprobados/aplicables*100) : 0;
+  var pctColor   = pct===100?'#16A34A':pct>=50?'#4F46E5':'#EF4444';
+
+  var pb = document.getElementById('seg-modal-prog-bar');
+  if (pb) { pb.style.width = pct+'%'; pb.style.background = pctColor; }
+
+  var kpiEl = document.getElementById('seg-modal-kpi');
+  if (kpiEl) kpiEl.innerHTML = [
+    {n:aprobados, l:'Aprobados', c:'#16A34A'},
+    {n:entregados,l:'Entregados',c:'#2563EB'},
+    {n:pendientes,l:'Pendientes',c:'#EF4444'},
+    {n:pct+'%',   l:'Avance',   c:pctColor}
+  ].map(function(k){
+    return '<div style="flex:1;text-align:center;padding:10px 8px;border-right:1px solid var(--slate-100)">'
+      +'<div style="font-size:18px;font-weight:800;color:'+k.c+'">'+k.n+'</div>'
+      +'<div style="font-size:10px;color:var(--slate-400);font-weight:600;text-transform:uppercase;letter-spacing:.04em">'+k.l+'</div></div>';
+  }).join('');
 
   document.getElementById('seg-oc-body').innerHTML = SEG_ENTREGABLES.map(function(e, i) {
     var ent = ents[e.key] || { estado:'Pendiente', fecha:'', obs:'' };
     var cfg = SEG_CFG[ent.estado] || SEG_CFG['Pendiente'];
-    return '<div class="seg-oc-item">'
-      + '<div class="seg-oc-item-header">'
-      + '<div class="seg-oc-num">' + (i+1) + '</div>'
-      + '<div style="flex:1;font-size:13px;font-weight:600;color:var(--slate-700)">' + e.label + '</div>'
-      + '<select class="form-select form-select-sm seg-oc-sel" data-key="' + e.key + '" '
-      + 'style="width:130px;font-size:12px;color:' + cfg.color + ';border-color:' + cfg.color + '" '
-      + 'onchange="segOCSel(this)">'
-      + SEG_ESTADOS.map(function(s){ return '<option value="' + s + '"' + (s === ent.estado ? ' selected' : '') + '>' + s + '</option>'; }).join('')
-      + '</select></div>'
-      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">'
-      + '<div><label style="font-size:11px;color:var(--slate-500);font-weight:600;display:block;margin-bottom:3px">Fecha entrega</label>'
-      + '<input type="date" class="form-control form-control-sm seg-oc-fecha" data-key="' + e.key + '" value="' + (ent.fecha||'') + '"></div>'
-      + '<div><label style="font-size:11px;color:var(--slate-500);font-weight:600;display:block;margin-bottom:3px">Observaciones</label>'
-      + '<input type="text" class="form-control form-control-sm seg-oc-obs" data-key="' + e.key + '" value="' + (ent.obs||'').replace(/"/g,'&quot;') + '" placeholder="Opcional..."></div>'
-      + '</div>'
-      // Sección Drive
-      + '<div class="seg-drive-section">'
-      + '<button class="seg-drive-toggle" onclick="driveToggle(this,' + parseInt(docId) + ',' + parseInt(periodo) + ',\'' + e.key + '\')">'
-      + '<i class="bi bi-paperclip"></i> Ver archivos en Drive</button>'
-      + '<div style="display:none"></div>'
-      + '</div>'
-      + '</div>';
+    return '<div class="seg-ent-card">'
+      +'<div class="seg-ent-card-head">'
+      +'<div class="seg-ent-num">'+(i+1)+'</div>'
+      +'<div class="seg-ent-lbl">'+e.label+'</div>'
+      +'</div>'
+      +'<select class="form-select form-select-sm seg-oc-sel" data-key="'+e.key+'" '
+      +'style="font-size:12px;font-weight:700;color:'+cfg.color+';border-color:'+cfg.color+';background:'+cfg.bg+';margin-bottom:10px" '
+      +'onchange="segOCSel(this)">'
+      +SEG_ESTADOS.map(function(s){ return '<option value="'+s+'"'+(s===ent.estado?' selected':'')+'>'+s+'</option>'; }).join('')
+      +'</select>'
+      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
+      +'<div><label style="font-size:10px;color:var(--slate-400);font-weight:700;display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em">Fecha</label>'
+      +'<input type="date" class="form-control form-control-sm seg-oc-fecha" data-key="'+e.key+'" value="'+(ent.fecha||'')+'"></div>'
+      +'<div><label style="font-size:10px;color:var(--slate-400);font-weight:700;display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em">Observación</label>'
+      +'<input type="text" class="form-control form-control-sm seg-oc-obs" data-key="'+e.key+'" value="'+(ent.obs||'').replace(/"/g,'&quot;')+'" placeholder="Opcional..."></div>'
+      +'</div>'
+      +'<div class="seg-drive-section" style="margin-top:10px">'
+      +'<button class="seg-drive-toggle" onclick="driveToggle(this,'+parseInt(docId)+','+parseInt(periodo)+',\''+e.key+'\')"><i class="bi bi-paperclip"></i> Archivos Drive</button>'
+      +'<div style="display:none"></div>'
+      +'</div>'
+      +'</div>';
   }).join('');
-
-  bootstrap.Offcanvas.getOrCreateInstance(document.getElementById('offcanvasSeguimiento')).show();
 }
 
 function segOCSel(sel) {
@@ -9147,7 +9210,7 @@ function guardarSeguimientoDocente() {
     };
   });
   DB.set('seguimiento', all);
-  bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasSeguimiento')).hide();
+  bootstrap.Modal.getInstance(document.getElementById('modalSeguimientoDocente')).hide();
   renderSeguimiento();
   toast('Seguimiento guardado correctamente.');
 }
