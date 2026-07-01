@@ -5488,7 +5488,7 @@ function verTableroDocente(docId) {
     document.getElementById('oc-tablero-avatar').textContent = ini.toUpperCase();
     document.getElementById('oc-tablero-nombre').textContent = (doc.p_nombre||'') + ' ' + (doc.p_apellido||'');
   }
-  renderTableroDocente();
+  renderTableroDocente(docId);
   bootstrap.Offcanvas.getOrCreateInstance(document.getElementById('offcanvasTablero')).show();
 }
 
@@ -5684,9 +5684,12 @@ function eliminarAsignacionesDocente(docId, btn) {
 }
 
 // ── Tablero docente ─────────────────────────────────────────────────────
-function renderTableroDocente() {
+function renderTableroDocente(forcedId) {
   migrarAsignaciones();
-  const docId = document.getElementById('tablero-doc-sel').value;
+  // forcedId evita depender del <select> oculto que puede no tener opciones cargadas aún
+  var selVal = document.getElementById('tablero-doc-sel').value;
+  const docId = (forcedId != null ? String(forcedId) : selVal) || selVal;
+  if (forcedId != null) document.getElementById('tablero-doc-sel').value = forcedId;
   const cont  = document.getElementById('tablero-contenido');
 
   if (!docId) {
