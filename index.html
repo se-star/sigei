@@ -2868,43 +2868,45 @@
         <div class="panel-header">
           <h6><i class="bi bi-google me-2" style="color:#4285F4"></i>Integración Google Drive</h6>
         </div>
-        <p style="font-size:12px;color:var(--slate-500);margin:0 0 14px;overflow-wrap:break-word;word-break:break-word">
-          Conecta SIGEI con Google Drive para visualizar los archivos que los docentes suben a sus carpetas.
-          Necesitas una <b>API Key</b> de Google Cloud Console con la API de Drive habilitada.
-        </p>
-        <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;max-width:540px">
-          <div>
-            <label style="font-size:11px;font-weight:600;color:var(--slate-600);display:block;margin-bottom:4px">
-              Google Drive API Key
-            </label>
+        <div style="padding:20px">
+          <!-- Descripción -->
+          <p style="font-size:12px;color:var(--slate-500);margin:0 0 16px;line-height:1.6">
+            Conecta SIGEI con Google Drive para visualizar los archivos que los docentes suben a sus carpetas.
+            Necesitas una <b>API Key</b> de Google Cloud Console con la API de Drive habilitada.
+          </p>
+
+          <!-- API Key row -->
+          <label style="font-size:11px;font-weight:600;color:var(--slate-600);display:block;margin-bottom:4px">
+            Google Drive API Key
+          </label>
+          <div style="display:flex;gap:8px;align-items:center;max-width:520px">
             <input type="password" id="sa-drive-api-key" class="form-control form-control-sm"
-              placeholder="AIzaSy…" autocomplete="off">
+              placeholder="AIzaSy…" autocomplete="off" style="flex:1;min-width:0">
+            <button class="btn btn-sm text-white flex-shrink-0" style="background:#4285F4"
+              onclick="guardarDriveApiKey()">
+              <i class="bi bi-save me-1"></i>Guardar
+            </button>
           </div>
-          <button class="btn btn-sm text-white" style="background:#4285F4;white-space:nowrap"
-            onclick="guardarDriveApiKey()">
-            <i class="bi bi-save me-1"></i>Guardar
-          </button>
-        </div>
-        <div style="font-size:10px;color:var(--slate-400);margin-top:8px">
-          <i class="bi bi-info-circle me-1"></i>
-          La API Key se guarda en Firestore y solo se usa para leer archivos compartidos de Drive.
-          <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener"
-             style="color:#4285F4">Crear API Key en Google Cloud →</a>
-        </div>
-
-        <hr style="margin:16px 0">
-
-        <div style="display:flex;flex-direction:column;gap:10px">
-          <div>
-            <div style="font-size:12px;font-weight:700;color:var(--slate-700);margin-bottom:4px">
-              <i class="bi bi-file-earmark-arrow-down me-1" style="color:#16A34A"></i>Plantilla de docentes
-            </div>
-            <div style="font-size:11px;color:var(--slate-500);line-height:1.6">
-              Descarga el listado de docentes activos en formato Excel listo para usar con el script de Google Apps Script. Los nombres ya están escritos correctamente para que las carpetas se creen sin errores.
-            </div>
+          <div style="font-size:10px;color:var(--slate-400);margin-top:8px;max-width:520px">
+            <i class="bi bi-info-circle me-1"></i>
+            La API Key se guarda en Firestore y solo se usa para leer archivos compartidos de Drive.
+            <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener"
+               style="color:#4285F4">Crear API Key en Google Cloud →</a>
           </div>
-          <div>
-            <button class="btn btn-sm" style="background:#16A34A;color:#fff"
+
+          <hr style="margin:20px 0">
+
+          <!-- Plantilla row -->
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+            <div style="flex:1;min-width:200px">
+              <div style="font-size:12px;font-weight:700;color:var(--slate-700);margin-bottom:4px">
+                <i class="bi bi-file-earmark-excel-fill me-1" style="color:#16A34A"></i>Plantilla de docentes
+              </div>
+              <div style="font-size:11px;color:var(--slate-500);line-height:1.6">
+                Descarga el listado de docentes activos listo para el script de Google Apps Script.
+              </div>
+            </div>
+            <button class="btn btn-sm flex-shrink-0" style="background:#16A34A;color:#fff"
               onclick="descargarPlantillaDrive()">
               <i class="bi bi-download me-1"></i>Descargar plantilla
             </button>
