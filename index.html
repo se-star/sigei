@@ -2156,10 +2156,14 @@
           </div>
         </div>
         <div class="col-md-8">
-          <div class="chart-card">
-            <h6><i class="bi bi-bar-chart-fill me-2" style="color:#2563EB"></i>Carga académica (h/sem)</h6>
-            <div class="chart-wrap" style="height:180px">
-              <canvas id="chart-carga"></canvas>
+          <div class="chart-card h-100" style="padding:0;overflow:hidden">
+            <div style="padding:16px 20px 10px;display:flex;align-items:center;justify-content:space-between;gap:8px">
+              <h6 style="margin:0"><i class="bi bi-journal-check me-2" style="color:#4F46E5"></i>Seguimiento Pedagógico — Periodo actual</h6>
+              <a href="#" onclick="navigate('seguimiento')" style="font-size:12px;color:var(--indigo-600);font-weight:600;white-space:nowrap">Ver detalle →</a>
+            </div>
+            <div id="dash-seg-entregables" style="padding:0 12px 14px;display:flex;flex-wrap:wrap;gap:6px"></div>
+            <div id="dash-seg-empty" style="display:none;padding:20px;text-align:center;color:var(--slate-400);font-size:13px">
+              <i class="bi bi-journal-x" style="font-size:28px;display:block;margin-bottom:8px;opacity:.4"></i>Sin datos de seguimiento para este periodo.
             </div>
           </div>
         </div>
@@ -4362,7 +4366,7 @@ function confirmar(msg) { return confirm(msg); }
 //  DASHBOARD
 // ══════════════════════════════════════════════
 // Chart instances (destroy before re-creating)
-let _chartEstado = null, _chartCarga = null;
+let _chartEstado = null;
 
 // ══════════════════════════════════════════════════════════════════════
 //  CIFRADO DE DATOS PERSONALES — AES-GCM 256-bit (Web Crypto API)
@@ -4550,45 +4554,62 @@ function renderDashboard() {
     }
   }
 
-  // ── Gráfica: Carga académica ─────────────────────────────────────────
-  const ctxC = document.getElementById('chart-carga');
-  if (ctxC && typeof Chart !== 'undefined') {
-    if (_chartCarga) _chartCarga.destroy();
-    const cargaMap = {};
-    asigs.forEach(a => {
-      if (!a.docente_id) return;
-      const nom = nombreDocente(a.docente_id);
-      if (!cargaMap[nom]) cargaMap[nom] = 0;
-      (a.cursos || []).forEach(c => {
-        (c.dias || []).forEach(d => {
-          const ini = timeToMins(d.hora_inicio || c.hora_inicio || '00:00');
-          const fin = timeToMins(d.hora_fin    || c.hora_fin    || '00:00');
-          if (fin > ini) cargaMap[nom] += (fin - ini) / 60;
-        });
+  // ── Widget: Seguimiento Pedagógico ──────────────────────────────────
+  (function() {
+    var segContainer = document.getElementById('dash-seg-entregables');
+    var segEmpty = document.getElementById('dash-seg-empty');
+    if (!segContainer) return;
+
+    var periodo = '1';
+    var año = new Date().getFullYear().toString();
+    var docsActivos = docs.filter(function(d){ return d.estado === 'Activo'; });
+    var totalDocs = docsActivos.length;
+
+    if (!totalDocs) {
+      segContainer.style.display = 'none';
+      segEmpty.style.display = '';
+      return;
+    }
+
+    // Para cada entregable calcular: cuántos aprobados, entregados, pendientes
+    var resumen = SEG_ENTREGABLES.map(function(ent) {
+      var aprobados = 0, entregados = 0, pendientes = 0, noAplica = 0;
+      docsActivos.forEach(function(d) {
+        var est = _segGetEstado(d.id, periodo, año, ent.key);
+        if (est === 'Aprobado')  aprobados++;
+        else if (est === 'Entregado') entregados++;
+        else if (est === 'No aplica') noAplica++;
+        else pendientes++;
       });
+      var aplicables = totalDocs - noAplica;
+      var pct = aplicables > 0 ? Math.round((aprobados / aplicables) * 100) : 100;
+      return { label: ent.short, aprobados: aprobados, entregados: entregados, pendientes: pendientes, noAplica: noAplica, pct: pct, aplicables: aplicables };
     });
-    const sorted = Object.entries(cargaMap).sort((a,b)=>b[1]-a[1]).slice(0,8);
-    const cargaColors = sorted.map(e => e[1] > 20 ? '#EF4444' : e[1] > 15 ? '#F59E0B' : '#3B82F6');
-    _chartCarga = new Chart(ctxC, {
-      type: 'bar',
-      data: {
-        labels: sorted.map(e => e[0].split(' ')[0] + ' ' + (e[0].split(' ')[1]||'').charAt(0) + '.'),
-        datasets: [{ label: 'Horas/semana', data: sorted.map(e => +e[1].toFixed(1)),
-          backgroundColor: cargaColors, borderRadius: 8, maxBarThickness: 22 }]
-      },
-      options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y',
-        plugins: {
-          legend: { display: false },
-          tooltip: { callbacks: { label: ctx => ' ' + ctx.raw + ' h/sem' } },
-          annotation: { annotations: { line1: { type:'line', xMin:20, xMax:20, borderColor:'#EF4444', borderWidth:1.5, borderDash:[4,3], label:{content:'Límite recomendado',display:true,position:'end',font:{size:9},color:'#EF4444',backgroundColor:'transparent'} } } }
-        },
-        scales: {
-          x: { grid: { color: '#f8fafc' }, ticks: { font: { size: 10 }, callback: v => v + 'h' }, title: { display:true, text:'Horas por semana', font:{size:10}, color:'#94a3b8' } },
-          y: { grid: { display: false }, ticks: { font: { size: 11, weight:'600' } } }
-        }
-      }
-    });
-  }
+
+    var hayDatos = (DB.get('seguimiento')||[]).length > 0;
+    if (!hayDatos) {
+      segContainer.style.display = 'none';
+      segEmpty.style.display = '';
+      return;
+    }
+
+    segEmpty.style.display = 'none';
+    segContainer.style.display = '';
+    segContainer.innerHTML = resumen.map(function(r) {
+      var barColor = r.pct >= 80 ? '#16A34A' : r.pct >= 50 ? '#F59E0B' : '#EF4444';
+      var bgColor  = r.pct >= 80 ? '#F0FDF4' : r.pct >= 50 ? '#FFFBEB' : '#FEF2F2';
+      return '<div style="background:'+bgColor+';border-radius:12px;padding:10px 12px;min-width:120px;flex:1;min-width:0">'
+        + '<div style="font-size:11px;font-weight:700;color:var(--slate-600);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + r.label + '</div>'
+        + '<div style="background:#E2E8F0;border-radius:20px;height:6px;overflow:hidden;margin-bottom:6px">'
+        + '<div style="height:100%;border-radius:20px;background:'+barColor+';width:'+r.pct+'%;transition:width .4s"></div>'
+        + '</div>'
+        + '<div style="display:flex;justify-content:space-between;align-items:center">'
+        + '<span style="font-size:13px;font-weight:800;color:'+barColor+'">' + r.pct + '%</span>'
+        + '<span style="font-size:10px;color:var(--slate-400)">' + r.aprobados + '/' + r.aplicables + '</span>'
+        + '</div>'
+        + '</div>';
+    }).join('');
+  })();
 
   // Próximo evento
   const hoy   = new Date().toISOString().slice(0,10);
