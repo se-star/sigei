@@ -2894,19 +2894,21 @@
 
         <hr style="margin:16px 0">
 
-        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
-          <div style="flex:1;min-width:0;overflow:hidden">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div>
             <div style="font-size:12px;font-weight:700;color:var(--slate-700);margin-bottom:4px">
               <i class="bi bi-file-earmark-arrow-down me-1" style="color:#16A34A"></i>Plantilla de docentes
             </div>
-            <div style="font-size:11px;color:var(--slate-500);line-height:1.5;overflow-wrap:break-word;word-break:break-word">
+            <div style="font-size:11px;color:var(--slate-500);line-height:1.6">
               Descarga el listado de docentes activos en formato Excel listo para usar con el script de Google Apps Script. Los nombres ya están escritos correctamente para que las carpetas se creen sin errores.
             </div>
           </div>
-          <button class="btn btn-sm flex-shrink-0" style="background:#16A34A;color:#fff;white-space:nowrap"
-            onclick="descargarPlantillaDrive()">
-            <i class="bi bi-download me-1"></i>Descargar plantilla
-          </button>
+          <div>
+            <button class="btn btn-sm" style="background:#16A34A;color:#fff"
+              onclick="descargarPlantillaDrive()">
+              <i class="bi bi-download me-1"></i>Descargar plantilla
+            </button>
+          </div>
         </div>
       </div>
 
