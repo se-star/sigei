@@ -9011,7 +9011,7 @@ function renderSeguimiento() {
   }
 
   grid.innerHTML = docentes.map(function(doc) {
-    var nombre   = doc.p_nombre + ' ' + doc.p_apellido;
+    var nombre   = [doc.p_nombre, doc.s_nombre, doc.p_apellido, doc.s_apellido].filter(Boolean).join(' ');
     var inicials = ((doc.p_nombre||'')[0]||'') + ((doc.p_apellido||'')[0]||'');
     var estados  = SEG_ENTREGABLES.map(function(e){ return _segGetEstado(doc.id, periodo, año, e.key); });
     var aprobados  = estados.filter(function(s){ return s === 'Aprobado'; }).length;
@@ -9104,7 +9104,7 @@ function segCerrarDropdown() {
 function abrirSeguimientoDocente(docId, periodo, año) {
   var doc = (DB.get('docentes')||[]).find(function(d){ return d.id == docId; });
   if (!doc) return;
-  var nombre   = doc.p_nombre + ' ' + doc.p_apellido;
+  var nombre   = [doc.p_nombre, doc.s_nombre, doc.p_apellido, doc.s_apellido].filter(Boolean).join(' ');
   var inicials = ((doc.p_nombre||'')[0]||'') + ((doc.p_apellido||'')[0]||'');
   document.getElementById('seg-oc-docente-nombre').textContent = nombre;
   document.getElementById('seg-modal-avatar').textContent = inicials.toUpperCase();
