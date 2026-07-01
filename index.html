@@ -3244,62 +3244,66 @@
   </div>
 </div>
 
-<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasClase" style="width:400px">
-  <div class="offcanvas-header border-bottom" id="oc-clase-header" style="background:var(--slate-900);padding:20px">
-    <div style="flex:1;min-width:0">
-      <div id="oc-clase-materia-badge" style="display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;
-           letter-spacing:.8px;padding:3px 10px;border-radius:20px;margin-bottom:8px;background:rgba(255,255,255,.2);color:#fff"></div>
-      <h5 class="offcanvas-title text-white mb-0" id="oc-clase-materia" style="font-weight:800;letter-spacing:-.3px">—</h5>
-      <div id="oc-clase-seccion" style="color:rgba(255,255,255,.7);font-size:13px;margin-top:2px">—</div>
-    </div>
-    <button class="btn-close btn-close-white ms-3" data-bs-dismiss="offcanvas"></button>
-  </div>
-  <div class="offcanvas-body p-0" style="overflow-y:auto">
-
-    <!-- Info chips -->
-    <div style="padding:16px 20px;display:flex;flex-wrap:wrap;gap:8px;border-bottom:1px solid var(--slate-200)">
-      <div id="oc-clase-dia-chip"   class="oc-chip"><i class="bi bi-calendar3 me-1"></i><span></span></div>
-      <div id="oc-clase-hora-chip"  class="oc-chip"><i class="bi bi-clock me-1"></i><span></span></div>
-    </div>
-
-    <!-- Asignatura -->
-    <div style="padding:16px 20px;border-bottom:1px solid var(--slate-200)">
-      <div class="det-sec-title">Asignatura</div>
-      <div id="oc-clase-asignatura" style="display:flex;align-items:center;gap:12px">
-        <div id="oc-clase-asig-icon" style="width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">📚</div>
-        <div>
-          <div id="oc-clase-asig-nombre" style="font-weight:700;font-size:15px;color:var(--slate-900)">—</div>
-          <div id="oc-clase-asig-sub"    style="font-size:11px;color:var(--slate-400);font-weight:600;margin-top:1px"></div>
+<div class="modal fade" tabindex="-1" id="modalClase">
+  <div class="modal-dialog modal-dialog-scrollable" style="max-width:min(440px,96vw)">
+    <div class="modal-content" style="border-radius:18px;overflow:hidden;border:none;box-shadow:0 24px 64px rgba(0,0,0,.18)">
+      <div class="modal-header" id="oc-clase-header" style="background:var(--sb-bg);padding:20px 24px;border:none">
+        <div style="flex:1;min-width:0">
+          <div id="oc-clase-materia-badge" style="display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;
+               letter-spacing:.8px;padding:3px 10px;border-radius:20px;margin-bottom:8px;background:rgba(255,255,255,.2);color:#fff"></div>
+          <h5 class="modal-title text-white mb-0" id="oc-clase-materia" style="font-weight:800;letter-spacing:-.3px">—</h5>
+          <div id="oc-clase-seccion" style="color:rgba(255,255,255,.7);font-size:13px;margin-top:2px">—</div>
         </div>
+        <button class="btn-close btn-close-white ms-3" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-0" style="overflow-y:auto">
+
+        <!-- Info chips -->
+        <div style="padding:16px 20px;display:flex;flex-wrap:wrap;gap:8px;border-bottom:1px solid var(--slate-200)">
+          <div id="oc-clase-dia-chip"  class="oc-chip"><i class="bi bi-calendar3 me-1"></i><span></span></div>
+          <div id="oc-clase-hora-chip" class="oc-chip"><i class="bi bi-clock me-1"></i><span></span></div>
+        </div>
+
+        <!-- Asignatura -->
+        <div style="padding:16px 20px;border-bottom:1px solid var(--slate-200)">
+          <div class="det-sec-title">Asignatura</div>
+          <div id="oc-clase-asignatura" style="display:flex;align-items:center;gap:12px">
+            <div id="oc-clase-asig-icon" style="width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">📚</div>
+            <div>
+              <div id="oc-clase-asig-nombre" style="font-weight:700;font-size:15px;color:var(--slate-900)">—</div>
+              <div id="oc-clase-asig-sub"    style="font-size:11px;color:var(--slate-400);font-weight:600;margin-top:1px"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Docente titular -->
+        <div style="padding:16px 20px;border-bottom:1px solid var(--slate-200)">
+          <div class="det-sec-title"><i class="bi bi-person-badge me-1"></i>Docente Titular</div>
+          <div id="oc-clase-docente" style="display:flex;align-items:center;gap:12px">
+            <div id="oc-clase-doc-avatar" class="user-avatar" style="width:40px;height:40px;font-size:15px;flex-shrink:0">?</div>
+            <div>
+              <div id="oc-clase-doc-nombre" style="font-weight:700;font-size:14px;color:var(--slate-900)">—</div>
+              <div id="oc-clase-doc-estado" style="font-size:11px;color:#16A34A;font-weight:600"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Novedad / Reemplazo (hidden by default) -->
+        <div id="oc-clase-novedad-section" style="padding:16px 20px;display:none">
+          <div class="det-sec-title" style="color:#EF4444"><i class="bi bi-exclamation-triangle-fill me-1"></i>Novedad Activa</div>
+          <div id="oc-clase-novedad-info" style="background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;padding:10px;margin-bottom:10px;font-size:12px;color:#B91C1C"></div>
+          <div class="det-sec-title" style="color:#16A34A;margin-top:12px"><i class="bi bi-arrow-right-circle-fill me-1"></i>Docente Reemplazo</div>
+          <div id="oc-clase-reemplazo" style="display:flex;align-items:center;gap:12px">
+            <div id="oc-clase-remp-avatar" class="user-avatar" style="width:40px;height:40px;font-size:15px;flex-shrink:0;background:linear-gradient(135deg,#16a34a,#15803d)">?</div>
+            <div>
+              <div id="oc-clase-remp-nombre" style="font-weight:700;font-size:14px;color:var(--slate-900)">—</div>
+              <div style="font-size:11px;color:#16A34A;font-weight:600">Docente de reemplazo</div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
-
-    <!-- Docente titular -->
-    <div style="padding:16px 20px;border-bottom:1px solid var(--slate-200)">
-      <div class="det-sec-title"><i class="bi bi-person-badge me-1"></i>Docente Titular</div>
-      <div id="oc-clase-docente" style="display:flex;align-items:center;gap:12px">
-        <div id="oc-clase-doc-avatar" class="user-avatar" style="width:40px;height:40px;font-size:15px;flex-shrink:0">?</div>
-        <div>
-          <div id="oc-clase-doc-nombre" style="font-weight:700;font-size:14px;color:var(--slate-900)">—</div>
-          <div id="oc-clase-doc-estado" style="font-size:11px;color:#16A34A;font-weight:600"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Novedad / Reemplazo (hidden by default) -->
-    <div id="oc-clase-novedad-section" style="padding:16px 20px;display:none">
-      <div class="det-sec-title" style="color:#EF4444"><i class="bi bi-exclamation-triangle-fill me-1"></i>Novedad Activa</div>
-      <div id="oc-clase-novedad-info" style="background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;padding:10px;margin-bottom:10px;font-size:12px;color:#B91C1C"></div>
-      <div class="det-sec-title" style="color:#16A34A;margin-top:12px"><i class="bi bi-arrow-right-circle-fill me-1"></i>Docente Reemplazo</div>
-      <div id="oc-clase-reemplazo" style="display:flex;align-items:center;gap:12px">
-        <div id="oc-clase-remp-avatar" class="user-avatar" style="width:40px;height:40px;font-size:15px;flex-shrink:0;background:linear-gradient(135deg,#16a34a,#15803d)">?</div>
-        <div>
-          <div id="oc-clase-remp-nombre" style="font-weight:700;font-size:14px;color:var(--slate-900)">—</div>
-          <div style="font-size:11px;color:#16A34A;font-weight:600">Docente de reemplazo</div>
-        </div>
-      </div>
-    </div>
-
   </div>
 </div>
 
@@ -6977,7 +6981,7 @@ function abrirHorario(id, fechaDia) {
     }
   }
 
-  bootstrap.Offcanvas.getOrCreateInstance(document.getElementById('offcanvasClase')).show();
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('modalClase')).show();
 }
 
 // ── Ver clase desde asignación académica (solo lectura) ────────────────────
@@ -7061,7 +7065,7 @@ function verClaseAsig(asigId, seccionId, dia, horaInicio, horaFin, fechaDia) {
     }
   }
 
-  bootstrap.Offcanvas.getOrCreateInstance(document.getElementById('offcanvasClase')).show();
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('modalClase')).show();
 }
 
 // ── Editar horario (edit form, original logic) ─────────────────────────────
