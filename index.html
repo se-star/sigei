@@ -2711,9 +2711,19 @@
           <div class="seg-kpi-icon" style="background:#F0FDF4"><i class="bi bi-check-circle-fill" style="color:#16A34A;font-size:18px"></i></div>
           <div><div class="seg-kpi-num" id="seg-kpi-aprobados">—</div><div class="seg-kpi-lbl">Ent. aprobados</div></div>
         </div>
-        <div class="card-panel seg-kpi-card">
-          <div class="seg-kpi-icon" style="background:#EFF6FF"><i class="bi bi-graph-up" style="color:#2563EB;font-size:18px"></i></div>
-          <div><div class="seg-kpi-num" id="seg-kpi-pct">—</div><div class="seg-kpi-lbl">Avance general</div></div>
+        <div class="card-panel seg-kpi-card" style="flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:14px">
+          <div style="position:relative;width:72px;height:72px">
+            <svg width="72" height="72" viewBox="0 0 72 72" style="transform:rotate(-90deg)">
+              <circle cx="36" cy="36" r="28" fill="none" stroke="#E2E8F0" stroke-width="7"/>
+              <circle id="seg-kpi-ring" cx="36" cy="36" r="28" fill="none" stroke="#4F46E5" stroke-width="7"
+                stroke-linecap="round" stroke-dasharray="175.93" stroke-dashoffset="175.93"
+                style="transition:stroke-dashoffset .6s ease, stroke .3s"/>
+            </svg>
+            <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+              <span id="seg-kpi-pct" style="font-size:15px;font-weight:800;color:var(--slate-800);line-height:1">—</span>
+            </div>
+          </div>
+          <div class="seg-kpi-lbl" style="font-size:11px;font-weight:600;color:var(--slate-500)">Avance general</div>
         </div>
         <div class="card-panel seg-kpi-card">
           <div class="seg-kpi-icon" style="background:#FFF7ED"><i class="bi bi-trophy-fill" style="color:#D97706;font-size:18px"></i></div>
@@ -9225,8 +9235,18 @@ function renderSegCharts(docentes, periodo, año) {
   var el = function(id){ return document.getElementById(id); };
   if (el('seg-kpi-docentes'))  el('seg-kpi-docentes').textContent  = total;
   if (el('seg-kpi-aprobados')) el('seg-kpi-aprobados').textContent = totalAprobados;
-  if (el('seg-kpi-pct'))       el('seg-kpi-pct').textContent       = pctGeneral + '%';
   if (el('seg-kpi-completos')) el('seg-kpi-completos').textContent = docentesCompletos;
+  // Círculo de progreso
+  if (el('seg-kpi-pct')) {
+    el('seg-kpi-pct').textContent = pctGeneral + '%';
+    var ring = el('seg-kpi-ring');
+    if (ring) {
+      var circum = 175.93;
+      var offset = circum - (pctGeneral / 100) * circum;
+      ring.style.strokeDashoffset = offset;
+      ring.style.stroke = pctGeneral >= 80 ? '#16A34A' : pctGeneral >= 50 ? '#F59E0B' : '#EF4444';
+    }
+  }
 
   // Chart de dona
   var cDonut = document.getElementById('seg-chart-donut');
