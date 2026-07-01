@@ -1935,16 +1935,9 @@
         <small>Gestión Institucional ALFATIC</small>
       </div>
     </div>
-    <div class="sidebar-user">
-      <div class="user-avatar" id="user-avatar-initials">?</div>
-      <div class="sidebar-user-info">
-        <div class="name" id="user-email-display"></div>
-        <div class="role" id="sidebar-role">Administrador</div>
-      </div>
-    </div>
-    <button onclick="logoutUser()">
-      <i class="bi bi-box-arrow-right"></i> Cerrar sesión
-    </button>
+    <!-- user-email-display y sidebar-role se usan en JS; se mantienen ocultos -->
+    <div id="user-email-display" style="display:none"></div>
+    <div id="sidebar-role" style="display:none">Administrador</div>
   </div>
   <nav class="mt-2">
     <div class="nav-section">Principal</div>
@@ -10077,3 +10070,4 @@ _auth.onAuthStateChanged(async function(user) {
 
 </body>
 </html>
+                                                                   
