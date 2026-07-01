@@ -7,21 +7,37 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231E3A8A'/%3E%3Ctext x='16' y='22' font-family='system-ui,sans-serif' font-size='16' font-weight='800' fill='white' text-anchor='middle'%3ES%3C/text%3E%3Ccircle cx='8' cy='8' r='2' fill='%2360A5FA'/%3E%3Ccircle cx='24' cy='8' r='2' fill='%2360A5FA'/%3E%3Ccircle cx='8' cy='24' r='2' fill='%2360A5FA'/%3E%3Ccircle cx='24' cy='24' r='2' fill='%2360A5FA'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="dns-prefetch" href="https://www.gstatic.com">
+  <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+  <link rel="preload" href="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js" as="script">
+  <link rel="preload" href="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js" as="script">
+  <link rel="preload" href="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js" as="script">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 <style>
   /* ══ DESIGN TOKENS ═══════════════════════════════════════════════════ */
   :root {
-    --blue-600:  #2563EB;
-    --blue-700:  #1D4ED8;
-    --blue-50:   #EFF6FF;
-    --blue-100:  #DBEAFE;
+    /* ── Indigo / primary ── */
+    --indigo-700: #4338CA;
+    --indigo-600: #4F46E5;
+    --indigo-500: #6366F1;
+    --indigo-100: #E0E7FF;
+    --indigo-50:  #EEF2FF;
+    /* Alias para código existente */
+    --blue-600:  #4F46E5;
+    --blue-700:  #4338CA;
+    --blue-50:   #EEF2FF;
+    --blue-100:  #E0E7FF;
     --slate-900: #0F172A;
     --slate-800: #1E293B;
     --slate-700: #334155;
+    --slate-600: #475569;
     --slate-500: #64748B;
     --slate-400: #94A3B8;
+    --slate-300: #CBD5E1;
     --slate-200: #E2E8F0;
     --slate-100: #F1F5F9;
     --slate-50:  #F8FAFC;
@@ -35,12 +51,19 @@
     --radius-lg: 16px;
     --shadow-sm: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
     --shadow-md: 0 4px 12px rgba(0,0,0,.08), 0 1px 3px rgba(0,0,0,.04);
+    /* Sidebar oscuro (color único en todo el sidebar) */
+    --sb-bg:     #1e1b4b;
+    --sb-border: rgba(255,255,255,.07);
+    /* Page background lavanda */
+    --page-bg:   #EDEEFF;
+    --ease-spring: cubic-bezier(.34,1.56,.64,1);
+    --ease-smooth: cubic-bezier(.4,0,.2,1);
   }
 
   /* ══ BASE ════════════════════════════════════════════════════════════ */
   *, *::before, *::after { box-sizing: border-box; }
   body {
-    background: #F1F5F9;
+    background: var(--page-bg);
     font-family: 'Plus Jakarta Sans', 'Segoe UI', system-ui, sans-serif;
     font-size: 14px;
     color: var(--slate-700);
@@ -51,7 +74,9 @@
   #sidebar {
     width: var(--sidebar-w);
     height: 100vh;
-    background: var(--slate-900);
+    background: var(--sb-bg);
+    border-right: 1px solid var(--sb-border);
+    box-shadow: 4px 0 24px rgba(0,0,0,.25);
     position: fixed; top: 0; left: 0; z-index: 200;
     display: flex; flex-direction: column;
     transition: width .25s ease;
@@ -62,6 +87,7 @@
   /* Brand */
   #sidebar .brand {
     padding: 22px 20px 18px;
+    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
     border-bottom: 1px solid rgba(255,255,255,.07);
   }
   .brand-logo {
@@ -69,29 +95,30 @@
   }
   .brand-logo .logo-icon {
     width: 42px; height: 42px; border-radius: 12px;
-    background: linear-gradient(135deg, var(--blue-600), var(--blue-700));
+    background: rgba(255,255,255,.15);
     display: flex; align-items: center; justify-content: center;
     font-size: 18px; flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(0,0,0,.25);
   }
   .brand-logo h6 {
     color: #fff; font-weight: 700; font-size: 15px; margin: 0; line-height: 1.2;
   }
-  .brand-logo small { color: var(--slate-400); font-size: 11px; display: block; }
+  .brand-logo small { color: rgba(255,255,255,.55); font-size: 11px; display: block; }
   #user-email-display {
-    font-size: 11px; color: var(--slate-400);
+    font-size: 11px; color: rgba(255,255,255,.55);
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     margin-bottom: 8px;
   }
   #sidebar .brand button {
     width: 100%; padding: 7px 12px;
-    background: rgba(255,255,255,.06);
-    border: 1px solid rgba(255,255,255,.08);
+    background: rgba(255,255,255,.1);
+    border: 1px solid rgba(255,255,255,.15);
     border-radius: var(--radius-sm);
-    color: var(--slate-400); font-size: 11px;
+    color: rgba(255,255,255,.8); font-size: 11px;
     cursor: pointer; display: flex; align-items: center; gap: 6px;
     transition: background .2s, color .2s;
   }
-  #sidebar .brand button:hover { background: rgba(255,255,255,.12); color: #fff; }
+  #sidebar .brand button:hover { background: rgba(255,255,255,.2); color: #fff; }
 
   /* Nav */
   #sidebar nav {
@@ -109,46 +136,46 @@
   #sidebar nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,.12); border-radius: 3px; }
   #sidebar nav .nav-section {
     font-size: 10px; font-weight: 700; letter-spacing: .08em;
-    color: var(--slate-500); padding: 16px 20px 6px;
+    color: rgba(255,255,255,.35); padding: 16px 20px 6px;
     text-transform: uppercase;
   }
   #sidebar nav a {
     display: flex; align-items: center; gap: 10px;
-    padding: 9px 12px 9px 20px;
-    color: var(--slate-400);
+    padding: 9px 12px 9px 16px;
+    color: rgba(255,255,255,.6);
     text-decoration: none; font-size: 13px; font-weight: 500;
     transition: color .18s, background .18s;
-    border-radius: 0; white-space: nowrap; position: relative;
-    margin: 1px 8px; border-radius: var(--radius-sm);
+    white-space: nowrap; position: relative;
+    margin: 2px 10px; border-radius: var(--radius-sm);
   }
   #sidebar nav a i { font-size: 15px; flex-shrink: 0; }
-  #sidebar nav a:hover  { background: rgba(255,255,255,.06); color: #fff; }
+  #sidebar nav a:hover  { background: rgba(255,255,255,.07); color: #fff; }
   #sidebar nav a.active {
-    background: var(--blue-600);
+    background: var(--indigo-600);
     color: #fff; font-weight: 600;
-    box-shadow: 0 2px 8px rgba(37,99,235,.35);
+    box-shadow: 0 4px 14px rgba(79,70,229,.4);
   }
   #sidebar .version {
-    padding: 12px 20px; color: var(--slate-500); font-size: 10px;
-    border-top: 1px solid rgba(255,255,255,.05);
+    padding: 12px 20px; color: rgba(255,255,255,.3); font-size: 10px;
+    border-top: 1px solid var(--sb-border);
   }
 
   /* ══ MAIN ════════════════════════════════════════════════════════════ */
-  #main { margin-left: var(--sidebar-w); min-height: 100vh; background: linear-gradient(145deg,#e8f0fe 0%,#dbeafe 45%,#ede9fe 100%); }
+  #main { margin-left: var(--sidebar-w); min-height: 100vh; background: transparent; }
 
   .topbar {
     background: var(--white);
-    border-bottom: 1px solid var(--slate-200);
+    border-bottom: 1px solid #EBEBFF;
     padding: 0 28px;
     height: 60px;
     display: flex; align-items: center; justify-content: space-between;
     position: sticky; top: 0; z-index: 100;
-    box-shadow: 0 1px 0 var(--slate-200);
+    box-shadow: 0 1px 16px rgba(79,70,229,.06);
   }
   .topbar-left { display: flex; align-items: center; gap: 10px; }
   .topbar-left .page-icon {
     width: 32px; height: 32px; border-radius: var(--radius-sm);
-    background: var(--blue-50); color: var(--blue-600);
+    background: var(--indigo-50); color: var(--indigo-600);
     display: flex; align-items: center; justify-content: center; font-size: 15px;
   }
   .topbar h5 { margin: 0; font-weight: 700; color: var(--slate-800); font-size: 15px; }
@@ -158,17 +185,17 @@
   /* ══ STAT CARDS ══════════════════════════════════════════════════════ */
   .stat-card {
     background: var(--white);
-    border-radius: 16px;
+    border-radius: 18px;
     padding: 22px 20px 18px;
-    box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
-    border: 1px solid rgba(0,0,0,.06);
+    box-shadow: 0 2px 8px rgba(79,70,229,.07), 0 1px 2px rgba(79,70,229,.04);
+    border: 1px solid rgba(79,70,229,.09);
     display: flex; flex-direction: column; gap: 14px;
     transition: box-shadow .2s, transform .2s;
     position: relative; overflow: hidden;
   }
   .stat-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px;
-    background:var(--sc-accent,#3B82F6); border-radius:16px 16px 0 0; opacity:0; transition:opacity .2s; }
-  .stat-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,.09); transform: translateY(-2px); }
+    background:var(--sc-accent,var(--indigo-600)); border-radius:18px 18px 0 0; opacity:0; transition:opacity .2s; }
+  .stat-card:hover { box-shadow: 0 10px 32px rgba(79,70,229,.13); transform: translateY(-2px); }
   .stat-card:hover::before { opacity:1; }
   .stat-card .sc-top { display:flex; align-items:center; justify-content:space-between; }
   .stat-card .icon {
@@ -183,9 +210,9 @@
   /* ══ CARD PANEL ══════════════════════════════════════════════════════ */
   .card-panel {
     background: var(--white);
-    border-radius: 16px;
-    border: 1px solid rgba(0,0,0,.06);
-    box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+    border-radius: 18px;
+    border: 1px solid rgba(79,70,229,.09);
+    box-shadow: 0 2px 8px rgba(79,70,229,.07), 0 1px 2px rgba(79,70,229,.04);
     overflow: hidden;
   }
   .card-panel .panel-header {
@@ -254,8 +281,8 @@
     transition: border-color .2s, box-shadow .2s;
   }
   .search-bar input:focus {
-    border-color: var(--blue-600); outline: none;
-    box-shadow: 0 0 0 3px rgba(37,99,235,.12);
+    border-color: var(--indigo-600); outline: none;
+    box-shadow: 0 0 0 3px rgba(79,70,229,.14);
     background: var(--white);
   }
   .search-bar i { position: absolute; left: 11px; top: 9px; color: var(--slate-400); font-size: 13px; }
@@ -265,7 +292,7 @@
   .horario-grid table { min-width: 700px; }
   .horario-grid thead th {
     text-align: center;
-    background: var(--slate-800); color: #fff;
+    background: var(--indigo-700); color: #fff;
     font-size: 12px; letter-spacing: .04em;
   }
   .horario-grid td {
@@ -342,8 +369,8 @@
     color: var(--slate-700);
   }
   .form-control:focus, .form-select:focus {
-    border-color: var(--blue-600);
-    box-shadow: 0 0 0 3px rgba(37,99,235,.12);
+    border-color: var(--indigo-600);
+    box-shadow: 0 0 0 3px rgba(79,70,229,.14);
   }
 
   /* ══ TOAST ════════════════════════════════════════════════════════════ */
@@ -356,7 +383,7 @@
     display: flex; align-items: center; gap: 10px;
     font-size: 13px; font-weight: 500; margin-top: 8px;
     animation: slideIn .3s cubic-bezier(.34,1.56,.64,1);
-    border-left: 4px solid var(--blue-600);
+    border-left: 4px solid var(--indigo-600);
     min-width: 260px;
   }
   .toast-msg.ok  { border-color: var(--green-500); }
@@ -376,16 +403,16 @@
     background: var(--slate-50); position: sticky; top: 0; z-index: 2; }
   .hv-day-nombre { font-size: 11px; font-weight: 700; color: var(--slate-600); text-transform: uppercase; letter-spacing:.04em; }
   .hv-day-fecha  { font-size: 11px; font-weight: 500; color: var(--slate-400); }
-  .hv-day-hdr-hoy { background: #EFF6FF; border-bottom-color:#2563EB; }
-  .hv-day-hdr-hoy .hv-day-nombre { color:#2563EB; }
-  .hv-day-hdr-hoy .hv-day-fecha  { color:#60A5FA; }
+  .hv-day-hdr-hoy { background: var(--indigo-50); border-bottom-color:var(--indigo-600); }
+  .hv-day-hdr-hoy .hv-day-nombre { color:var(--indigo-600); }
+  .hv-day-hdr-hoy .hv-day-fecha  { color:var(--indigo-500); }
   .hv-semana-nav { display:flex; align-items:center; justify-content:center; gap:12px; padding:10px 0 12px; }
   .hv-semana-btn { background:#fff; border:1.5px solid #E2E8F0; border-radius:8px; padding:4px 12px; cursor:pointer; font-size:13px; color:#475569; transition:border-color .15s,color .15s; }
-  .hv-semana-btn:hover { border-color:#2563EB; color:#2563EB; }
+  .hv-semana-btn:hover { border-color:var(--indigo-600); color:var(--indigo-600); }
   .hv-semana-lbl { font-size:14px; font-weight:700; color:#1E293B; min-width:180px; text-align:center; }
   .hv-dia-lbl { display:flex; align-items:baseline; gap:0; min-width:220px; justify-content:center; }
-  .hv-semana-hoy { background:#EFF6FF; border:1.5px solid #BFDBFE; border-radius:8px; padding:3px 14px; cursor:pointer; font-size:12px; font-weight:700; color:#2563EB; transition:background .15s; }
-  .hv-semana-hoy:hover { background:#DBEAFE; }
+  .hv-semana-hoy { background:var(--indigo-50); border:1.5px solid var(--indigo-100); border-radius:8px; padding:3px 14px; cursor:pointer; font-size:12px; font-weight:700; color:var(--indigo-600); transition:background .15s; }
+  .hv-semana-hoy:hover { background:var(--indigo-100); }
   .hv-body { position: relative; }
   .hv-hline { position: absolute; left: 0; right: 0; border-top: 1px solid var(--slate-100); pointer-events: none; }
   .hv-hline.full { border-color: var(--slate-200); }
@@ -634,7 +661,7 @@
     left: calc(100% + 10px);
     top: 50%;
     transform: translateY(-50%);
-    background: #1E293B;
+    background: var(--indigo-700);
     color: #fff;
     font-size: 12px;
     font-weight: 600;
@@ -655,7 +682,7 @@
     top: 50%;
     transform: translateY(-50%);
     border: 5px solid transparent;
-    border-right-color: #1E293B;
+    border-right-color: var(--indigo-700);
     opacity: 0;
     transition: opacity .15s;
     z-index: 999;
@@ -667,11 +694,11 @@
   /* Toggle button */
   #sidebar-toggle {
     background: none; border: none; cursor: pointer;
-    color: var(--slate-500); font-size: 18px; padding: 4px 6px;
+    color: rgba(255,255,255,.5); font-size: 18px; padding: 4px 6px;
     border-radius: var(--radius-sm); transition: color .18s, background .18s;
     display: flex; align-items: center;
   }
-  #sidebar-toggle:hover { background: var(--slate-100); color: var(--slate-800); }
+  #sidebar-toggle:hover { background: rgba(255,255,255,.08); color: #fff; }
 
 
   /* ══ HORARIO MATERIA COLORS ══════════════════════════════════════════ */
@@ -695,11 +722,13 @@
   .sidebar-user {
     display: flex; align-items: center; gap: 10px;
     padding: 10px 0; margin-bottom: 8px;
+    border-top: 1px solid rgba(255,255,255,.1);
+    padding-top: 12px;
   }
   .sidebar-user-info { flex: 1; min-width: 0; }
   .sidebar-user-info .name { color: #fff; font-size: 12px; font-weight: 600;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .sidebar-user-info .role { color: var(--slate-400); font-size: 10px; }
+  .sidebar-user-info .role { color: rgba(255,255,255,.55); font-size: 10px; }
 
   /* ══ CARD ACCENT BORDERS ════════════════════════════════════════════ */
   .card-panel { border-left: 3px solid transparent; }
@@ -792,7 +821,7 @@
     border-radius:50%; width:32px; height:32px; display:flex; align-items:center;
     justify-content:center; cursor:pointer; color:var(--slate-500); font-size:14px;
     transition:background .15s; }
-  .topbar-icon-btn:hover { background:var(--slate-100); color:var(--blue-600); }
+  .topbar-icon-btn:hover { background:var(--indigo-50); color:var(--indigo-600); }
 
   /* ── DARK MODE ──────────────────────────────────── */
   /* ══ MODO OSCURO — paleta ══════════════════════════════════════════ */
@@ -1469,15 +1498,431 @@
   .kanban-card-fecha { font-size:11px; color:#94A3B8; }
   .kanban-card-actions { display:flex; gap:4px; }
 
+  /* ══════════════════════════════════════════════════════════════════
+     MODERN CSS — @layer · oklch · color-mix · nesting · containers
+     ══════════════════════════════════════════════════════════════════ */
+
+  /* ── Layer order ──────────────────────────────────────────────── */
+  @layer sigei.tokens, sigei.base, sigei.components, sigei.utilities;
+
+  /* ── Design tokens (oklch + semantic aliases) ─────────────────── */
+  @layer sigei.tokens {
+    :root {
+      /* Brand palette — oklch para mezcla perceptualmente uniforme */
+      --brand:         oklch(51.7% 0.207 254.8);
+      --brand-dark:    oklch(44.3% 0.195 257.1);
+      --brand-faint:   oklch(97.1% 0.018 264.0);
+
+      /* Derived con color-mix() — cero hex hard-coded */
+      --brand-hover:        color-mix(in oklch, var(--brand) 80%, black);
+      --brand-ghost:        color-mix(in oklch, var(--brand) 12%, white);
+      --brand-ghost-hover:  color-mix(in oklch, var(--brand) 22%, white);
+      --brand-shadow:       color-mix(in oklch, var(--brand) 30%, transparent);
+
+      /* Escala Slate (oklch) */
+      --s-900: oklch(14.8% 0.024 261.5);
+      --s-800: oklch(21.7% 0.030 262.1);
+      --s-700: oklch(31.6% 0.035 261.3);
+      --s-500: oklch(49.4% 0.033 260.3);
+      --s-400: oklch(65.8% 0.024 255.6);
+      --s-200: oklch(91.7% 0.013 257.1);
+      --s-100: oklch(96.1% 0.009 260.3);
+      --s-50:  oklch(98.4% 0.005 264.0);
+
+      /* Surface tokens */
+      --surface-1:  oklch(100% 0 0);
+      --surface-2:  var(--s-50);
+      --border-sub: color-mix(in oklch, var(--s-200) 80%, transparent);
+
+      /* Semantic */
+      --color-success: oklch(72.3% 0.163 161.8);
+      --color-warning: oklch(79.1% 0.163  76.0);
+      --color-danger:  oklch(63.1% 0.207  22.2);
+
+      /* Motion tokens */
+      --ease-spring:  cubic-bezier(0.34, 1.56, 0.64, 1);
+      --ease-smooth:  cubic-bezier(0.40, 0.00, 0.20, 1);
+      --dur-fast:     120ms;
+      --dur-normal:   220ms;
+      --dur-slow:     380ms;
+    }
+  }
+
+  /* ── CSS Nesting — componentes clave ──────────────────────────── */
+  @layer sigei.components {
+
+    /* Sidebar nav links */
+    #sidebar nav a {
+      transition: background var(--dur-fast) var(--ease-smooth),
+                  color     var(--dur-fast) var(--ease-smooth),
+                  transform var(--dur-fast) var(--ease-spring);
+
+      &:hover {
+        background: color-mix(in oklch, white 8%, transparent);
+        color: #fff;
+        transform: translateX(2px);
+      }
+
+      &.active {
+        background: var(--brand);
+        color: #fff;
+        font-weight: 600;
+        box-shadow: 0 2px 10px var(--brand-shadow);
+      }
+    }
+
+    /* Stat cards */
+    .stat-card {
+      container-type: inline-size;
+      container-name: stat-card;
+      transition: box-shadow var(--dur-normal) var(--ease-smooth),
+                  transform  var(--dur-normal) var(--ease-smooth);
+
+      &:hover {
+        box-shadow: 0 8px 28px color-mix(in oklch, var(--brand) 14%, transparent),
+                    0 2px  6px color-mix(in oklch, black 6%, transparent);
+        transform: translateY(-3px);
+
+        &::before { opacity: 1; }
+      }
+
+      /* Título y número en container query */
+      @container stat-card (max-width: 160px) {
+        & h2    { font-size: 28px; }
+        & .icon { width: 36px; height: 36px; font-size: 16px; }
+      }
+    }
+
+    /* Card panels con container query */
+    .card-panel {
+      container-type: inline-size;
+      container-name: card-panel;
+
+      & .panel-header {
+        transition: background var(--dur-fast) var(--ease-smooth);
+
+        @container card-panel (max-width: 400px) {
+          flex-wrap: wrap;
+          gap: 8px;
+
+          & > div, & > span { flex: 1 1 auto; }
+        }
+      }
+    }
+
+    /* Botón primario con color-mix */
+    .btn-primary {
+      background:   var(--brand) !important;
+      border-color: var(--brand) !important;
+      font-weight:  600 !important;
+      font-size:    13px !important;
+      transition:   background var(--dur-fast) var(--ease-smooth),
+                    box-shadow  var(--dur-fast) var(--ease-smooth),
+                    transform   var(--dur-fast) var(--ease-spring) !important;
+
+      &:hover {
+        background:   var(--brand-hover) !important;
+        border-color: var(--brand-hover) !important;
+        box-shadow:   0 4px 14px var(--brand-shadow) !important;
+        transform:    translateY(-1px) !important;
+      }
+
+      &:active {
+        transform: translateY(0) !important;
+      }
+    }
+
+    /* Seguimiento doc cards con container query */
+    .seg-doc-card {
+      container-type: inline-size;
+      container-name: seg-card;
+      transition: box-shadow var(--dur-normal) var(--ease-smooth),
+                  transform  var(--dur-normal) var(--ease-spring);
+
+      &:hover {
+        box-shadow: 0 8px 24px color-mix(in oklch, var(--brand) 12%, transparent);
+        transform:  translateY(-3px);
+      }
+
+      @container seg-card (max-width: 220px) {
+        & .seg-doc-chips { gap: 3px; }
+        & .seg-chip { width: 22px; height: 22px; font-size: 10px; }
+      }
+    }
+
+    /* KPI cards */
+    .seg-kpi-card {
+      container-type: inline-size;
+      transition: box-shadow var(--dur-normal) var(--ease-smooth),
+                  transform  var(--dur-normal) var(--ease-spring);
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px color-mix(in oklch, black 8%, transparent);
+      }
+    }
+
+    /* Tabla tbody rows */
+    tbody tr {
+      transition: background var(--dur-fast) var(--ease-smooth);
+
+      &:hover { background: var(--brand-ghost); }
+    }
+
+    /* Badge status */
+    .badge-activo   { background: color-mix(in oklch, var(--color-success) 15%, white); color: oklch(38% 0.13 162); }
+    .badge-inactivo { background: color-mix(in oklch, var(--color-danger)  15%, white); color: oklch(35% 0.17  22); }
+    .badge-pendiente{ background: color-mix(in oklch, var(--color-warning) 18%, white); color: oklch(42% 0.14  76); }
+    .badge-aprobado { background: color-mix(in oklch, var(--color-success) 15%, white); color: oklch(38% 0.13 162); }
+    .badge-rechazado{ background: color-mix(in oklch, var(--color-danger)  15%, white); color: oklch(35% 0.17  22); }
+  }
+
+  /* ── View Transitions ─────────────────────────────────────────── */
+  @layer sigei.utilities {
+
+    /* Nombrar elementos para transiciones individuales */
+    .content           { view-transition-name: page-content; }
+    #page-title        { view-transition-name: page-title; }
+    #topbar-icon       { view-transition-name: page-icon; }
+
+    /* Reducir movimiento si el usuario lo prefiere */
+    @media (prefers-reduced-motion: reduce) {
+      ::view-transition-old(*), ::view-transition-new(*) {
+        animation: none !important;
+      }
+    }
+  }
+
+  /* ── Keyframes para View Transitions ──────────────────────────── */
+  @keyframes vt-fade-slide-in {
+    from { opacity: 0; translate: 0 10px; }
+  }
+  @keyframes vt-fade-slide-out {
+    to   { opacity: 0; translate: 0 -6px; }
+  }
+  @keyframes vt-title-in {
+    from { opacity: 0; translate: -10px 0; }
+  }
+  @keyframes vt-icon-in {
+    from { opacity: 0; scale: 0.7; }
+  }
+
+  /* Animaciones de transición de página */
+  ::view-transition-old(page-content) {
+    animation: var(--dur-fast, 120ms) var(--ease-smooth, ease) both vt-fade-slide-out;
+  }
+  ::view-transition-new(page-content) {
+    animation: var(--dur-normal, 220ms) var(--ease-smooth, ease) both vt-fade-slide-in;
+  }
+  ::view-transition-old(page-title) {
+    animation: var(--dur-fast, 100ms) ease both vt-fade-slide-out;
+  }
+  ::view-transition-new(page-title) {
+    animation: var(--dur-normal, 200ms) var(--ease-smooth, ease) both vt-title-in;
+  }
+  ::view-transition-old(page-icon) {
+    animation: var(--dur-fast, 100ms) ease both opacity 0;
+  }
+  ::view-transition-new(page-icon) {
+    animation: var(--dur-normal, 200ms) var(--ease-spring, ease) both vt-icon-in;
+  }
+  /* Root: sin fade global — solo los elementos nombrados se animan */
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+
+  /* ══════════════════════════════════════════════════════════════════
+     MOTION — minimal, purposeful, measurable
+     ══════════════════════════════════════════════════════════════════ */
+
+  /* Declare motion layer (added to existing sigei cascade) */
+  @layer sigei.motion;
+
+  @layer sigei.motion {
+
+    /* ── 1. KPI number arrive animation ─────────────────────────────
+       Signals "live data just loaded". Only on .counting class (JS). */
+    @keyframes kpi-arrive {
+      from { opacity: 0.2; transform: translateY(8px) scale(0.94); }
+      to   { opacity: 1;   transform: none; }
+    }
+    .stat-card h2.counting {
+      animation: kpi-arrive 0.55s var(--ease-smooth, cubic-bezier(.4,0,.2,1)) both;
+    }
+
+    /* ── 2. Table row staggered entrance ────────────────────────────
+       Signals "data arrived". Max 8 rows animated (JS caps delay). */
+    @keyframes row-in {
+      from { opacity: 0; translate: 0 7px; }
+    }
+    tr.row-enter {
+      animation: row-in 210ms var(--ease-smooth, cubic-bezier(.4,0,.2,1)) both;
+    }
+
+    /* ── 3. Stat card 3D depth ──────────────────────────────────────
+       Creates a shallow-3D stage for icon and number to float above.
+       transform-style lets JS rotateX/Y tilt the card as a surface. */
+    .stat-card {
+      transform-style: preserve-3d;
+      will-change: transform;
+    }
+    /* Icon pops ~18px toward viewer on hover */
+    .stat-card .icon {
+      transition: transform 220ms var(--ease-spring, cubic-bezier(.34,1.56,.64,1));
+      transform: translateZ(0);
+    }
+    .stat-card:hover .icon {
+      transform: translateZ(18px) scale(1.09);
+    }
+    /* Number floats 12px forward, reinforcing the icon */
+    .stat-card h2 {
+      transition: transform 220ms var(--ease-smooth, cubic-bezier(.4,0,.2,1));
+      transform: translateZ(0);
+    }
+    .stat-card:hover h2 {
+      transform: translateZ(12px);
+    }
+
+    /* ── 4. Alert pulse — only when permisos pendientes > 0 ─────────
+       Draws attention to actionable data without being intrusive.     */
+    @keyframes pulse-alert {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(220,38,38,.35); }
+      55%       { box-shadow: 0 0 0 8px rgba(220,38,38,0);  }
+    }
+    .stat-card[data-pulse="true"] .icon {
+      animation: pulse-alert 2.4s ease-in-out infinite;
+    }
+  }
+
+  /* ── Offcanvas Perfil de usuario ─────────────────────────────────── */
+  .oc-profile-head {
+    background: linear-gradient(135deg, var(--blue-700, #1d4ed8), var(--blue-500, #3b82f6));
+    padding: 20px 18px 18px;
+  }
+  .oc-profile-item {
+    display: flex; align-items: center; gap: 10px;
+    width: 100%; background: none; border: none;
+    padding: 9px 12px; border-radius: 8px;
+    font-size: 13.5px; font-weight: 500;
+    color: var(--slate-700, #334155);
+    text-align: left; cursor: pointer;
+    transition: background 140ms;
+  }
+  .oc-profile-item:hover { background: var(--slate-100, #f1f5f9); color: var(--blue-600, #2563eb); }
+  .oc-profile-item i    { font-size: 15px; width: 20px; flex-shrink: 0; }
+  .oc-profile-item.danger      { color: #dc2626; }
+  .oc-profile-item.danger:hover{ background: #fef2f2; }
+  .oc-profile-section { font-size: 10px; font-weight: 700; color: var(--slate-400, #94a3b8);
+    letter-spacing: .6px; text-transform: uppercase; padding: 0 14px; margin-bottom: 4px; }
+  body.dark-mode .oc-profile-item        { color: var(--slate-300, #cbd5e1); }
+  body.dark-mode .oc-profile-item:hover  { background: rgba(255,255,255,.08); color: #60a5fa; }
+  body.dark-mode .oc-profile-item.danger { color: #f87171; }
+  body.dark-mode .oc-profile-item.danger:hover { background: rgba(239,68,68,.1); }
+  /* Topbar avatar button */
+  #topbar-user-btn {
+    background: none; border: none; padding: 2px; border-radius: 50%;
+    cursor: pointer; display: flex; align-items: center;
+    transition: box-shadow 180ms;
+  }
+  #topbar-user-btn:hover { box-shadow: 0 0 0 3px rgba(99,102,241,.3); }
+
 </style>
   <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <!-- Firebase compat SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
 </head>
 <body>
+
+<!-- ── LOGIN OVERLAY ─────────────────────────────────────────────── -->
+<style>
+.lf-input{width:100%;padding:13px 16px;background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.15);border-radius:12px;font-size:14px;color:#fff;outline:none;box-sizing:border-box;transition:border-color .2s,background .2s;font-family:inherit}
+.lf-input::placeholder{color:rgba(255,255,255,0.35)}
+.lf-input:focus{border-color:rgba(99,179,237,.7);background:rgba(255,255,255,.12)}
+.lf-label{font-size:12px;font-weight:600;color:rgba(255,255,255,.6);display:block;margin-bottom:8px;letter-spacing:.03em}
+@keyframes lp{0%,100%{opacity:.18;transform:scale(1)}50%{opacity:.28;transform:scale(1.06)}}
+</style>
+
+<div id="login-overlay" style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;font-family:'Plus Jakarta Sans','Segoe UI',system-ui,sans-serif;overflow:hidden;background:#060D1F">
+
+  <div style="position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 20% 10%,rgba(37,99,235,.45) 0%,transparent 60%),radial-gradient(ellipse 60% 70% at 85% 80%,rgba(109,40,217,.35) 0%,transparent 60%);pointer-events:none"></div>
+  <div style="position:absolute;width:460px;height:460px;border-radius:50%;background:radial-gradient(circle,rgba(59,130,246,.2) 0%,transparent 65%);top:-120px;left:-120px;animation:lp 7s ease-in-out infinite;pointer-events:none"></div>
+  <div style="position:absolute;width:340px;height:340px;border-radius:50%;background:radial-gradient(circle,rgba(139,92,246,.18) 0%,transparent 65%);bottom:-80px;right:-80px;animation:lp 9s ease-in-out infinite .5s;pointer-events:none"></div>
+  <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.02) 1px,transparent 1px);background-size:48px 48px;pointer-events:none"></div>
+
+  <!-- GLASS CARD -->
+  <div style="position:relative;z-index:1;width:100%;max-width:420px;margin:20px;background:rgba(255,255,255,0.06);backdrop-filter:blur(32px);-webkit-backdrop-filter:blur(32px);border:1px solid rgba(255,255,255,0.13);border-radius:28px;padding:44px 40px;box-shadow:0 24px 80px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.12)">
+
+    <div style="position:absolute;inset:0;border-radius:28px;background:radial-gradient(ellipse 80% 40% at 50% 0%,rgba(99,179,237,.07) 0%,transparent 70%);pointer-events:none"></div>
+
+    <div style="text-align:center;margin-bottom:32px;position:relative">
+      <div style="width:120px;height:120px;margin:0 auto 18px;filter:drop-shadow(0 6px 24px rgba(99,179,237,.55))">
+        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB2aWV3Qm94PSIwIDAgNTAwIDUwMCI+PGRlZnM+PHN0eWxlPi5jbHMtMXtpc29sYXRpb246aXNvbGF0ZTt9LmNscy0ye29wYWNpdHk6MC40O21peC1ibGVuZC1tb2RlOm11bHRpcGx5O30uY2xzLTN7ZmlsbDp1cmwoI2xpbmVhci1ncmFkaWVudCk7fS5jbHMtNHtmaWxsOnVybCgjbGluZWFyLWdyYWRpZW50LTIpO30uY2xzLTV7ZmlsbDp1cmwoI2xpbmVhci1ncmFkaWVudC0zKTt9LmNscy02e2ZpbGw6dXJsKCNsaW5lYXItZ3JhZGllbnQtNCk7fS5jbHMtN3tmaWxsOnVybCgjbGluZWFyLWdyYWRpZW50LTUpO30uY2xzLTh7ZmlsbDp1cmwoI2xpbmVhci1ncmFkaWVudC02KTt9LmNscy05e2ZpbGw6dXJsKCNsaW5lYXItZ3JhZGllbnQtNyk7fS5jbHMtMTB7ZmlsbDp1cmwoI2xpbmVhci1ncmFkaWVudC04KTt9LmNscy0xMXtmaWxsOnVybCgjbGluZWFyLWdyYWRpZW50LTkpO30uY2xzLTEye2ZpbGw6dXJsKCNsaW5lYXItZ3JhZGllbnQtMTApO30uY2xzLTEze2ZpbGw6bm9uZTt9LmNscy0xNHtmaWxsOnVybCgjbGluZWFyLWdyYWRpZW50LTExKTt9LmNscy0xNXtmaWxsOnVybCgjbGluZWFyLWdyYWRpZW50LTEyKTt9LmNscy0xNntmaWxsOnVybCgjbGluZWFyLWdyYWRpZW50LTEzKTt9PC9zdHlsZT48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudCIgeDE9IjI5NC45NCIgeTE9IjQyNy4zNCIgeDI9IjI5NC45NCIgeTI9IjI2LjU4IiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjMmM0ZDhkIi8+PHN0b3Agb2Zmc2V0PSIwLjA2IiBzdG9wLWNvbG9yPSIjMzM1YTk5Ii8+PHN0b3Agb2Zmc2V0PSIwLjI4IiBzdG9wLWNvbG9yPSIjNGM4NmMyIi8+PHN0b3Agb2Zmc2V0PSIwLjQ4IiBzdG9wLWNvbG9yPSIjNWVhNmUwIi8+PHN0b3Agb2Zmc2V0PSIwLjY1IiBzdG9wLWNvbG9yPSIjNjliOWYyIi8+PHN0b3Agb2Zmc2V0PSIwLjc2IiBzdG9wLWNvbG9yPSIjNmRjMGY5Ii8+PHN0b3Agb2Zmc2V0PSIwLjc3IiBzdG9wLWNvbG9yPSIjNmVjMmY5Ii8+PHN0b3Agb2Zmc2V0PSIwLjg2IiBzdG9wLWNvbG9yPSIjN2NkY2ZiIi8+PHN0b3Agb2Zmc2V0PSIwLjk0IiBzdG9wLWNvbG9yPSIjODRlY2ZkIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjODdmMWZkIi8+PC9saW5lYXJHcmFkaWVudD48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudC0yIiB4MT0iMjAzLjk2IiB5MT0iNDI3LjM0IiB4Mj0iMjAzLjk2IiB5Mj0iMjYuNTgiIHhsaW5rOmhyZWY9IiNsaW5lYXItZ3JhZGllbnQiLz48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudC0zIiB4MT0iMTc1LjE3IiB5MT0iNDI3LjM0IiB4Mj0iMTc1LjE3IiB5Mj0iMjYuNTgiIHhsaW5rOmhyZWY9IiNsaW5lYXItZ3JhZGllbnQiLz48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudC00IiB4MT0iMjU1Ljg0IiB5MT0iNDI3LjM0IiB4Mj0iMjU1Ljg0IiB5Mj0iMjYuNTgiIHhsaW5rOmhyZWY9IiNsaW5lYXItZ3JhZGllbnQiLz48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudC01IiB4MT0iMjcyLjk3IiB5MT0iNDI3LjM0IiB4Mj0iMjcyLjk3IiB5Mj0iMjYuNTgiIHhsaW5rOmhyZWY9IiNsaW5lYXItZ3JhZGllbnQiLz48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudC02IiB4MT0iMjIxLjM0IiB5MT0iNDI3LjM0IiB4Mj0iMjIxLjM0IiB5Mj0iMjYuNTgiIHhsaW5rOmhyZWY9IiNsaW5lYXItZ3JhZGllbnQiLz48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudC03IiB4MT0iMTc3LjU2IiB5MT0iNDI3LjM0IiB4Mj0iMTc3LjU2IiB5Mj0iMjYuNTgiIHhsaW5rOmhyZWY9IiNsaW5lYXItZ3JhZGllbnQiLz48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudC04IiB4MT0iMzU1LjI1IiB5MT0iNDI3LjM0IiB4Mj0iMzU1LjI1IiB5Mj0iMjYuNTgiIHhsaW5rOmhyZWY9IiNsaW5lYXItZ3JhZGllbnQiLz48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudC05IiB4MT0iMTMzLjYiIHkxPSI0MjcuMzQiIHgyPSIxMzMuNiIgeTI9IjI2LjU4IiB4bGluazpocmVmPSIjbGluZWFyLWdyYWRpZW50Ii8+PGxpbmVhckdyYWRpZW50IGlkPSJsaW5lYXItZ3JhZGllbnQtMTAiIHgxPSIyNDkuNjUiIHkxPSI0MjcuMzQiIHgyPSIyNDkuNjUiIHkyPSIyNi41OCIgeGxpbms6aHJlZj0iI2xpbmVhci1ncmFkaWVudCIvPjxsaW5lYXJHcmFkaWVudCBpZD0ibGluZWFyLWdyYWRpZW50LTExIiB4MT0iMzAyLjY4IiB5MT0iNDI3LjM0IiB4Mj0iMzAyLjY4IiB5Mj0iMjYuNTgiIHhsaW5rOmhyZWY9IiNsaW5lYXItZ3JhZGllbnQiLz48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudC0xMiIgeDE9IjQxOC43MyIgeTE9IjQyNy4zNCIgeDI9IjQxOC43MyIgeTI9IjI2LjU4IiB4bGluazpocmVmPSIjbGluZWFyLWdyYWRpZW50Ii8+PGxpbmVhckdyYWRpZW50IGlkPSJsaW5lYXItZ3JhZGllbnQtMTMiIHgxPSIzOTMuMjYiIHkxPSI0MjcuMzQiIHgyPSIzOTMuMjYiIHkyPSIyNi41OCIgeGxpbms6aHJlZj0iI2xpbmVhci1ncmFkaWVudCIvPjwvZGVmcz48ZyBjbGFzcz0iY2xzLTEiPjxnIGlkPSJPQkpFQ1RTIj48cGF0aCBjbGFzcz0iY2xzLTMiIGQ9Ik0yOTQuOTQsMTU5YTguODYsOC44NiwwLDEsMC04Ljg2LTguODVBOC44Niw4Ljg2LDAsMCwwLDI5NC45NCwxNTlaIi8+PHBhdGggY2xhc3M9ImNscy00IiBkPSJNMjA0LDM1MS4zMmE4Ljg2LDguODYsMCwxLDAsOC44Niw4Ljg2QTguODgsOC44OCwwLDAsMCwyMDQsMzUxLjMyWiIvPjxwYXRoIGNsYXNzPSJjbHMtNSIgZD0iTTE3NS4xNywyMjguODNhOC44Niw4Ljg2LDAsMSwwLTguODYtOC44NkE4Ljg3LDguODcsMCwwLDAsMTc1LjE3LDIyOC44M1oiLz48cGF0aCBjbGFzcz0iY2xzLTYiIGQ9Ik0yNTUuODQsMzc2LjYyYTguODYsOC44NiwwLDEsMCw4Ljg2LDguODZBOC44OCw4Ljg4LDAsMCwwLDI1NS44NCwzNzYuNjJaIi8+PHBhdGggY2xhc3M9ImNscy03IiBkPSJNMjczLDMyNi4xMWE4Ljg2LDguODYsMCwxLDAtOC44NS04Ljg2QTguODYsOC44NiwwLDAsMCwyNzMsMzI2LjExWiIvPjxwYXRoIGNsYXNzPSJjbHMtOCIgZD0iTTIxMi40OCwyNjEuNTRhOC44Niw4Ljg2LDAsMSwwLDguODYtOC44NkE4Ljg4LDguODgsMCwwLDAsMjEyLjQ4LDI2MS41NFoiLz48cGF0aCBjbGFzcz0iY2xzLTkiIGQ9Ik0xODYuNDIsMjY1LjI5YTguODYsOC44NiwwLDEsMC04Ljg2LDguODZBOC44Nyw4Ljg3LDAsMCwwLDE4Ni40MiwyNjUuMjlaIi8+PHBhdGggY2xhc3M9ImNscy0xMCIgZD0iTTM1NS4yNSwyNzEuMDhhOC44Niw4Ljg2LDAsMSwwLDguODYsOC44NkE4Ljg3LDguODcsMCwwLDAsMzU1LjI1LDI3MS4wOFoiLz48cGF0aCBjbGFzcz0iY2xzLTExIiBkPSJNMTI0Ljc0LDMwNS44M0E4Ljg2LDguODYsMCwxLDAsMTMzLjYsMjk3LDguODYsOC44NiwwLDAsMCwxMjQuNzQsMzA1LjgzWiIvPjxwYXRoIGNsYXNzPSJjbHMtMTIiIGQ9Ik0xODAuNDYsMzM3LjU1YTUuMTEsNS4xMSwwLDAsMS03LjY3LTQuNDRsLjA4LTUxLjQ2YTE3LDE3LDAsMSwxLDEwLjIzLS4yN0wxODMsMzI0LjI2bDIwOS4zMi0xMjAuOFYxNzUuODdMMzY2LjYsMTYxbC0zNS4xOSwyMC4yNC0xMi42NSwzMmE1LjEsNS4xLDAsMCwxLTIuMzMsMi42MkwyMzgsMjU4LjE4YTE3LjExLDE3LjExLDAsMSwxLTQuOTQtOC45NGw3Ni44NC00MS40OCwxMi42Mi0zMS45NGE1LjEsNS4xLDAsMCwxLDIuMi0yLjU2bDMxLjYxLTE4LjE3LTcxLTQxTDEzOC43NiwxOTkuMjNsMCw5MC4zNWExNywxNywwLDEsMS0xMC4yMiwwbDAtOTMuM2E1LjEzLDUuMTMsMCwwLDEsMi41NC00LjQybDE0NC4xMS04My42NEwyNDkuNjUsOTMuNDdsLTE0Mi43MSw4Mi40VjM0MC42NUwyNDkuNjUsNDIzbDE0Mi43LTgyLjM5VjIxNS4yNlptLTUuMjktMTM0LjYyYTE3LDE3LDAsMCwxLDExLDQuMDdsOTIuMTgtNTIuOTVhMTcuMDksMTcuMDksMCwxLDEsNS4yNSw4Ljc3bC05Miw1Mi44NWExNywxNywwLDEsMS0xNi40Ny0xMi43NFpNMjA0LDM3Ny4yMmExNywxNywwLDEsMSwxMS4yMi0yOS44M2w0MS44Ny0yNC4xMWExNywxNywwLDEsMSw2LjQxLDguMWwtNDMsMjQuNzVBMTcsMTcsMCwwLDEsMjA0LDM3Ny4yMlpNMzU1LjI1LDI5N2ExNi45MywxNi45MywwLDAsMS0xMC4yOS0zLjVsLTMyLjIxLDE3LjRMMzAzLjMxLDM2MmE1LjEzLDUuMTMsMCwwLDEtMi42LDMuNTdsLTI4LjQ3LDE1LjQxYTE2Ljc4LDE2Ljc4LDAsMCwxLC42NCw0LjU1LDE3LDE3LDAsMSwxLTYuMTYtMTMuMSw0LjUyLDQuNTIsMCwwLDEsLjU4LS4zOWwyNi40LTE0LjMsOS40NS01MS4wN2E1LjEyLDUuMTIsMCwwLDEsMi41OS0zLjU3bDMzLjI3LTE4QTE3LDE3LDAsMSwxLDM1NS4yNSwyOTdaIi8+PHBhdGggY2xhc3M9ImNscy0xMyIgZD0iTTMxMy4xLDEwMC42MmE4Ljg2LDguODYsMCwxLDAtOC44Ni04Ljg2QTguODcsOC44NywwLDAsMCwzMTMuMSwxMDAuNjJaIi8+PHBhdGggY2xhc3M9ImNscy0xMyIgZD0iTTQwNi4xLDEzMi40M2E0LjYzLDQuNjMsMCwwLDEsLjQ3LDEuMTYsOC42NCw4LjY0LDAsMSwwLTEuNjYtMi41NEE0LjgxLDQuODEsMCwwLDEsNDA2LjEsMTMyLjQzWiIvPjxwYXRoIGNsYXNzPSJjbHMtMTQiIGQ9Ik0zMDEuOTEsMTA0LjU3YTE2Ljg4LDE2Ljg4LDAsMCwwLDExLjE5LDQuMjMsMTcsMTcsMCwxLDAtMTctMTcsMTYuNzMsMTYuNzMsMCwwLDAsLjUyLDQuMDlsLTIxLjM1LDEyLjM5LDEwLjIsNS45Wk0zMTMuMSw4Mi45YTguODYsOC44NiwwLDEsMS04Ljg2LDguODZBOC44OCw4Ljg4LDAsMCwxLDMxMy4xLDgyLjlaIi8+PHBhdGggY2xhc3M9ImNscy0xNSIgZD0iTTQ0NC40MywxNzkuMzVhNS4xMSw1LjExLDAsMCwwLTctMS44OGwtNDUuMSwyNnYxMS44bDUwLjIxLTI5QTUuMTEsNS4xMSwwLDAsMCw0NDQuNDMsMTc5LjM1WiIvPjxwYXRoIGNsYXNzPSJjbHMtMTYiIGQ9Ik00MDIuMSwxNDAuNjNhMTcuMTUsMTcuMTUsMCwxLDAtNS40Ny04LjY1bC00MC4yMiwyMy4xM0wzNjYuNjQsMTYxWm0xMS0yMS44NmE4Ljg2LDguODYsMCwxLDEtNi41MSwxNC44Miw0LjYzLDQuNjMsMCwwLDAtLjQ3LTEuMTYsNC44MSw0LjgxLDAsMCwwLTEuMTktMS4zOCw4Ljg1LDguODUsMCwwLDEsOC4xNy0xMi4yOFoiLz48L2c+PC9nPjwvc3ZnPg==" style="width:100%;height:100%;object-fit:contain" alt="Logo">
+      </div>
+      <h1 style="font-size:26px;font-weight:900;color:#fff;margin:0 0 5px;letter-spacing:-.5px">SIGEI <span style="color:#60A5FA">TIC</span></h1>
+      <p style="font-size:13px;color:rgba(255,255,255,.45);margin:0">Sistema de Gestión Educativa Institucional</p>
+    </div>
+
+    <div style="height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent);margin-bottom:28px"></div>
+
+    <div id="login-error" style="display:none;background:rgba(239,68,68,.18);color:#fca5a5;padding:11px 15px;border-radius:10px;font-size:13px;margin-bottom:18px;border:1px solid rgba(239,68,68,.3);font-weight:500"></div>
+    <div id="login-loading" style="display:none;text-align:center;color:#93c5fd;font-size:13px;margin-bottom:16px;font-weight:500"><span>⏳ Cargando datos del sistema...</span></div>
+
+    <div style="margin-bottom:16px">
+      <label class="lf-label">Correo electrónico</label>
+      <input type="email" id="login-email" placeholder="usuario@institución.edu" class="lf-input" onkeydown="if(event.key==='Enter')loginSubmit()">
+    </div>
+
+    <div style="margin-bottom:28px">
+      <label class="lf-label">Contraseña</label>
+      <input type="password" id="login-pass" placeholder="••••••••" class="lf-input" onkeydown="if(event.key==='Enter')loginSubmit()">
+    </div>
+
+    <button id="login-btn" onclick="loginSubmit()"
+      style="width:100%;padding:14px;background:linear-gradient(135deg,#2563EB,#1D4ED8);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;letter-spacing:.02em;box-shadow:0 4px 18px rgba(37,99,235,.45);transition:opacity .2s,transform .15s,box-shadow .2s"
+      onmouseover="this.style.opacity='.9';this.style.transform='translateY(-1px)';this.style.boxShadow='0 8px 28px rgba(37,99,235,.55)'"
+      onmouseout="this.style.opacity='1';this.style.transform='translateY(0)';this.style.boxShadow='0 4px 18px rgba(37,99,235,.45)'"
+      onmousedown="this.style.transform='translateY(1px)'">
+      Iniciar sesión
+    </button>
+
+    <div style="text-align:center;margin-top:24px">
+      <div style="font-size:11px;color:rgba(255,255,255,.28);letter-spacing:.05em;margin-bottom:5px">CREADO POR ALFATIC &middot; &copy; 2026</div>
+      <span style="font-size:9px;color:rgba(255,255,255,.18);letter-spacing:.03em;line-height:1.5">Todos los derechos reservados para el Centro de Ciencia y Tecnología de Antioquia &middot; Proyecto ALFATIC &middot; Fundación Fraternidad Medellín &middot; &copy; 2026</span>
+    </div>
+
+    <!-- ── PANEL 2FA (oculto hasta que se necesite) ── -->
+    <div id="totp-login-panel" style="display:none">
+      <div style="text-align:center;margin-bottom:28px">
+        <div style="font-size:48px;margin-bottom:12px">🔐</div>
+        <h2 style="font-size:20px;font-weight:800;color:#fff;margin:0 0 8px">Verificación en dos pasos</h2>
+        <p style="font-size:13px;color:rgba(255,255,255,.5);margin:0;line-height:1.5">
+          Abre <strong style="color:rgba(255,255,255,.75)">Google Authenticator</strong> e ingresa<br>el código de 6 dígitos para <span id="totp-login-email" style="color:#93c5fd"></span>
+        </p>
+      </div>
+      <div id="totp-login-error" style="display:none;background:rgba(239,68,68,.18);color:#fca5a5;padding:11px 15px;border-radius:10px;font-size:13px;margin-bottom:18px;border:1px solid rgba(239,68,68,.3);font-weight:500;text-align:center"></div>
+      <input type="text" id="totp-login-input" class="lf-input"
+        maxlength="6" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code"
+        placeholder="000 000"
+        style="text-align:center;font-size:28px;font-weight:700;letter-spacing:10px;margin-bottom:20px"
+        onkeydown="if(event.key==='Enter')submitTOTPLogin()"
+        oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+      <button onclick="submitTOTPLogin()" id="totp-login-btn"
+        style="width:100%;padding:14px;background:linear-gradient(135deg,#6366F1,#4F46E5);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:12px;box-shadow:0 4px 18px rgba(99,102,241,.45)">
+        <i class="bi bi-shield-lock-fill me-2"></i>Verificar código
+      </button>
+      <button onclick="cancelTOTPLogin()"
+        style="width:100%;padding:11px;background:rgba(255,255,255,.06);color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.1);border-radius:12px;font-size:13px;cursor:pointer;font-family:inherit">
+        Cancelar y cerrar sesión
+      </button>
+      <div style="text-align:center;margin-top:18px">
+        <span style="font-size:11px;color:rgba(255,255,255,.25)">El código se renueva cada 30 segundos</span>
+      </div>
+    </div>
+    <!-- /PANEL 2FA -->
+
+  </div>
+</div>
+
 
 <!-- ══════════════════════════════════════
      SIDEBAR
@@ -1573,7 +2018,7 @@
       <input type="text" id="global-search-input" class="topbar-search-input"
         placeholder="Buscar docentes, eventos, grupos…"
         autocomplete="off"
-        oninput="buscarGlobal(this.value)"
+        oninput="_db_buscar(this.value)"
         onkeydown="buscarGlobalKey(event)"
         onfocus="if(this.value.length>1)document.getElementById('search-dd').classList.remove('d-none')"
         onblur="setTimeout(()=>document.getElementById('search-dd').classList.add('d-none'),200)">
@@ -1587,6 +2032,9 @@
       <div style="text-align:right">
         <div id="topbar-date" style="font-size:12px;color:var(--slate-500);font-weight:600"></div>
       </div>
+      <button id="topbar-user-btn" onclick="abrirPerfilUsuario()" title="Mi perfil">
+        <div class="user-avatar" id="topbar-user-avatar" style="width:30px;height:30px;font-size:11px;letter-spacing:0">?</div>
+      </button>
     </div>
   </div>
   <div class="content">
@@ -1707,7 +2155,7 @@
         <div style="padding:12px 20px;display:flex;gap:8px;align-items:center;border-bottom:1px solid #F1F5F9;flex-wrap:wrap">
           <div class="search-bar" style="flex:1;min-width:180px;max-width:260px">
             <i class="bi bi-search"></i>
-            <input type="text" class="form-control" id="buscar-docente" placeholder="Buscar docente..." oninput="renderDocentes()">
+            <input type="text" class="form-control" id="buscar-docente" placeholder="Buscar docente..." oninput="_db_doc()">
           </div>
           <select class="form-select form-select-sm" id="filtro-estado-doc" onchange="renderDocentes()" style="width:130px">
             <option value="">Todos los estados</option>
@@ -3426,9 +3874,74 @@
 ══════════════════════════════════════ -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<!-- Firebase compat SDKs — descargados durante el <head> via preload, ejecutan aquí -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script>
 'use strict';
+
+// ── Debounce helper para INP ────────────────────────────────────────────────
+function _mkDebounce(fn, ms) {
+  var t;
+  return function() {
+    var a = arguments, th = this;
+    clearTimeout(t);
+    t = setTimeout(function(){ fn.apply(th, a); }, ms);
+  };
+}
+// Wrappers para inputs de búsqueda (instanciados post-hoist de las funciones)
+var _db_buscar = _mkDebounce(function(v){ buscarGlobal(v); }, 200);
+var _db_doc    = _mkDebounce(function(){ renderDocentes(); }, 200);
+
+// ── Motion utilities ─────────────────────────────────────────────────────
+// _animCount: counts a KPI element from 0 → target with cubic ease-out.
+function _animCount(el, target) {
+  if (!el) return;
+  var dur = 650, t0 = performance.now();
+  el.classList.add('counting');
+  el.addEventListener('animationend', function(){ el.classList.remove('counting'); }, { once: true });
+  (function tick(now) {
+    var p    = Math.min((now - t0) / dur, 1);
+    var ease = 1 - Math.pow(1 - p, 3);
+    el.textContent = Math.round(target * ease);
+    if (p < 1) requestAnimationFrame(tick); else el.textContent = target;
+  })(t0);
+}
+
+// _motionInit: called once after login.
+//   • 3D cursor-tracked tilt on interactive stat cards
+//   • MutationObserver → staggered row entrance on every tbody change
+function _motionInit() {
+  // 3D tilt — follows cursor within each interactive card
+  document.querySelectorAll('.stat-card[onclick]').forEach(function(card) {
+    card.addEventListener('mousemove', function(e) {
+      var r = card.getBoundingClientRect();
+      var x = (e.clientX - r.left) / r.width  - 0.5;   // -0.5…+0.5
+      var y = (e.clientY - r.top)  / r.height - 0.5;
+      card.style.transform =
+        'perspective(480px) rotateY(' + (x * 10).toFixed(1) + 'deg)' +
+        ' rotateX('  + (-y * 10).toFixed(1) + 'deg) translateY(-4px)';
+    });
+    card.addEventListener('mouseleave', function() {
+      card.style.transform = '';
+    });
+  });
+
+  // Staggered table row entrance via MutationObserver
+  document.querySelectorAll('tbody').forEach(function(tb) {
+    if (tb._mObs) return;
+    tb._mObs = new MutationObserver(function() {
+      tb.querySelectorAll('tr').forEach(function(tr, i) {
+        tr.classList.remove('row-enter');
+        void tr.offsetHeight;                            // force reflow
+        tr.style.animationDelay = Math.min(i, 7) * 30 + 'ms';
+        tr.classList.add('row-enter');
+      });
+    });
+    tb._mObs.observe(tb, { childList: true });
+  });
+}
 
 // ══════════════════════════════════════════════
 //  BASE DE DATOS (Firebase Firestore)
@@ -3459,6 +3972,7 @@ const RENDER_BY_KEY = {
 const DB = {
   get(key)       { return _cache[key] || []; },
   set(key, data) {
+    _ISLAND.bump();
     _cache[key] = data;
     _fs.collection('sigei').doc(key).set({ items: data })
       .catch(err => {
@@ -3579,54 +4093,63 @@ const PAGE_ICONS = {
 };
 
 function navigate(page) {
-  // Hide all page sections (use explicit list to avoid matching page-title)
-  ['dashboard','docentes','grados','asignaciones','horarios','cronograma','seguimiento',
-   'actividad','usuarios','sedes','permisos','superadmin'].forEach(function(p) {
-    var el = document.getElementById('page-' + p);
-    if (el) el.classList.add('d-none');
-  });
-  var pageEl = document.getElementById('page-' + page);
-  if (!pageEl) return false;
+  function _run() {
+    // Hide all page sections
+    ['dashboard','docentes','grados','asignaciones','horarios','cronograma','seguimiento',
+     'actividad','usuarios','sedes','permisos','superadmin'].forEach(function(p) {
+      var el = document.getElementById('page-' + p);
+      if (el) el.classList.add('d-none');
+    });
+    var pageEl = document.getElementById('page-' + page);
+    if (!pageEl) return;
 
-  // Guard: Superadmin page only for Superadmin role
-  if (page === 'superadmin' && (window._SIGEI_USER||{}).rol !== 'Superadmin') {
-    toast('Acceso restringido al Panel Superadmin.', false); return false;
-  }
-  // Guard: check permisos_roles for current user (skip for Superadmin and dashboard)
-  if (page !== 'dashboard' && page !== 'superadmin') {
-    var _rol = (window._SIGEI_USER||{}).rol || '';
-    if (_rol && _rol !== 'Superadmin') {
-      var _prConfig = DB.get('permisos_roles') || [];
-      var _prEntry  = _prConfig.find(function(x){ return x.rol === _rol; });
-      if (_prEntry && _prEntry.modulos && !_prEntry.modulos.includes(page)) {
-        toast('No tienes permiso para acceder a este módulo.', false);
-        navigate('dashboard'); return false;
+    // Guard: Superadmin page only for Superadmin role
+    if (page === 'superadmin' && (window._SIGEI_USER||{}).rol !== 'Superadmin') {
+      toast('Acceso restringido al Panel Superadmin.', false); return;
+    }
+    // Guard: check permisos_roles for current user
+    if (page !== 'dashboard' && page !== 'superadmin') {
+      var _rol = (window._SIGEI_USER||{}).rol || '';
+      if (_rol && _rol !== 'Superadmin') {
+        var _prConfig = DB.get('permisos_roles') || [];
+        var _prEntry  = _prConfig.find(function(x){ return x.rol === _rol; });
+        if (_prEntry && _prEntry.modulos && !_prEntry.modulos.includes(page)) {
+          toast('No tienes permiso para acceder a este módulo.', false);
+          navigate('dashboard'); return;
+        }
       }
     }
+
+    pageEl.classList.remove('d-none');
+    document.getElementById('page-title').textContent = PAGE_TITLES[page] || page;
+    const iconEl = document.getElementById('topbar-icon');
+    if (iconEl) iconEl.innerHTML = '<i class="bi ' + (PAGE_ICONS[page] || 'bi-circle') + '"></i>';
+    document.querySelectorAll('#sidebar nav a').forEach(a => {
+      a.classList.toggle('active', a.dataset.page === page);
+    });
+    const renders = {
+      dashboard:    renderDashboard,
+      docentes:     renderDocentes,
+      grados:       renderGrados,
+      asignaciones: renderAsignaciones,
+      horarios:     renderHorarios,
+      cronograma:   renderCronograma,
+      seguimiento:  renderSeguimiento,
+      actividad:    renderActividad,
+      usuarios:     renderUsuarios,
+      superadmin:   renderSuperadmin,
+      sedes:        renderSedes,
+      permisos:     renderPermisos,
+    };
+    if (renders[page]) renders[page]();
   }
 
-  pageEl.classList.remove('d-none');
-  document.getElementById('page-title').textContent = PAGE_TITLES[page] || page;
-  const iconEl = document.getElementById('topbar-icon');
-  if (iconEl) iconEl.innerHTML = '<i class="bi ' + (PAGE_ICONS[page] || 'bi-circle') + '"></i>';
-  document.querySelectorAll('#sidebar nav a').forEach(a => {
-    a.classList.toggle('active', a.dataset.page === page);
-  });
-  const renders = {
-    dashboard:    renderDashboard,
-    docentes:     renderDocentes,
-    grados:       renderGrados,
-    asignaciones: renderAsignaciones,
-    horarios:     renderHorarios,
-    cronograma:   renderCronograma,
-    seguimiento:  renderSeguimiento,
-    actividad:    renderActividad,
-    usuarios:     renderUsuarios,
-    superadmin:   renderSuperadmin,
-    sedes:        renderSedes,
-    permisos:     renderPermisos,
-  };
-  if (renders[page]) renders[page]();
+  // View Transitions API — solo en navegaciones post-login (no en la primera carga)
+  if (typeof document.startViewTransition === 'function' && _appLoaded) {
+    document.startViewTransition(_run);
+  } else {
+    _run();   // fallback: primera carga o navegador sin soporte
+  }
   return false;
 }
 
@@ -3677,25 +4200,6 @@ function emptyRow(cols, msg) {
     + '<h6>'+msg+'</h6>'
     + '<p>No hay registros que mostrar en este momento.</p>'
     + '</div></td></tr>';
-}
-function skeletonRows(cols, n) {
-  n = n || 5;
-  var row = '<tr>';
-  for (var i=0; i<cols; i++) {
-    var w = [60,80,40,70,50][i%5];
-    row += '<td style="padding:12px 14px"><div class="skeleton skeleton-line w-'+w+'"></div></td>';
-  }
-  row += '</tr>';
-  return Array(n).fill(row).join('');
-}
-function emptyState(icon, title, desc, btnLabel, btnFn) {
-  return '<div class="empty-state-full">'
-    + '<div class="es-icon"><i class="bi '+icon+'"></i></div>'
-    + '<h6>'+title+'</h6>'
-    + '<p>'+desc+'</p>'
-    + (btnLabel ? '<button class="btn btn-sm text-white mt-2" style="background:var(--blue-600)" onclick="'+btnFn+'()">'
-        + '<i class="bi bi-plus-lg me-1"></i>'+btnLabel+'</button>' : '')
-    + '</div>';
 }
 function toast(msg, ok=true, ms=3500) {
   const el = document.createElement('div');
@@ -3795,11 +4299,16 @@ function renderDashboard() {
   const sedes  = DB.get('sedes');
   const asigs  = DB.get('asignaciones');
 
-  document.getElementById('cnt-docentes').textContent  = docs.filter(d=>d.estado==='Activo').length;
-  document.getElementById('cnt-secciones').textContent = secs.length;
-  document.getElementById('cnt-horarios').textContent  = hors.length;
-  document.getElementById('cnt-permisos').textContent  = perms.filter(p=>p.estado==='Pendiente').length;
-  document.getElementById('cnt-sedes').textContent     = sedes.length;
+  // Animated KPI counters
+  _animCount(document.getElementById('cnt-docentes'),  docs.filter(d=>d.estado==='Activo').length);
+  _animCount(document.getElementById('cnt-secciones'), secs.length);
+  _animCount(document.getElementById('cnt-horarios'),  hors.length);
+  const _pendCount = perms.filter(p=>p.estado==='Pendiente').length;
+  _animCount(document.getElementById('cnt-permisos'),  _pendCount);
+  _animCount(document.getElementById('cnt-sedes'),     sedes.length);
+  // Alert pulse on pending permisos card
+  const _permCard = document.getElementById('cnt-permisos');
+  if (_permCard) (_permCard.closest('.stat-card')||{}).dataset && (_permCard.closest('.stat-card').dataset.pulse = _pendCount > 0 ? 'true' : '');
 
   const tbPerm = document.getElementById('dash-permisos');
   const pending = perms.filter(p => p.estado === 'Pendiente').slice(0,5);
@@ -3819,22 +4328,26 @@ function renderDashboard() {
   // ── Gráfica: Estado docentes ─────────────────────────────────────────
   const ctxE = document.getElementById('chart-docentes-estado');
   if (ctxE && typeof Chart !== 'undefined') {
-    if (_chartEstado) _chartEstado.destroy();
     const activos   = docs.filter(d=>d.estado==='Activo').length;
     const inactivos = docs.filter(d=>d.estado==='Inactivo').length;
     const licencia  = docs.filter(d=>d.estado==='Licencia').length;
-    _chartEstado = new Chart(ctxE, {
-      type: 'doughnut',
-      data: {
-        labels: ['Activos','Inactivos','Licencia'],
-        datasets: [{ data: [activos, inactivos, licencia],
-          backgroundColor: ['#10B981','#94A3B8','#F59E0B'],
-          borderWidth: 2, borderColor: '#fff' }]
-      },
-      options: { responsive: true, maintainAspectRatio: false, cutout: '70%',
-        plugins: { legend: { position: 'bottom', labels: { font: { size: 11, weight:'600' }, padding: 14, usePointStyle:true, pointStyleWidth:8 } },
-          tooltip: { callbacks: { label: ctx => ' ' + ctx.label + ': ' + ctx.raw + ' docentes' } } } }
-    });
+    if (_chartEstado) {
+      _chartEstado.data.datasets[0].data = [activos, inactivos, licencia];
+      _chartEstado.update('none');
+    } else {
+      _chartEstado = new Chart(ctxE, {
+        type: 'doughnut',
+        data: {
+          labels: ['Activos','Inactivos','Licencia'],
+          datasets: [{ data: [activos, inactivos, licencia],
+            backgroundColor: ['#10B981','#94A3B8','#F59E0B'],
+            borderWidth: 2, borderColor: '#fff' }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, cutout: '70%',
+          plugins: { legend: { position: 'bottom', labels: { font: { size: 11, weight:'600' }, padding: 14, usePointStyle:true, pointStyleWidth:8 } },
+            tooltip: { callbacks: { label: ctx => ' ' + ctx.label + ': ' + ctx.raw + ' docentes' } } } }
+      });
+    }
   }
 
   // ── Gráfica: Carga académica ─────────────────────────────────────────
@@ -4923,22 +5436,20 @@ function renderAsignaciones() {
 
   const docentes  = docentesSedePrincipal();
 
-  // Populate docente filter
-  const fDoc   = document.getElementById('filtro-asig-docente');
-  const curDoc = fDoc.value;
-  fDoc.innerHTML = '<option value="">Todos los docentes</option>' +
-    docentes.map(d => '<option value="' + d.id + '"' + (d.id == curDoc ? ' selected' : '') + '>' +
-      [d.p_nombre, d.s_nombre, d.p_apellido, d.s_apellido].filter(Boolean).join(' ') + '</option>').join('');
-
-  // Populate hidden tablero selector
-  const tSel   = document.getElementById('tablero-doc-sel');
-  const curTab = tSel.value;
-  tSel.innerHTML = '<option value="">Seleccionar docente...</option>' +
-    docentes.map(d => '<option value="' + d.id + '"' + (d.id == curTab ? ' selected' : '') + '>' +
-      [d.p_nombre, d.s_nombre, d.p_apellido, d.s_apellido].filter(Boolean).join(' ') + '</option>').join('');
-
+  // Filter selects — rebuild only when data changed (island pattern)
+  const fDoc = document.getElementById('filtro-asig-docente');
+  const tSel = document.getElementById('tablero-doc-sel');
+  if (_ISLAND.needs('asignaciones')) {
+    const cD = fDoc.value, cT = tSel.value;
+    fDoc.innerHTML = '<option value="">Todos los docentes</option>' +
+      docentes.map(d => '<option value="' + d.id + '"' + (d.id == cD ? ' selected' : '') + '>' +
+        [d.p_nombre, d.s_nombre, d.p_apellido, d.s_apellido].filter(Boolean).join(' ') + '</option>').join('');
+    tSel.innerHTML = '<option value="">Seleccionar docente...</option>' +
+      docentes.map(d => '<option value="' + d.id + '"' + (d.id == cT ? ' selected' : '') + '>' +
+        [d.p_nombre, d.s_nombre, d.p_apellido, d.s_apellido].filter(Boolean).join(' ') + '</option>').join('');
+  }
   let asigs = DB.get('asignaciones');
-  if (curDoc) asigs = asigs.filter(a => a.docente_id == curDoc);
+  if (fDoc.value) asigs = asigs.filter(a => a.docente_id == fDoc.value);
 
   // Group by docente
   const byDoc = {};
@@ -5353,17 +5864,16 @@ function renderCronCalendario() {
 function renderCronograma() {
   const grados = DB.get('grados');
 
-  // Populate tipo filter
-  const fTipo  = document.getElementById('filtro-crono-tipo');
-  const curTipo = fTipo.value;
-  fTipo.innerHTML = '<option value="">Todos los tipos</option>' +
-    TIPOS_EVENTO.map(t => '<option' + (t === curTipo ? ' selected' : '') + '>' + t + '</option>').join('');
-
-  // Populate grado filter
-  const fGrad   = document.getElementById('filtro-crono-grado');
-  const curGrad = fGrad.value;
-  fGrad.innerHTML = '<option value="">Todos los grados</option>' +
-    grados.map(g => '<option value="' + g.id + '"' + (g.id == curGrad ? ' selected' : '') + '>' + g.nombre + '</option>').join('');
+  // Filter selects — rebuild only when data changed (island pattern)
+  const fTipo = document.getElementById('filtro-crono-tipo');
+  const fGrad = document.getElementById('filtro-crono-grado');
+  if (_ISLAND.needs('cronograma')) {
+    const cT = fTipo.value, cG = fGrad.value;
+    fTipo.innerHTML = '<option value="">Todos los tipos</option>' +
+      TIPOS_EVENTO.map(t => '<option' + (t === cT ? ' selected' : '') + '>' + t + '</option>').join('');
+    fGrad.innerHTML = '<option value="">Todos los grados</option>' +
+      grados.map(g => '<option value="' + g.id + '"' + (g.id == cG ? ' selected' : '') + '>' + g.nombre + '</option>').join('');
+  }
 
   // Year filter default = current year
   const yearEl = document.getElementById('filtro-crono-year');
@@ -5371,8 +5881,8 @@ function renderCronograma() {
   const year = yearEl.value;
 
   let eventos = DB.get('cronograma').sort((a,b) => a.fecha_ini.localeCompare(b.fecha_ini));
-  if (curTipo) eventos = eventos.filter(e => e.tipo === curTipo);
-  if (curGrad) eventos = eventos.filter(e => !e.grados || e.grados.includes('all') || e.grados.includes(parseInt(curGrad)));
+  if (fTipo.value) eventos = eventos.filter(e => e.tipo === fTipo.value);
+  if (fGrad.value) eventos = eventos.filter(e => !e.grados || e.grados.includes('all') || e.grados.includes(parseInt(fGrad.value)));
   if (year)    eventos = eventos.filter(e => e.fecha_ini.startsWith(year));
 
   const hoy = new Date().toISOString().slice(0,10);
@@ -5811,9 +6321,6 @@ function _diaHoy() {
   _horarioDiaOffset = d === 6 ? -1 : d === 0 ? 1 : 0;
   renderHorarios();
 }
-function _semanaNav(delta) { _diaNav(delta * 5); }
-function _semanaHoy()      { _diaHoy(); }
-
 const HORAS = ['07:00','07:30','08:00','08:30','09:00','09:30','10:00','10:30',
                '11:00','11:30','12:00','12:30','13:00','13:30','14:00','14:30'];
 
@@ -5852,28 +6359,23 @@ function renderHorarios() {
   const secciones = DB.get('secciones');
   const docentes  = docentesSedePrincipal();
 
-  // Populate grado filter
+  // Filter selects — rebuild only when data changed (island pattern)
   const fGrado = document.getElementById('filtro-horario-grado');
-  const curGrado = fGrado.value;
-  fGrado.innerHTML = '<option value="">Todos los grados</option>' +
-    grados.map(g => '<option value="' + g.id + '"' + (g.id == curGrado ? ' selected' : '') + '>' + g.nombre + '</option>').join('');
-
-  // Populate seccion filter (depends on grado)
-  const fSec  = document.getElementById('filtro-horario-seccion');
-  const curSec = fSec.value;
-  const secsVis = secciones.filter(s => !curGrado || s.grado_id == curGrado);
-  fSec.innerHTML = '<option value="">Todas las secciones</option>' +
-    secsVis.map(s => '<option value="' + s.id + '"' + (s.id == curSec ? ' selected' : '') + '>' +
-      nombreGrado(s.grado_id) + ' — ' + s.nombre + '</option>').join('');
-
-  // Populate docente filter
-  const fDoc  = document.getElementById('filtro-horario-docente');
-  const curDoc = fDoc.value;
-  fDoc.innerHTML = '<option value="">Todos los docentes</option>' +
-    docentes.map(d => '<option value="' + d.id + '"' + (d.id == curDoc ? ' selected' : '') + '>' +
-      d.p_nombre + ' ' + d.p_apellido + '</option>').join('');
-
-  // Read active filters
+  const fSec   = document.getElementById('filtro-horario-seccion');
+  const fDoc   = document.getElementById('filtro-horario-docente');
+  if (_ISLAND.needs('horarios')) {
+    const cG = fGrado.value, cS = fSec.value, cD = fDoc.value;
+    fGrado.innerHTML = '<option value="">Todos los grados</option>' +
+      grados.map(g => '<option value="' + g.id + '"' + (g.id == cG ? ' selected' : '') + '>' + g.nombre + '</option>').join('');
+    const secsVis = secciones.filter(s => !fGrado.value || s.grado_id == fGrado.value);
+    fSec.innerHTML = '<option value="">Todas las secciones</option>' +
+      secsVis.map(s => '<option value="' + s.id + '"' + (s.id == cS ? ' selected' : '') + '>' +
+        nombreGrado(s.grado_id) + ' — ' + s.nombre + '</option>').join('');
+    fDoc.innerHTML = '<option value="">Todos los docentes</option>' +
+      docentes.map(d => '<option value="' + d.id + '"' + (d.id == cD ? ' selected' : '') + '>' +
+        d.p_nombre + ' ' + d.p_apellido + '</option>').join('');
+  }
+  // Read active filters (from DOM — always current)
   const filtroGrado = fGrado.value;
   const filtroSec   = fSec.value;
   const filtroDoc   = fDoc.value;
@@ -7614,13 +8116,14 @@ function buscarGlobal(q) {
   var res = [];
 
   DB.get('docentes').forEach(function(d) {
-    var n = ((d.p_nombre||'') + ' ' + (d.p_apellido||'')).toLowerCase();
+    var fullName = [d.p_nombre, d.s_nombre, d.p_apellido, d.s_apellido].filter(Boolean).join(' ');
+    var n = fullName.toLowerCase();
     if (n.includes(q) || (d.cedula||'').toLowerCase().includes(q) || (d.area||'').toLowerCase().includes(q)) {
-      (function(did){
+      (function(did, fn){
         res.push({ g:'Docentes', ico:'bi-person-badge-fill', bg:'#EFF6FF', col:'#2563EB',
-          t: d.p_nombre+' '+d.p_apellido, s:(d.area||'')+(d.estado?' · '+d.estado:''),
+          t: fn, s:(d.area||'')+(d.estado?' · '+d.estado:''),
           fn: function(){ verDocente(did); } });
-      })(d.id);
+      })(d.id, fullName);
     }
   });
   DB.get('secciones').forEach(function(s) {
@@ -7642,7 +8145,7 @@ function buscarGlobal(q) {
     }
   });
   (DB.get('docentes')||[]).filter(function(d){ return d.estado === 'Activo'; }).forEach(function(d) {
-    var nombre = (d.p_nombre||'') + ' ' + (d.p_apellido||'');
+    var nombre = [d.p_nombre, d.s_nombre, d.p_apellido, d.s_apellido].filter(Boolean).join(' ');
     if (nombre.toLowerCase().includes(q)) {
       res.push({ g:'Seguimiento Pedagógico', ico:'bi-journal-check', bg:'#EEF2FF', col:'#4F46E5',
         t: nombre, s:'Ver seguimiento del docente',
@@ -9172,7 +9675,7 @@ async function submitTOTPLogin() {
     if (dateEl) dateEl.textContent = new Date().toLocaleDateString('es-CO',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
     applyDarkPref(); cargarRolUsuario();
     Object.keys(_cache).forEach(function(c){ if(Array.isArray(_cache[c])) _cache['_prev_'+c]=_cache[c].slice(); });
-    renderDashboard(); navigate('dashboard'); _appLoaded = true;
+    navigate('dashboard'); _appLoaded = true;
   }
 }
 
@@ -9182,18 +9685,6 @@ function cancelTOTPLogin() {
   _auth.signOut();
 }
 
-function exportarDatos() {
-  const data = {};
-  ['docentes','secciones','grados','horarios','aulas','sedes','permisos'].forEach(k => { data[k] = DB.get(k); });
-  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href = url;
-  a.download = 'SIGEI_backup_' + new Date().toISOString().slice(0,10) + '.json';
-  a.click();
-  URL.revokeObjectURL(url);
-  toast('Datos exportados.');
-}
 
 function importarDatos(ev) {
   const file = ev.target.files[0];
@@ -9376,12 +9867,60 @@ async function loginSubmit() {
   }
 }
 
+// ── Perfil de usuario ───────────────────────────────────────────────────
+function _ocNavAndClose(page) {
+  var oc = bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasUserProfile'));
+  if (oc) oc.hide();
+  navigate(page);
+}
+
+function abrirPerfilUsuario() {
+  var currentUser = firebase.auth().currentUser;
+  var email = (currentUser || {}).email || '';
+  // Initials: first 2 letters of email or real name
+  var usuarios = DB.get('usuarios') || [];
+  var uRecord  = usuarios.find(function(u){ return u.email === email; });
+  var nombre   = uRecord ? ((uRecord.p_nombre||'') + ' ' + (uRecord.p_apellido||'')).trim() : '';
+  var initials = nombre
+    ? nombre.split(' ').slice(0, 2).map(function(w){ return w[0]; }).join('').toUpperCase()
+    : email.substring(0, 2).toUpperCase();
+  var rol = (document.getElementById('sidebar-role') || {}).textContent || '—';
+
+  document.getElementById('oc-profile-avatar').textContent = initials;
+  document.getElementById('topbar-user-avatar').textContent = initials;
+  document.getElementById('oc-profile-name').textContent  = nombre || email;
+  document.getElementById('oc-profile-email').textContent = email;
+  document.getElementById('oc-profile-role').textContent  = rol;
+
+  // Sync dark-mode button label
+  var isDark = document.body.classList.contains('dark-mode');
+  var lbl = document.getElementById('oc-prof-darklabel');
+  var ico = document.getElementById('oc-prof-darkicon');
+  if (lbl) lbl.textContent = isDark ? 'Modo claro' : 'Modo oscuro';
+  if (ico) { ico.className = isDark ? 'bi bi-sun-fill' : 'bi bi-moon-fill'; }
+
+  bootstrap.Offcanvas.getOrCreateInstance(document.getElementById('offcanvasUserProfile')).show();
+}
+
 async function logoutUser() {
   _appLoaded = false;
   await _auth.signOut();
 }
 
 let _appLoaded = false;
+
+// ── Islands hydration registry ─────────────────────────────────────────
+// Filter selects are rebuilt only on first visit or after data changes,
+// not on every navigate() call. DB.set() bumps the generation counter.
+const _ISLAND = (function() {
+  const _at = {};
+  let   _g  = 0;
+  return {
+    bump:  function()     { _g++; },
+    needs: function(name) { if (_at[name] !== _g) { _at[name] = _g; return true; } return false; },
+    reset: function()     { _g++; }
+  };
+})();
 
 _auth.onAuthStateChanged(async function(user) {
   const overlay = document.getElementById('login-overlay');
@@ -9425,6 +9964,11 @@ _auth.onAuthStateChanged(async function(user) {
     overlay.style.display = 'none';
     const emailEl = document.getElementById('user-email-display');
     if (emailEl) emailEl.textContent = user.email;
+    // Sync topbar avatar initials
+    var _tbAv = document.getElementById('topbar-user-avatar');
+    if (_tbAv) _tbAv.textContent = (user.email||'?').substring(0,2).toUpperCase();
+    var _sbAv = document.getElementById('user-avatar-initials');
+    if (_sbAv) _sbAv.textContent = (user.email||'?').substring(0,2).toUpperCase();
     if (!_appLoaded) {
       // Set topbar date
       const dateEl = document.getElementById('topbar-date');
@@ -9432,7 +9976,8 @@ _auth.onAuthStateChanged(async function(user) {
         const now = new Date();
         dateEl.textContent = now.toLocaleDateString('es-CO', { weekday:'short', day:'numeric', month:'short', year:'numeric' });
       }
-      applyDarkPref(); cargarRolUsuario(); Object.keys(_cache).forEach(function(c){ _cache['_prev_'+c]=(_cache[c]||[]).slice(); }); renderDashboard(); navigate('dashboard'); _appLoaded = true;
+      applyDarkPref(); cargarRolUsuario(); Object.keys(_cache).forEach(function(c){ if(Array.isArray(_cache[c])) _cache['_prev_'+c]=_cache[c].slice(); }); navigate('dashboard'); _appLoaded = true;
+      _motionInit();
     }
   } else {
     // Not logged in — just show the overlay (no reload)
@@ -9454,95 +9999,82 @@ _auth.onAuthStateChanged(async function(user) {
 });
 </script>
 
-<!-- ── LOGIN OVERLAY ─────────────────────────────────────────────── -->
-<style>
-.lf-input{width:100%;padding:13px 16px;background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.15);border-radius:12px;font-size:14px;color:#fff;outline:none;box-sizing:border-box;transition:border-color .2s,background .2s;font-family:inherit}
-.lf-input::placeholder{color:rgba(255,255,255,0.35)}
-.lf-input:focus{border-color:rgba(99,179,237,.7);background:rgba(255,255,255,.12)}
-.lf-label{font-size:12px;font-weight:600;color:rgba(255,255,255,.6);display:block;margin-bottom:8px;letter-spacing:.03em}
-@keyframes lp{0%,100%{opacity:.18;transform:scale(1)}50%{opacity:.28;transform:scale(1.06)}}
-</style>
 
-<div id="login-overlay" style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;font-family:'Plus Jakarta Sans','Segoe UI',system-ui,sans-serif;overflow:hidden;background:#060D1F">
+<!-- ══════════════════════════════════════
+     OFFCANVAS — PERFIL DE USUARIO
+══════════════════════════════════════ -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasUserProfile"
+     style="width:300px;border-left:none">
 
-  <div style="position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 20% 10%,rgba(37,99,235,.45) 0%,transparent 60%),radial-gradient(ellipse 60% 70% at 85% 80%,rgba(109,40,217,.35) 0%,transparent 60%);pointer-events:none"></div>
-  <div style="position:absolute;width:460px;height:460px;border-radius:50%;background:radial-gradient(circle,rgba(59,130,246,.2) 0%,transparent 65%);top:-120px;left:-120px;animation:lp 7s ease-in-out infinite;pointer-events:none"></div>
-  <div style="position:absolute;width:340px;height:340px;border-radius:50%;background:radial-gradient(circle,rgba(139,92,246,.18) 0%,transparent 65%);bottom:-80px;right:-80px;animation:lp 9s ease-in-out infinite .5s;pointer-events:none"></div>
-  <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.02) 1px,transparent 1px);background-size:48px 48px;pointer-events:none"></div>
-
-  <!-- GLASS CARD -->
-  <div style="position:relative;z-index:1;width:100%;max-width:420px;margin:20px;background:rgba(255,255,255,0.06);backdrop-filter:blur(32px);-webkit-backdrop-filter:blur(32px);border:1px solid rgba(255,255,255,0.13);border-radius:28px;padding:44px 40px;box-shadow:0 24px 80px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.12)">
-
-    <div style="position:absolute;inset:0;border-radius:28px;background:radial-gradient(ellipse 80% 40% at 50% 0%,rgba(99,179,237,.07) 0%,transparent 70%);pointer-events:none"></div>
-
-    <div style="text-align:center;margin-bottom:32px;position:relative">
-      <div style="width:120px;height:120px;margin:0 auto 18px;filter:drop-shadow(0 6px 24px rgba(99,179,237,.55))">
-        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB2aWV3Qm94PSIwIDAgNTAwIDUwMCI+PGRlZnM+PHN0eWxlPi5jbHMtMXtpc29sYXRpb246aXNvbGF0ZTt9LmNscy0ye29wYWNpdHk6MC40O21peC1ibGVuZC1tb2RlOm11bHRpcGx5O30uY2xzLTN7ZmlsbDp1cmwoI2xpbmVhci1ncmFkaWVudCk7fS5jbHMtNHtmaWxsOnVybCgjbGluZWFyLWdyYWRpZW50LTIpO30uY2xzLTV7ZmlsbDp1cmwoI2xpbmVhci1ncmFkaWVudC0zKTt9LmNscy02e2ZpbGw6dXJsKCNsaW5lYXItZ3JhZGllbnQtNCk7fS5jbHMtN3tmaWxsOnVybCgjbGluZWFyLWdyYWRpZW50LTUpO30uY2xzLTh7ZmlsbDp1cmwoI2xpbmVhci1ncmFkaWVudC02KTt9LmNscy05e2ZpbGw6dXJsKCNsaW5lYXItZ3JhZGllbnQtNyk7fS5jbHMtMTB7ZmlsbDp1cmwoI2xpbmVhci1ncmFkaWVudC04KTt9LmNscy0xMXtmaWxsOnVybCgjbGluZWFyLWdyYWRpZW50LTkpO30uY2xzLTEye2ZpbGw6dXJsKCNsaW5lYXItZ3JhZGllbnQtMTApO30uY2xzLTEze2ZpbGw6bm9uZTt9LmNscy0xNHtmaWxsOnVybCgjbGluZWFyLWdyYWRpZW50LTExKTt9LmNscy0xNXtmaWxsOnVybCgjbGluZWFyLWdyYWRpZW50LTEyKTt9LmNscy0xNntmaWxsOnVybCgjbGluZWFyLWdyYWRpZW50LTEzKTt9PC9zdHlsZT48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudCIgeDE9IjI5NC45NCIgeTE9IjQyNy4zNCIgeDI9IjI5NC45NCIgeTI9IjI2LjU4IiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjMmM0ZDhkIi8+PHN0b3Agb2Zmc2V0PSIwLjA2IiBzdG9wLWNvbG9yPSIjMzM1YTk5Ii8+PHN0b3Agb2Zmc2V0PSIwLjI4IiBzdG9wLWNvbG9yPSIjNGM4NmMyIi8+PHN0b3Agb2Zmc2V0PSIwLjQ4IiBzdG9wLWNvbG9yPSIjNWVhNmUwIi8+PHN0b3Agb2Zmc2V0PSIwLjY1IiBzdG9wLWNvbG9yPSIjNjliOWYyIi8+PHN0b3Agb2Zmc2V0PSIwLjc2IiBzdG9wLWNvbG9yPSIjNmRjMGY5Ii8+PHN0b3Agb2Zmc2V0PSIwLjc3IiBzdG9wLWNvbG9yPSIjNmVjMmY5Ii8+PHN0b3Agb2Zmc2V0PSIwLjg2IiBzdG9wLWNvbG9yPSIjN2NkY2ZiIi8+PHN0b3Agb2Zmc2V0PSIwLjk0IiBzdG9wLWNvbG9yPSIjODRlY2ZkIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjODdmMWZkIi8+PC9saW5lYXJHcmFkaWVudD48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudC0yIiB4MT0iMjAzLjk2IiB5MT0iNDI3LjM0IiB4Mj0iMjAzLjk2IiB5Mj0iMjYuNTgiIHhsaW5rOmhyZWY9IiNsaW5lYXItZ3JhZGllbnQiLz48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudC0zIiB4MT0iMTc1LjE3IiB5MT0iNDI3LjM0IiB4Mj0iMTc1LjE3IiB5Mj0iMjYuNTgiIHhsaW5rOmhyZWY9IiNsaW5lYXItZ3JhZGllbnQiLz48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudC00IiB4MT0iMjU1Ljg0IiB5MT0iNDI3LjM0IiB4Mj0iMjU1Ljg0IiB5Mj0iMjYuNTgiIHhsaW5rOmhyZWY9IiNsaW5lYXItZ3JhZGllbnQiLz48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudC01IiB4MT0iMjcyLjk3IiB5MT0iNDI3LjM0IiB4Mj0iMjcyLjk3IiB5Mj0iMjYuNTgiIHhsaW5rOmhyZWY9IiNsaW5lYXItZ3JhZGllbnQiLz48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudC02IiB4MT0iMjIxLjM0IiB5MT0iNDI3LjM0IiB4Mj0iMjIxLjM0IiB5Mj0iMjYuNTgiIHhsaW5rOmhyZWY9IiNsaW5lYXItZ3JhZGllbnQiLz48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudC03IiB4MT0iMTc3LjU2IiB5MT0iNDI3LjM0IiB4Mj0iMTc3LjU2IiB5Mj0iMjYuNTgiIHhsaW5rOmhyZWY9IiNsaW5lYXItZ3JhZGllbnQiLz48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudC04IiB4MT0iMzU1LjI1IiB5MT0iNDI3LjM0IiB4Mj0iMzU1LjI1IiB5Mj0iMjYuNTgiIHhsaW5rOmhyZWY9IiNsaW5lYXItZ3JhZGllbnQiLz48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudC05IiB4MT0iMTMzLjYiIHkxPSI0MjcuMzQiIHgyPSIxMzMuNiIgeTI9IjI2LjU4IiB4bGluazpocmVmPSIjbGluZWFyLWdyYWRpZW50Ii8+PGxpbmVhckdyYWRpZW50IGlkPSJsaW5lYXItZ3JhZGllbnQtMTAiIHgxPSIyNDkuNjUiIHkxPSI0MjcuMzQiIHgyPSIyNDkuNjUiIHkyPSIyNi41OCIgeGxpbms6aHJlZj0iI2xpbmVhci1ncmFkaWVudCIvPjxsaW5lYXJHcmFkaWVudCBpZD0ibGluZWFyLWdyYWRpZW50LTExIiB4MT0iMzAyLjY4IiB5MT0iNDI3LjM0IiB4Mj0iMzAyLjY4IiB5Mj0iMjYuNTgiIHhsaW5rOmhyZWY9IiNsaW5lYXItZ3JhZGllbnQiLz48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudC0xMiIgeDE9IjQxOC43MyIgeTE9IjQyNy4zNCIgeDI9IjQxOC43MyIgeTI9IjI2LjU4IiB4bGluazpocmVmPSIjbGluZWFyLWdyYWRpZW50Ii8+PGxpbmVhckdyYWRpZW50IGlkPSJsaW5lYXItZ3JhZGllbnQtMTMiIHgxPSIzOTMuMjYiIHkxPSI0MjcuMzQiIHgyPSIzOTMuMjYiIHkyPSIyNi41OCIgeGxpbms6aHJlZj0iI2xpbmVhci1ncmFkaWVudCIvPjwvZGVmcz48ZyBjbGFzcz0iY2xzLTEiPjxnIGlkPSJPQkpFQ1RTIj48cGF0aCBjbGFzcz0iY2xzLTMiIGQ9Ik0yOTQuOTQsMTU5YTguODYsOC44NiwwLDEsMC04Ljg2LTguODVBOC44Niw4Ljg2LDAsMCwwLDI5NC45NCwxNTlaIi8+PHBhdGggY2xhc3M9ImNscy00IiBkPSJNMjA0LDM1MS4zMmE4Ljg2LDguODYsMCwxLDAsOC44Niw4Ljg2QTguODgsOC44OCwwLDAsMCwyMDQsMzUxLjMyWiIvPjxwYXRoIGNsYXNzPSJjbHMtNSIgZD0iTTE3NS4xNywyMjguODNhOC44Niw4Ljg2LDAsMSwwLTguODYtOC44NkE4Ljg3LDguODcsMCwwLDAsMTc1LjE3LDIyOC44M1oiLz48cGF0aCBjbGFzcz0iY2xzLTYiIGQ9Ik0yNTUuODQsMzc2LjYyYTguODYsOC44NiwwLDEsMCw4Ljg2LDguODZBOC44OCw4Ljg4LDAsMCwwLDI1NS44NCwzNzYuNjJaIi8+PHBhdGggY2xhc3M9ImNscy03IiBkPSJNMjczLDMyNi4xMWE4Ljg2LDguODYsMCwxLDAtOC44NS04Ljg2QTguODYsOC44NiwwLDAsMCwyNzMsMzI2LjExWiIvPjxwYXRoIGNsYXNzPSJjbHMtOCIgZD0iTTIxMi40OCwyNjEuNTRhOC44Niw4Ljg2LDAsMSwwLDguODYtOC44NkE4Ljg4LDguODgsMCwwLDAsMjEyLjQ4LDI2MS41NFoiLz48cGF0aCBjbGFzcz0iY2xzLTkiIGQ9Ik0xODYuNDIsMjY1LjI5YTguODYsOC44NiwwLDEsMC04Ljg2LDguODZBOC44Nyw4Ljg3LDAsMCwwLDE4Ni40MiwyNjUuMjlaIi8+PHBhdGggY2xhc3M9ImNscy0xMCIgZD0iTTM1NS4yNSwyNzEuMDhhOC44Niw4Ljg2LDAsMSwwLDguODYsOC44NkE4Ljg3LDguODcsMCwwLDAsMzU1LjI1LDI3MS4wOFoiLz48cGF0aCBjbGFzcz0iY2xzLTExIiBkPSJNMTI0Ljc0LDMwNS44M0E4Ljg2LDguODYsMCwxLDAsMTMzLjYsMjk3LDguODYsOC44NiwwLDAsMCwxMjQuNzQsMzA1LjgzWiIvPjxwYXRoIGNsYXNzPSJjbHMtMTIiIGQ9Ik0xODAuNDYsMzM3LjU1YTUuMTEsNS4xMSwwLDAsMS03LjY3LTQuNDRsLjA4LTUxLjQ2YTE3LDE3LDAsMSwxLDEwLjIzLS4yN0wxODMsMzI0LjI2bDIwOS4zMi0xMjAuOFYxNzUuODdMMzY2LjYsMTYxbC0zNS4xOSwyMC4yNC0xMi42NSwzMmE1LjEsNS4xLDAsMCwxLTIuMzMsMi42MkwyMzgsMjU4LjE4YTE3LjExLDE3LjExLDAsMSwxLTQuOTQtOC45NGw3Ni44NC00MS40OCwxMi42Mi0zMS45NGE1LjEsNS4xLDAsMCwxLDIuMi0yLjU2bDMxLjYxLTE4LjE3LTcxLTQxTDEzOC43NiwxOTkuMjNsMCw5MC4zNWExNywxNywwLDEsMS0xMC4yMiwwbDAtOTMuM2E1LjEzLDUuMTMsMCwwLDEsMi41NC00LjQybDE0NC4xMS04My42NEwyNDkuNjUsOTMuNDdsLTE0Mi43MSw4Mi40VjM0MC42NUwyNDkuNjUsNDIzbDE0Mi43LTgyLjM5VjIxNS4yNlptLTUuMjktMTM0LjYyYTE3LDE3LDAsMCwxLDExLDQuMDdsOTIuMTgtNTIuOTVhMTcuMDksMTcuMDksMCwxLDEsNS4yNSw4Ljc3bC05Miw1Mi44NWExNywxNywwLDEsMS0xNi40Ny0xMi43NFpNMjA0LDM3Ny4yMmExNywxNywwLDEsMSwxMS4yMi0yOS44M2w0MS44Ny0yNC4xMWExNywxNywwLDEsMSw2LjQxLDguMWwtNDMsMjQuNzVBMTcsMTcsMCwwLDEsMjA0LDM3Ny4yMlpNMzU1LjI1LDI5N2ExNi45MywxNi45MywwLDAsMS0xMC4yOS0zLjVsLTMyLjIxLDE3LjRMMzAzLjMxLDM2MmE1LjEzLDUuMTMsMCwwLDEtMi42LDMuNTdsLTI4LjQ3LDE1LjQxYTE2Ljc4LDE2Ljc4LDAsMCwxLC42NCw0LjU1LDE3LDE3LDAsMSwxLTYuMTYtMTMuMSw0LjUyLDQuNTIsMCwwLDEsLjU4LS4zOWwyNi40LTE0LjMsOS40NS01MS4wN2E1LjEyLDUuMTIsMCwwLDEsMi41OS0zLjU3bDMzLjI3LTE4QTE3LDE3LDAsMSwxLDM1NS4yNSwyOTdaIi8+PHBhdGggY2xhc3M9ImNscy0xMyIgZD0iTTMxMy4xLDEwMC42MmE4Ljg2LDguODYsMCwxLDAtOC44Ni04Ljg2QTguODcsOC44NywwLDAsMCwzMTMuMSwxMDAuNjJaIi8+PHBhdGggY2xhc3M9ImNscy0xMyIgZD0iTTQwNi4xLDEzMi40M2E0LjYzLDQuNjMsMCwwLDEsLjQ3LDEuMTYsOC42NCw4LjY0LDAsMSwwLTEuNjYtMi41NEE0LjgxLDQuODEsMCwwLDEsNDA2LjEsMTMyLjQzWiIvPjxwYXRoIGNsYXNzPSJjbHMtMTQiIGQ9Ik0zMDEuOTEsMTA0LjU3YTE2Ljg4LDE2Ljg4LDAsMCwwLDExLjE5LDQuMjMsMTcsMTcsMCwxLDAtMTctMTcsMTYuNzMsMTYuNzMsMCwwLDAsLjUyLDQuMDlsLTIxLjM1LDEyLjM5LDEwLjIsNS45Wk0zMTMuMSw4Mi45YTguODYsOC44NiwwLDEsMS04Ljg2LDguODZBOC44OCw4Ljg4LDAsMCwxLDMxMy4xLDgyLjlaIi8+PHBhdGggY2xhc3M9ImNscy0xNSIgZD0iTTQ0NC40MywxNzkuMzVhNS4xMSw1LjExLDAsMCwwLTctMS44OGwtNDUuMSwyNnYxMS44bDUwLjIxLTI5QTUuMTEsNS4xMSwwLDAsMCw0NDQuNDMsMTc5LjM1WiIvPjxwYXRoIGNsYXNzPSJjbHMtMTYiIGQ9Ik00MDIuMSwxNDAuNjNhMTcuMTUsMTcuMTUsMCwxLDAtNS40Ny04LjY1bC00MC4yMiwyMy4xM0wzNjYuNjQsMTYxWm0xMS0yMS44NmE4Ljg2LDguODYsMCwxLDEtNi41MSwxNC44Miw0LjYzLDQuNjMsMCwwLDAtLjQ3LTEuMTYsNC44MSw0LjgxLDAsMCwwLTEuMTktMS4zOCw4Ljg1LDguODUsMCwwLDEsOC4xNy0xMi4yOFoiLz48L2c+PC9nPjwvc3ZnPg==" style="width:100%;height:100%;object-fit:contain" alt="Logo">
+  <!-- Header con gradiente -->
+  <div class="oc-profile-head">
+    <div class="d-flex align-items-start justify-content-between">
+      <div class="d-flex align-items-center gap-3">
+        <div class="user-avatar" id="oc-profile-avatar"
+             style="width:54px;height:54px;font-size:21px;flex-shrink:0;
+                    border:2.5px solid rgba(255,255,255,.35)">?</div>
+        <div style="min-width:0">
+          <div id="oc-profile-name"
+               style="font-weight:700;color:#fff;font-size:14px;
+                      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px">—</div>
+          <div id="oc-profile-email"
+               style="font-size:11px;color:rgba(255,255,255,.72);margin-top:1px;
+                      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px">—</div>
+          <span id="oc-profile-role" class="badge mt-2"
+                style="background:rgba(255,255,255,.18);font-size:10px;
+                       font-weight:600;letter-spacing:.3px">—</span>
+        </div>
       </div>
-      <h1 style="font-size:26px;font-weight:900;color:#fff;margin:0 0 5px;letter-spacing:-.5px">SIGEI <span style="color:#60A5FA">TIC</span></h1>
-      <p style="font-size:13px;color:rgba(255,255,255,.45);margin:0">Sistema de Gestión Educativa Institucional</p>
+      <button type="button" class="btn-close btn-close-white ms-2"
+              data-bs-dismiss="offcanvas" aria-label="Cerrar"></button>
     </div>
+  </div>
 
-    <div style="height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent);margin-bottom:28px"></div>
+  <!-- Cuerpo -->
+  <div class="offcanvas-body p-0 d-flex flex-column" style="overflow-y:auto">
 
-    <div id="login-error" style="display:none;background:rgba(239,68,68,.18);color:#fca5a5;padding:11px 15px;border-radius:10px;font-size:13px;margin-bottom:18px;border:1px solid rgba(239,68,68,.3);font-weight:500"></div>
-    <div id="login-loading" style="display:none;text-align:center;color:#93c5fd;font-size:13px;margin-bottom:16px;font-weight:500"><span>⏳ Cargando datos del sistema...</span></div>
-
-    <div style="margin-bottom:16px">
-      <label class="lf-label">Correo electrónico</label>
-      <input type="email" id="login-email" placeholder="usuario@institución.edu" class="lf-input" onkeydown="if(event.key==='Enter')loginSubmit()">
-    </div>
-
-    <div style="margin-bottom:28px">
-      <label class="lf-label">Contraseña</label>
-      <input type="password" id="login-pass" placeholder="••••••••" class="lf-input" onkeydown="if(event.key==='Enter')loginSubmit()">
-    </div>
-
-    <button id="login-btn" onclick="loginSubmit()"
-      style="width:100%;padding:14px;background:linear-gradient(135deg,#2563EB,#1D4ED8);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;letter-spacing:.02em;box-shadow:0 4px 18px rgba(37,99,235,.45);transition:opacity .2s,transform .15s,box-shadow .2s"
-      onmouseover="this.style.opacity='.9';this.style.transform='translateY(-1px)';this.style.boxShadow='0 8px 28px rgba(37,99,235,.55)'"
-      onmouseout="this.style.opacity='1';this.style.transform='translateY(0)';this.style.boxShadow='0 4px 18px rgba(37,99,235,.45)'"
-      onmousedown="this.style.transform='translateY(1px)'">
-      Iniciar sesión
-    </button>
-
-    <div style="text-align:center;margin-top:24px">
-      <div style="font-size:11px;color:rgba(255,255,255,.28);letter-spacing:.05em;margin-bottom:5px">CREADO POR ALFATIC &middot; &copy; 2026</div>
-      <span style="font-size:9px;color:rgba(255,255,255,.18);letter-spacing:.03em;line-height:1.5">Todos los derechos reservados para el Centro de Ciencia y Tecnología de Antioquia &middot; Proyecto ALFATIC &middot; Fundación Fraternidad Medellín &middot; &copy; 2026</span>
-    </div>
-
-    <!-- ── PANEL 2FA (oculto hasta que se necesite) ── -->
-    <div id="totp-login-panel" style="display:none">
-      <div style="text-align:center;margin-bottom:28px">
-        <div style="font-size:48px;margin-bottom:12px">🔐</div>
-        <h2 style="font-size:20px;font-weight:800;color:#fff;margin:0 0 8px">Verificación en dos pasos</h2>
-        <p style="font-size:13px;color:rgba(255,255,255,.5);margin:0;line-height:1.5">
-          Abre <strong style="color:rgba(255,255,255,.75)">Google Authenticator</strong> e ingresa<br>el código de 6 dígitos para <span id="totp-login-email" style="color:#93c5fd"></span>
-        </p>
-      </div>
-      <div id="totp-login-error" style="display:none;background:rgba(239,68,68,.18);color:#fca5a5;padding:11px 15px;border-radius:10px;font-size:13px;margin-bottom:18px;border:1px solid rgba(239,68,68,.3);font-weight:500;text-align:center"></div>
-      <input type="text" id="totp-login-input" class="lf-input"
-        maxlength="6" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code"
-        placeholder="000 000"
-        style="text-align:center;font-size:28px;font-weight:700;letter-spacing:10px;margin-bottom:20px"
-        onkeydown="if(event.key==='Enter')submitTOTPLogin()"
-        oninput="this.value=this.value.replace(/[^0-9]/g,'')">
-      <button onclick="submitTOTPLogin()" id="totp-login-btn"
-        style="width:100%;padding:14px;background:linear-gradient(135deg,#6366F1,#4F46E5);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:12px;box-shadow:0 4px 18px rgba(99,102,241,.45)">
-        <i class="bi bi-shield-lock-fill me-2"></i>Verificar código
+    <!-- Sección: Cuenta -->
+    <div style="padding:14px 14px 8px">
+      <div class="oc-profile-section mb-2">Cuenta</div>
+      <button class="oc-profile-item" onclick="navigate('usuarios');bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasUserProfile')).hide()">
+        <i class="bi bi-person-fill"></i> Mi perfil de usuario
       </button>
-      <button onclick="cancelTOTPLogin()"
-        style="width:100%;padding:11px;background:rgba(255,255,255,.06);color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.1);border-radius:12px;font-size:13px;cursor:pointer;font-family:inherit">
-        Cancelar y cerrar sesión
+      <button class="oc-profile-item" id="oc-prof-darkbtn" onclick="toggleDarkMode()">
+        <i class="bi bi-moon-fill" id="oc-prof-darkicon"></i>
+        <span id="oc-prof-darklabel">Modo oscuro</span>
       </button>
-      <div style="text-align:center;margin-top:18px">
-        <span style="font-size:11px;color:rgba(255,255,255,.25)">El código se renueva cada 30 segundos</span>
-      </div>
     </div>
-    <!-- /PANEL 2FA -->
 
+    <hr class="my-0 mx-3">
+
+    <!-- Sección: Módulos rápidos -->
+    <div style="padding:10px 14px 8px">
+      <div class="oc-profile-section mb-2">Ir a módulo</div>
+      <button class="oc-profile-item" onclick="_ocNavAndClose('dashboard')"><i class="bi bi-grid-1x2-fill"></i> Dashboard</button>
+      <button class="oc-profile-item" onclick="_ocNavAndClose('docentes')"><i class="bi bi-person-badge-fill"></i> Docentes</button>
+      <button class="oc-profile-item" onclick="_ocNavAndClose('horarios')"><i class="bi bi-clock-fill"></i> Horarios</button>
+      <button class="oc-profile-item" onclick="_ocNavAndClose('asignaciones')"><i class="bi bi-journal-bookmark-fill"></i> Asignaciones</button>
+      <button class="oc-profile-item" onclick="_ocNavAndClose('permisos')"><i class="bi bi-calendar2-check-fill"></i> Permisos</button>
+      <button class="oc-profile-item" onclick="_ocNavAndClose('cronograma')"><i class="bi bi-calendar3-fill"></i> POA</button>
+    </div>
+
+    <hr class="my-0 mx-3">
+
+    <!-- Cerrar sesión -->
+    <div style="padding:10px 14px 14px">
+      <button class="oc-profile-item danger" onclick="logoutUser()">
+        <i class="bi bi-box-arrow-right"></i> Cerrar sesión
+      </button>
+    </div>
+
+    <!-- Versión al pie -->
+    <div style="margin-top:auto;padding:10px 16px 14px;
+                font-size:10px;color:var(--slate-400);text-align:center">
+      SIGEI TIC · ALFATIC · 2026
+    </div>
   </div>
 </div>
+
 
 </body>
 </html>
