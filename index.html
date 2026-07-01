@@ -1060,6 +1060,41 @@
   }
 
   /* Tarjetas docentes */
+
+  /* ══ HORARIO AGENDA LIST VIEW ══════════════════════════════════ */
+  .hor-agenda { display:flex;flex-direction:column;gap:0;padding:0 0 32px }
+
+  .hor-franja { display:flex;gap:0;border-bottom:1px solid var(--slate-100);padding:12px 20px;
+    transition:background .15s; }
+  .hor-franja:first-child { border-top:1px solid var(--slate-100); }
+  .hor-franja-activa { background:rgba(79,70,229,.04);border-left:3px solid var(--indigo-600); }
+  .hor-franja-pasada { opacity:.55; }
+
+  .hor-franja-hora { width:72px;flex-shrink:0;display:flex;flex-direction:column;
+    align-items:center;justify-content:flex-start;padding-top:4px;gap:2px; }
+  .hor-hora-ini { font-size:15px;font-weight:800;color:var(--slate-800);line-height:1 }
+  .hor-hora-sep { font-size:10px;color:var(--slate-300);line-height:1 }
+  .hor-hora-fin { font-size:12px;font-weight:600;color:var(--slate-400);line-height:1 }
+  .hor-en-curso-dot { width:8px;height:8px;border-radius:50%;background:var(--indigo-600);
+    margin-top:6px;box-shadow:0 0 0 3px rgba(79,70,229,.2);animation:pulse-dot 1.5s infinite }
+  @keyframes pulse-dot { 0%,100%{box-shadow:0 0 0 3px rgba(79,70,229,.2)} 50%{box-shadow:0 0 0 6px rgba(79,70,229,.08)} }
+
+  .hor-cards-row { display:flex;flex-wrap:wrap;gap:10px;flex:1 }
+
+  .hor-card { border-radius:14px;padding:12px 14px;cursor:pointer;min-width:180px;max-width:260px;
+    flex:1;display:flex;flex-direction:column;gap:6px;
+    border-left:4px solid currentColor;
+    transition:transform .15s,box-shadow .15s;
+    box-shadow:0 2px 6px rgba(0,0,0,.06); }
+  .hor-card:hover { transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.1); }
+  .hor-card-ausente { opacity:.8; }
+
+  .hor-card-top { display:flex;justify-content:space-between;align-items:flex-start;gap:8px }
+  .hor-card-materia { font-weight:700;font-size:13px;color:var(--slate-900);line-height:1.2;flex:1 }
+  .hor-card-grupo { font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;
+    background:rgba(0,0,0,.08);color:var(--slate-700);white-space:nowrap;flex-shrink:0 }
+  .hor-card-docente { font-size:12px;color:var(--slate-500);display:flex;align-items:center;gap:5px;flex-wrap:wrap }
+
   /* Lista docentes seguimiento */
   .seg-doc-list { display:flex; flex-direction:column; }
   .seg-doc-row {
@@ -6582,138 +6617,88 @@ function renderHorarios() {
     }
   });
 
-  // ── CALENDAR VISUAL LAYOUT ────────────────────────────────────────────
-  const PX_H = 72; // px per hour
-  const DAY_START = 7 * 60; // 7:00 in minutes
-  const DAY_END   = (() => {
-    let maxMin = 13 * 60; // minimum end: 13:00
-    horarios.forEach(h => { const m = timeToMins(h.hora_fin); if (m > maxMin) maxMin = m; });
-    // Round up to next hour
-    return Math.ceil(maxMin / 60) * 60;
-  })();
-  const TOTAL_MIN = DAY_END - DAY_START;
-  const TOTAL_PX  = TOTAL_MIN / 60 * PX_H;
+  // ── AGENDA LIST VIEW ──────────────────────────────────────────────
+  var _fechaDiaAct   = _fechasPorDia[_diaNombreActual] || '';
+  var _ausentesAct   = _ausenciasPorFecha[_fechaDiaAct]  || new Set();
+  var _reemplazosAct = _reemplazosPorFecha[_fechaDiaAct] || {};
+  var _isHoy         = _fechaDiaAct === _todayISO;
+  var nowMins        = (new Date()).getHours() * 60 + (new Date()).getMinutes();
 
-  function minToTop(m) { return (m - DAY_START) / 60 * PX_H; }
+  var _ABREVS = {'Tecnología e Informática':'Tecnología','Ciencias Naturales':'C. Naturales',
+    'Ciencias Sociales':'C. Sociales','Educación Física':'Ed. Física',
+    'Lengua Castellana':'Lengua Cast.','Lectura Crítica':'L. Crítica',
+    'Constitución y Democracia':'C. y Demo.'};
 
-  // Time labels
-  let timesHtml = '';
-  for (let m = DAY_START; m <= DAY_END; m += 60) {
-    const h = String(Math.floor(m / 60)).padStart(2, '0');
-    timesHtml += '<div class="hv-time-lbl" style="top:' + (52 + minToTop(m)) + 'px">' + h + ':00</div>';
+  // Sort blocks for the active day by start time
+  var bloquesDia = horarios.filter(function(h){ return h.dia === _diaNombreActual; })
+    .slice().sort(function(a,b){ return timeToMins(a.hora_inicio) - timeToMins(b.hora_inicio); });
+
+  // Group by hora_inicio
+  var porFranja = {};
+  bloquesDia.forEach(function(b) {
+    var k = b.hora_inicio;
+    if (!porFranja[k]) porFranja[k] = [];
+    porFranja[k].push(b);
+  });
+  var franjas = Object.keys(porFranja).sort(function(a,b){ return timeToMins(a)-timeToMins(b); });
+
+  var agendaHtml = '';
+  if (!franjas.length) {
+    agendaHtml = '<div class="empty-state"><i class="bi bi-clock"></i><p>No hay clases registradas para este día</p></div>';
+  } else {
+    franjas.forEach(function(franja) {
+      var bloques = porFranja[franja];
+      var horaFin = bloques[0].hora_fin || '';
+      var startM  = timeToMins(franja);
+      var endM    = timeToMins(horaFin);
+      var enCurso = _isHoy && nowMins >= startM && nowMins < endM;
+      var pasada  = _isHoy && nowMins >= endM;
+
+      agendaHtml += '<div class="hor-franja' + (enCurso ? ' hor-franja-activa' : '') + (pasada ? ' hor-franja-pasada' : '') + '">'
+        + '<div class="hor-franja-hora">'
+        + '<span class="hor-hora-ini">' + franja + '</span>'
+        + '<span class="hor-hora-sep">↓</span>'
+        + '<span class="hor-hora-fin">' + horaFin + '</span>'
+        + (enCurso ? '<span class="hor-en-curso-dot"></span>' : '')
+        + '</div>'
+        + '<div class="hor-cards-row">';
+
+      bloques.forEach(function(b) {
+        var sec    = secciones.find(function(s){ return s.id == b.seccion_id; });
+        var grado  = sec ? grados.find(function(g){ return g.id == sec.grado_id; }) : null;
+        var docD   = DB.get('docentes').find(function(x){ return x.id == b.docente_id; });
+        var mat    = _ABREVS[b.materia] || b.materia || 'Sin materia';
+        var cls    = materiaBlockClass(b.materia || '');
+        var secLbl = sec ? (grado ? grado.nombre.replace(' Grado','°') : '') + ' ' + sec.nombre : '—';
+        var docNom = docD ? [docD.p_nombre, docD.p_apellido].filter(Boolean).join(' ') : '—';
+        var ausente  = _ausentesAct.has(String(b.docente_id));
+        var reempId  = ausente ? _reemplazosAct[String(b.docente_id)] : null;
+        var reempNom = reempId ? nombreDocente(reempId) : '';
+        var clickFn  = b._fromAsig
+          ? 'verClaseAsig(\'' + b.asignacion_id + '\',\'' + b.seccion_id + '\',\'' + b.dia + '\',\'' + (b.hora_inicio||'') + '\',\'' + (b.hora_fin||'') + '\',\'' + _fechaDiaAct + '\')'
+          : 'abrirHorario(' + b.id + ',\'' + _fechaDiaAct + '\')';
+
+        agendaHtml += '<div class="hor-card ' + cls + (ausente ? ' hor-card-ausente' : '') + '" onclick="' + clickFn + '">'
+          + '<div class="hor-card-top">'
+          + '<span class="hor-card-materia">' + (ausente ? '⚠ ' : '') + mat + '</span>'
+          + '<span class="hor-card-grupo">' + secLbl + '</span>'
+          + '</div>'
+          + '<div class="hor-card-docente">'
+          + '<i class="bi bi-person-fill" style="font-size:11px;opacity:.6;flex-shrink:0"></i> '
+          + (ausente
+            ? '<span style="text-decoration:line-through;opacity:.5">' + docNom + '</span>'
+              + (reempNom ? ' <span style="color:#16A34A;font-weight:700">↔ ' + reempNom + '</span>' : ' <span style="color:#EF4444">Sin reemplazo</span>')
+            : docNom)
+          + '</div>'
+          + '</div>';
+      });
+
+      agendaHtml += '</div></div>';
+    });
   }
 
-  // Build each day column
-  let daysHtml = '';
-  diasVis.forEach(function(dia) {
-    const diaBlocks = horarios.filter(function(h) { return h.dia === dia; });
-
-    // Per-day absence/replacement lookup using exact date
-    var _fechaDia   = _fechasPorDia[dia] || '';
-    var _ausentes   = _ausenciasPorFecha[_fechaDia]   || new Set();
-    var _reemplazos = _reemplazosPorFecha[_fechaDia]  || {};
-
-    // Sort by start time
-    const sorted = diaBlocks.slice().sort(function(a, b) {
-      return timeToMins(a.hora_inicio) - timeToMins(b.hora_inicio);
-    });
-
-    // Assign lanes (columns within the day) using greedy algorithm
-    const lanes = [];
-    const blockLane = sorted.map(function(b) {
-      const start = timeToMins(b.hora_inicio);
-      var lane = -1;
-      for (var i = 0; i < lanes.length; i++) {
-        if (lanes[i] <= start) { lane = i; break; }
-      }
-      if (lane === -1) { lane = lanes.length; lanes.push(0); }
-      lanes[lane] = timeToMins(b.hora_fin);
-      return lane;
-    });
-    const totalLanes = Math.max(1, lanes.length);
-
-    // Hour lines
-    var bodyHtml = '';
-    for (var m = DAY_START; m <= DAY_END; m += 60) {
-      var top = minToTop(m);
-      var cls = (m % 60 === 0) ? 'hv-hline full' : 'hv-hline';
-      bodyHtml += '<div class="' + cls + '" style="top:' + top + 'px"></div>';
-    }
-    // 30-min lines
-    for (var m = DAY_START + 30; m < DAY_END; m += 60) {
-      bodyHtml += '<div class="hv-hline" style="top:' + minToTop(m) + 'px;border-color:var(--slate-50)"></div>';
-    }
-
-    // Blocks
-    sorted.forEach(function(b, i) {
-      var start  = timeToMins(b.hora_inicio);
-      var end    = timeToMins(b.hora_fin);
-      var top    = minToTop(start);
-      var height = Math.max(22, (end - start) / 60 * PX_H - 3);
-      var lane   = blockLane[i];
-      var leftPct = (lane / totalLanes * 100).toFixed(1);
-      var widthPct = (100 / totalLanes).toFixed(1);
-
-      var sec   = secciones.find(function(s) { return s.id == b.seccion_id; });
-      var grado = sec ? grados.find(function(g) { return g.id == sec.grado_id; }) : null;
-      var cls   = materiaBlockClass(b.materia || '');
-      var secLabel = sec ? sec.nombre : '';
-
-      var gradoLabel = grado ? grado.nombre : '';
-      var _esAusente  = _ausentes.has(String(b.docente_id));
-      var _reempId    = _esAusente ? _reemplazos[String(b.docente_id)] : null;
-      var _extraCls   = _esAusente ? ' hv-block-ausente' : '';
-      var _reempLabel = _reempId ? '↔ ' + nombreDocente(_reempId) : '';
-      var _clickFn = b._fromAsig
-        ? 'verClaseAsig(\'' + b.asignacion_id + '\',\'' + b.seccion_id + '\',\'' + b.dia + '\',\'' + (b.hora_inicio||'') + '\',\'' + (b.hora_fin||'') + '\',\'' + _fechaDia + '\')' 
-        : 'abrirHorario(' + b.id + ',\'' + _fechaDia + '\')';
-      // Materia abreviada
-      var _ABREVS = {'Tecnología e Informática':'Tecnología','Ciencias Naturales':'C. Naturales',
-        'Ciencias Sociales':'C. Sociales','Educación Física':'Ed. Física',
-        'Lengua Castellana':'Lengua Cast.','Lectura Crítica':'L. Crítica',
-        'Constitución y Democracia':'C. y Demo.'};
-      var _mat = _ABREVS[b.materia] || b.materia || 'Sin materia';
-      var _docD = DB.get('docentes').find(function(x){ return x.id == b.docente_id; });
-      var _docAbrev = _docD ? (_docD.p_nombre[0]||'') + '. ' + (_docD.p_apellido||'') : '';
-      var _secShort = sec ? (grado ? grado.nombre.replace(' Grado','') : '') + sec.nombre : '';
-      bodyHtml += '<div class="hv-block ' + cls + _extraCls + '" onclick="' + _clickFn + '"'
-        + ' style="top:' + top + 'px;height:' + height + 'px;left:calc(' + leftPct + '% + 2px);width:calc(' + widthPct + '% - 4px)">'
-        + '<div class="hv-bm">' + (_esAusente ? '⚠ ' : '') + _mat + '</div>'
-        + (height > 30 ? '<div class="hv-bs">' + _secShort + (_docAbrev ? ' · ' + _docAbrev : '') + '</div>' : '')
-        + (_reempLabel && height > 44 ? '<div class="hv-bs" style="font-weight:700">' + _reempLabel + '</div>' : '')
-        + '</div>';
-    });
-
-    // ── Línea de hora actual (solo en el día de hoy) ─────────────────────
-    if (_isHoy) {
-      var _nowMins2 = (new Date()).getHours() * 60 + (new Date()).getMinutes();
-      if (_nowMins2 > DAY_START && _nowMins2 < DAY_END) {
-        bodyHtml += '<div class="hv-now-line" style="top:' + minToTop(_nowMins2) + 'px">'
-          + '<div class="hv-now-dot"></div></div>';
-      }
-    }
-    var _fDia  = _fechasPorDia[dia] || '';
-    var _fDate = _fDia ? new Date(_fDia + 'T00:00:00') : null;
-    var _dayNum = _fDate ? _fDate.getDate() : '';
-    var _dayMes = _fDate ? _mesesCorto[_fDate.getMonth()] : '';
-    var _isHoy  = _fDia && _fDia === _todayISO;
-    var _hdrCls = 'hv-day-hdr' + (_isHoy ? ' hv-day-hdr-hoy' : '');
-    daysHtml += '<div class="hv-day">'
-      + '<div class="' + _hdrCls + '">'
-      + '<span class="hv-day-nombre">' + dia + '</span>'
-      + '<span class="hv-day-fecha">' + _dayNum + ' ' + _dayMes + '</span>'
-      + '</div>'
-      + '<div class="hv-body" style="height:' + TOTAL_PX + 'px">' + bodyHtml + '</div>'
-      + '</div>';
-  });
-
-  var emptyMsg = horarios.length === 0
-    ? '<div class="empty-state"><i class="bi bi-clock"></i><p>No hay horarios registrados</p></div>'
-    : '';
-
-  document.getElementById('horario-visual-container').innerHTML = emptyMsg ||
-    '<div class="hv-wrap"><div class="hv-times">' + timesHtml + '</div>'
-    + '<div class="hv-days">' + daysHtml + '</div></div>';
+  document.getElementById('horario-visual-container').innerHTML =
+    '<div class="hor-agenda">' + agendaHtml + '</div>';
 
   // Available teachers panel
   renderDocentesDisponibles(filtroDia, horarios, _fechasPorDia);
