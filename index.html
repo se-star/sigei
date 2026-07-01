@@ -3340,6 +3340,87 @@
   </div>
 </div>
 
+<div class="modal fade" tabindex="-1" id="modalNuevoDocente" aria-modal="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable" style="max-width:min(700px,96vw)">
+    <div class="modal-content" style="border-radius:18px;overflow:hidden;border:none;box-shadow:0 24px 64px rgba(0,0,0,.18)">
+      <div class="modal-header" style="background:var(--sb-bg);padding:20px 24px;border:none">
+        <div class="d-flex align-items-center gap-3">
+          <div style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.15);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;flex-shrink:0">
+            <i class="bi bi-person-plus-fill"></i>
+          </div>
+          <div>
+            <div style="font-size:16px;font-weight:800;color:#fff">Nuevo Docente</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.55);margin-top:1px">Complete los datos del nuevo docente</div>
+          </div>
+        </div>
+        <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-0" style="overflow-y:auto;background:var(--page-bg)">
+        <div style="padding:20px">
+          <div class="doc-modal-sec-title mb-3"><i class="bi bi-person-vcard"></i>Datos Personales</div>
+          <div class="row g-3 mb-4">
+            <div class="col-4"><label class="form-label" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--slate-500)">Cédula *</label><input type="text" class="form-control form-control-sm" id="ndoc-cedula"></div>
+            <div class="col-4"><label class="form-label" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--slate-500)">Primer Nombre *</label><input type="text" class="form-control form-control-sm" id="ndoc-p-nombre"></div>
+            <div class="col-4"><label class="form-label" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--slate-500)">Segundo Nombre</label><input type="text" class="form-control form-control-sm" id="ndoc-s-nombre"></div>
+            <div class="col-4"><label class="form-label" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--slate-500)">Primer Apellido *</label><input type="text" class="form-control form-control-sm" id="ndoc-p-apellido"></div>
+            <div class="col-4"><label class="form-label" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--slate-500)">Segundo Apellido</label><input type="text" class="form-control form-control-sm" id="ndoc-s-apellido"></div>
+            <div class="col-4"><label class="form-label" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--slate-500)">Fecha de Nacimiento</label><input type="date" class="form-control form-control-sm" id="ndoc-fecha"></div>
+            <div class="col-4"><label class="form-label" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--slate-500)">Género</label>
+              <select class="form-select form-select-sm" id="ndoc-genero"><option value="">Seleccione</option><option>Masculino</option><option>Femenino</option><option>Otro</option></select></div>
+            <div class="col-4"><label class="form-label" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--slate-500)">Teléfono</label><input type="text" class="form-control form-control-sm" id="ndoc-telefono"></div>
+            <div class="col-4"><label class="form-label" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--slate-500)">Celular</label><input type="text" class="form-control form-control-sm" id="ndoc-celular"></div>
+            <div class="col-6"><label class="form-label" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--slate-500)">Correo Electrónico</label><input type="email" class="form-control form-control-sm" id="ndoc-correo"></div>
+            <div class="col-6"><label class="form-label" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--slate-500)">Municipio</label><input type="text" class="form-control form-control-sm" id="ndoc-municipio"></div>
+            <div class="col-8"><label class="form-label" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--slate-500)">Dirección</label><input type="text" class="form-control form-control-sm" id="ndoc-direccion"></div>
+            <div class="col-4"><label class="form-label" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--slate-500)">Estado</label>
+              <select class="form-select form-select-sm" id="ndoc-estado"><option>Activo</option><option>Inactivo</option><option>Licencia</option><option>Retirado</option></select></div>
+          </div>
+          <div class="doc-modal-sec-title mb-3"><i class="bi bi-briefcase"></i>Información Contractual</div>
+          <div class="row g-3">
+            <div class="col-4"><label class="form-label" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--slate-500)">Área Principal</label>
+              <select class="form-select form-select-sm" id="ndoc-area">
+                <option value="">Seleccione</option>
+                <option>Matemáticas</option><option>Lengua Castellana</option><option>Ciencias Naturales</option>
+                <option>Ciencias Sociales</option><option>Inglés</option><option>Educación Física</option>
+                <option>Tecnología e Informática</option><option>Educación Artística</option>
+                <option>Ética y Valores</option><option>Religión</option><option>Filosofía</option>
+                <option>Constitución y Democracia</option><option>MULTIAREA</option>
+                <option>AREA DE APOYO PARA LA EDUCACION ESPECIAL</option>
+              </select></div>
+            <div class="col-4"><label class="form-label" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--slate-500)">Tipo de Vinculación</label>
+              <select class="form-select form-select-sm" id="ndoc-tipo-vinc">
+                <option value="">Seleccione</option><option>Planta</option><option>Provisional</option>
+                <option>Contratista</option><option>Hora cátedra</option><option>Temporal</option>
+              </select></div>
+            <div class="col-4"><label class="form-label" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--slate-500)">Decreto</label>
+              <input type="text" class="form-control form-control-sm" id="ndoc-decreto" placeholder="Ej: 1278, 2277..."></div>
+            <div class="col-4"><label class="form-label" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--slate-500)">Nivel</label>
+              <select class="form-select form-select-sm" id="ndoc-nivel">
+                <option value="">Seleccione</option><option>Preescolar</option><option>Primaria</option>
+                <option>Secundaria</option><option>Media</option><option>Directivo</option>
+              </select></div>
+            <div class="col-4"><label class="form-label" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--slate-500)">Sede</label>
+              <select class="form-select form-select-sm" id="ndoc-sede-id"><option value="">Sin sede asignada</option></select></div>
+            <div class="col-12">
+              <hr style="margin:4px 0 8px">
+              <label class="form-label" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--slate-500)">
+                <i class="bi bi-google me-1" style="color:#4285F4"></i>ID Carpeta Google Drive</label>
+              <input type="text" class="form-control form-control-sm" id="ndoc-drive-folder-id" placeholder="Ej: 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms">
+              <div style="font-size:10px;color:var(--slate-400);margin-top:4px">El ID está en la URL: drive.google.com/drive/folders/<b style="color:var(--indigo-600)">[ID aquí]</b></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="padding:12px 20px;border-top:1px solid var(--slate-100)">
+        <button class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn btn-sm text-white" style="background:var(--indigo-600)" onclick="guardarNuevoDocente()">
+          <i class="bi bi-save me-1"></i>Guardar docente
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="modal fade" tabindex="-1" id="modalDocenteDetalle" aria-modal="true">
   <div class="modal-dialog modal-xl modal-dialog-scrollable" style="max-width:min(900px,96vw)">
     <div class="modal-content" style="border-radius:18px;overflow:hidden;border:none;box-shadow:0 24px 64px rgba(0,0,0,.18)">
@@ -3619,15 +3700,22 @@
 </div>
 
 <!-- Modal Permiso -->
-<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasPermiso" style="width:min(560px,96vw)">
-  <div class="offcanvas-header border-bottom" style="background:var(--slate-900);padding:20px 24px">
-    <div>
-      <h6 class="offcanvas-title text-white mb-0" id="modal-perm-title" style="font-weight:700;font-size:15px">Nueva Novedad / Permiso</h6>
-      <small class="text-white-50" style="font-size:11px">Gestión de Permisos y Licencias</small>
+<div class="modal fade" tabindex="-1" id="offcanvasPermiso" aria-modal="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable" style="max-width:min(680px,96vw)">
+    <div class="modal-content" style="border-radius:18px;overflow:hidden;border:none;box-shadow:0 24px 64px rgba(0,0,0,.18)">
+  <div class="modal-header" style="background:var(--sb-bg);padding:20px 24px;border:none">
+    <div class="d-flex align-items-center gap-3">
+      <div style="width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;flex-shrink:0">
+        <i class="bi bi-calendar2-check-fill"></i>
+      </div>
+      <div>
+        <h6 class="mb-0 text-white" id="modal-perm-title" style="font-weight:800;font-size:15px">Nueva Novedad / Permiso</h6>
+        <small style="color:rgba(255,255,255,.55);font-size:11px">Gestión de Permisos y Licencias</small>
+      </div>
     </div>
-    <button class="btn-close btn-close-white ms-3" data-bs-dismiss="offcanvas"></button>
+    <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal"></button>
   </div>
-  <div class="offcanvas-body p-0" style="overflow-y:auto">
+  <div class="modal-body p-0" style="overflow-y:auto;background:var(--page-bg)">
     <input type="hidden" id="perm-id">
     <div class="p-4">
 
@@ -3734,12 +3822,13 @@
       </div>
     </div>
   </div>
-  <!-- Footer sticky -->
-  <div class="border-top p-3 d-flex gap-2 justify-content-end oc-footer">
-    <button class="btn btn-sm btn-secondary" data-bs-dismiss="offcanvas">Cancelar</button>
-    <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="guardarPermiso()">
+  <div class="modal-footer" style="padding:12px 20px;border-top:1px solid var(--slate-100)">
+    <button class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+    <button class="btn btn-sm text-white" style="background:var(--indigo-600)" onclick="guardarPermiso()">
       <i class="bi bi-save me-1"></i>Guardar
     </button>
+  </div>
+    </div>
   </div>
 </div>
 
@@ -4441,16 +4530,17 @@ async function abrirDocente(id=null) {
     var m = bootstrap.Modal.getInstance(document.getElementById('modalDocenteDetalle'));
     if (m) { docModalModoEdicion(); return; }
   }
-  // Nuevo docente: abrir modal en modo creación
-  window._docNuevo = true;
-  var modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('modalDocenteDetalle'));
-  // Actualizar header para "Nuevo Docente"
-  document.getElementById('det-nombre').textContent = 'Nuevo Docente';
-  document.getElementById('det-avatar').textContent = '+';
-  document.getElementById('det-estado-badge').innerHTML = '';
-  document.getElementById('det-chips').innerHTML = '';
-  docModalModoEdicion();
-  modal.show();
+  // Nuevo docente: abrir modal dedicado
+  var sedesOpts2 = DB.get('sedes').map(function(s){ return '<option value="'+s.id+'">'+s.nombre+'</option>'; }).join('');
+  document.getElementById('ndoc-sede-id').innerHTML = '<option value="">Sin sede asignada</option>' + sedesOpts2;
+  ['ndoc-cedula','ndoc-p-nombre','ndoc-s-nombre','ndoc-p-apellido','ndoc-s-apellido',
+   'ndoc-fecha','ndoc-genero','ndoc-telefono','ndoc-celular','ndoc-correo',
+   'ndoc-municipio','ndoc-direccion','ndoc-area','ndoc-tipo-vinc','ndoc-decreto',
+   'ndoc-nivel','ndoc-drive-folder-id'].forEach(function(id){
+    var el = document.getElementById(id); if(el) el.value='';
+  });
+  document.getElementById('ndoc-estado').value = 'Activo';
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('modalNuevoDocente')).show();
 }
 
 function docModalModoEdicion() {
@@ -4467,7 +4557,41 @@ function docModalModoVista() {
   document.getElementById('doc-modal-view-panel').classList.remove('d-none');
   document.getElementById('doc-modal-footer-view').classList.remove('d-none');
   document.getElementById('det-chips').style.display = '';
-  window._docNuevo = false;
+}
+
+async function guardarNuevoDocente() {
+  const cedula     = document.getElementById('ndoc-cedula').value.trim();
+  const p_nombre   = document.getElementById('ndoc-p-nombre').value.trim();
+  const p_apellido = document.getElementById('ndoc-p-apellido').value.trim();
+  if (!cedula || !p_nombre || !p_apellido) { toast('Cédula, primer nombre y primer apellido son obligatorios.', false); return; }
+  const dup = await buscarDocByCedula(cedula);
+  if (dup) { toast('La cédula ya está registrada.', false); return; }
+  const plainData = {
+    cedula, p_nombre, p_apellido,
+    s_nombre:        document.getElementById('ndoc-s-nombre').value.trim(),
+    s_apellido:      document.getElementById('ndoc-s-apellido').value.trim(),
+    fecha_nac:       document.getElementById('ndoc-fecha').value,
+    genero:          document.getElementById('ndoc-genero').value,
+    telefono:        document.getElementById('ndoc-telefono').value.trim(),
+    celular:         document.getElementById('ndoc-celular').value.trim(),
+    correo:          document.getElementById('ndoc-correo').value.trim(),
+    municipio:       document.getElementById('ndoc-municipio').value.trim(),
+    direccion:       document.getElementById('ndoc-direccion').value.trim(),
+    estado:          document.getElementById('ndoc-estado').value,
+    area:            document.getElementById('ndoc-area').value,
+    tipo_vinc:       document.getElementById('ndoc-tipo-vinc').value,
+    decreto:         document.getElementById('ndoc-decreto').value.trim(),
+    nivel:           document.getElementById('ndoc-nivel').value,
+    sede_id:         document.getElementById('ndoc-sede-id').value || null,
+    drive_folder_id: document.getElementById('ndoc-drive-folder-id').value.trim() || null,
+  };
+  const docs = DB.get('docentes');
+  const encDoc = await encryptDocente({ id: DB.nextId('docentes'), ...plainData });
+  docs.push(encDoc);
+  DB.set('docentes', docs);
+  bootstrap.Modal.getInstance(document.getElementById('modalNuevoDocente')).hide();
+  toast('Docente guardado exitosamente.');
+  renderDocentes();
 }
 
 async function guardarDocente() {
@@ -4475,55 +4599,35 @@ async function guardarDocente() {
   const p_nombre  = document.getElementById('doc-p-nombre').value.trim();
   const p_apellido= document.getElementById('doc-p-apellido').value.trim();
   if (!cedula || !p_nombre || !p_apellido) { toast('Cédula, primer nombre y primer apellido son obligatorios.', false); return; }
-
   const docs   = DB.get('docentes');
   const idEdit = document.getElementById('doc-id').value;
-
-  // Datos en claro del formulario
   const plainData = {
     cedula, p_nombre, p_apellido,
-    s_nombre:   document.getElementById('doc-s-nombre').value.trim(),
-    s_apellido: document.getElementById('doc-s-apellido').value.trim(),
-    fecha_nac:  document.getElementById('doc-fecha').value,
-    genero:     document.getElementById('doc-genero').value,
-    telefono:   document.getElementById('doc-telefono').value.trim(),
-    celular:    document.getElementById('doc-celular').value.trim(),
-    correo:     document.getElementById('doc-correo').value.trim(),
-    municipio:  document.getElementById('doc-municipio').value.trim(),
-    direccion:  document.getElementById('doc-direccion').value.trim(),
-    estado:     document.getElementById('doc-estado').value,
-    area:       document.getElementById('doc-area').value.trim(),
-    tipo_vinc:  document.getElementById('doc-tipo-vinc').value,
-    decreto:    document.getElementById('doc-decreto').value.trim(),
-    nivel:            document.getElementById('doc-nivel').value,
-    sede_id:          document.getElementById('doc-sede-id').value || null,
-    drive_folder_id:  document.getElementById('doc-drive-folder-id').value.trim() || null,
+    s_nombre:        document.getElementById('doc-s-nombre').value.trim(),
+    s_apellido:      document.getElementById('doc-s-apellido').value.trim(),
+    fecha_nac:       document.getElementById('doc-fecha').value,
+    genero:          document.getElementById('doc-genero').value,
+    telefono:        document.getElementById('doc-telefono').value.trim(),
+    celular:         document.getElementById('doc-celular').value.trim(),
+    correo:          document.getElementById('doc-correo').value.trim(),
+    municipio:       document.getElementById('doc-municipio').value.trim(),
+    direccion:       document.getElementById('doc-direccion').value.trim(),
+    estado:          document.getElementById('doc-estado').value,
+    area:            document.getElementById('doc-area').value.trim(),
+    tipo_vinc:       document.getElementById('doc-tipo-vinc').value,
+    decreto:         document.getElementById('doc-decreto').value.trim(),
+    nivel:           document.getElementById('doc-nivel').value,
+    sede_id:         document.getElementById('doc-sede-id').value || null,
+    drive_folder_id: document.getElementById('doc-drive-folder-id').value.trim() || null,
   };
-
-  if (!idEdit) {
-    // Verificar duplicado descifrando cédulas del caché
-    const dup = await buscarDocByCedula(cedula);
-    if (dup) { toast('La cédula ya está registrada.', false); return; }
-    const encDoc = await encryptDocente({ id: DB.nextId('docentes'), ...plainData });
-    docs.push(encDoc);
-    toast('Docente guardado exitosamente.');
-  } else {
-    const idx = docs.findIndex(d => d.id == idEdit);
-    if (idx === -1) return;
-    const encData = await encryptDocente(plainData);
-    Object.assign(docs[idx], encData);
-    toast('Docente actualizado.');
-  }
+  const idx = docs.findIndex(d => d.id == idEdit);
+  if (idx === -1) return;
+  const encData = await encryptDocente(plainData);
+  Object.assign(docs[idx], encData);
   DB.set('docentes', docs);
-  var m = bootstrap.Modal.getInstance(document.getElementById('modalDocenteDetalle'));
-  if (window._docNuevo) {
-    if (m) m.hide();
-  } else {
-    // Volver a vista de detalle actualizada
-    docModalModoVista();
-    var savedId = parseInt(document.getElementById('doc-id').value);
-    if (savedId) verDocente(savedId);
-  }
+  toast('Docente actualizado.');
+  docModalModoVista();
+  verDocente(parseInt(idEdit));
   renderDocentes();
 }
 
@@ -7646,7 +7750,7 @@ function abrirPermiso(id) {
     window._permBloquesRestaure = p.reemplazos_bloques || [];
     if (p.fecha_reemplazo_inicio || p.fecha_reemplazo) actualizarBloquesSugeridos();
   }
-  bootstrap.Offcanvas.getOrCreateInstance(document.getElementById('offcanvasPermiso')).show();
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('offcanvasPermiso')).show();
 }
 
 
@@ -7889,7 +7993,7 @@ function guardarPermiso() {
   if (!idEdit) { perms.push({ id: DB.nextId('permisos'), ...data }); toast('Novedad registrada.'); }
   else { const idx = perms.findIndex(p => p.id == idEdit); Object.assign(perms[idx], data); toast('Novedad actualizada.'); }
   DB.set('permisos', perms);
-  bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasPermiso')).hide();
+  bootstrap.Modal.getInstance(document.getElementById('offcanvasPermiso')).hide();
   renderPermisos();
   if (document.getElementById('page-horarios') && !document.getElementById('page-horarios').classList.contains('d-none')) renderHorarios();
   else { /* cache-bust so next open of horarios reflects change */ }
