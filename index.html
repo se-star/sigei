@@ -143,7 +143,7 @@
 
   /* ══ STAT CARDS ══════════════════════════════════════════════════════ */
   .stat-card {
-    background: var(--white); border-radius: 18px; padding: 22px 20px 18px;
+    height: 100%; background: var(--white); border-radius: 18px; padding: 22px 20px 18px;
     box-shadow: 0 2px 8px rgba(79,70,229,.07), 0 1px 2px rgba(79,70,229,.04);
     border: 1px solid rgba(79,70,229,.09);
     display: flex; flex-direction: column; gap: 14px;
@@ -1982,8 +1982,8 @@
     <!-- ── DASHBOARD ────────────────────── -->
     <div id="page-dashboard">
       <!-- Stat cards -->
-      <div class="row g-3 mb-4">
-        <div class="col-6 col-md-4 col-lg-2">
+      <div class="row g-3 mb-4 row-cols-2 row-cols-md-3 row-cols-lg-5">
+        <div class="col">
           <div class="stat-card" onclick="navigate('docentes')" style="cursor:pointer;--sc-accent:#2563EB">
             <div class="sc-top">
               <div class="icon" style="background:#EFF6FF;color:#2563EB"><i class="bi bi-person-badge-fill"></i></div>
@@ -1991,7 +1991,7 @@
             <div><h2 id="cnt-docentes">0</h2><p>Docentes activos</p></div>
           </div>
         </div>
-        <div class="col-6 col-md-4 col-lg-2">
+        <div class="col">
           <div class="stat-card" onclick="navigate('grados')" style="cursor:pointer;--sc-accent:#15803D">
             <div class="sc-top">
               <div class="icon" style="background:#DCFCE7;color:#15803D"><i class="bi bi-diagram-3-fill"></i></div>
@@ -1999,7 +1999,7 @@
             <div><h2 id="cnt-secciones">0</h2><p>Grupos activos</p></div>
           </div>
         </div>
-        <div class="col-6 col-md-4 col-lg-2">
+        <div class="col">
           <div class="stat-card" onclick="navigate('horarios')" style="cursor:pointer;--sc-accent:#B45309">
             <div class="sc-top">
               <div class="icon" style="background:#FEF3C7;color:#B45309"><i class="bi bi-clock-fill"></i></div>
@@ -2007,7 +2007,7 @@
             <div><h2 id="cnt-horarios">0</h2><p>Clases programadas</p></div>
           </div>
         </div>
-        <div class="col-6 col-md-4 col-lg-2">
+        <div class="col">
           <div class="stat-card" onclick="navigate('permisos')" style="cursor:pointer;--sc-accent:#DC2626">
             <div class="sc-top">
               <div class="icon" style="background:#FEE2E2;color:#DC2626"><i class="bi bi-calendar2-check-fill"></i></div>
@@ -2016,7 +2016,7 @@
           </div>
         </div>
 
-        <div class="col-6 col-md-4 col-lg-2">
+        <div class="col">
           <div class="stat-card" onclick="navigate('sedes')" style="cursor:pointer;--sc-accent:#0E7490">
             <div class="sc-top">
               <div class="icon" style="background:#CFFAFE;color:#0E7490"><i class="bi bi-building-fill"></i></div>
