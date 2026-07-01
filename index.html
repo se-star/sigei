@@ -2351,23 +2351,8 @@
         </div>
       </div>
 
-      <!-- Tabla agrupada por docente -->
-      <div class="card-panel mb-3">
-        <div class="table-responsive">
-          <table class="sigei-table">
-            <thead>
-              <tr>
-                <th>Docente</th>
-                <th>Materias</th>
-                <th>Horas/semana</th>
-                <th>Carga</th>
-                <th style="width:110px">Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="tabla-asignaciones"></tbody>
-          </table>
-        </div>
-      </div>
+      <!-- Tarjetas agrupadas por docente -->
+      <div id="asig-cards-grid" class="doc-cards-grid"></div>
 
       <!-- tablero-doc-sel y tablero-contenido viven en offcanvasTablero -->
       <select id="tablero-doc-sel" class="d-none" onchange="renderTableroDocente()"></select>
@@ -5564,35 +5549,51 @@ function renderAsignaciones() {
     byDoc[a.docente_id].push(a);
   });
 
-  const tb = document.getElementById('tabla-asignaciones');
+  const grid = document.getElementById('asig-cards-grid');
   const docIds = Object.keys(byDoc);
 
   if (!docIds.length) {
-    tb.innerHTML = emptyRow(5, 'No hay asignaciones. Crea la primera con "Nueva asignación".');
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:48px;color:var(--slate-400)">'
+      + '<i class="bi bi-journal-bookmark" style="font-size:40px;display:block;margin-bottom:12px;opacity:.35"></i>'
+      + '<div style="font-weight:600;font-size:14px">Sin asignaciones</div>'
+      + '<div style="font-size:13px;margin-top:4px">Crea la primera con "Nueva asignación"</div>'
+      + '</div>';
     return;
   }
 
-  tb.innerHTML = docIds.map(docId => {
+  grid.innerHTML = docIds.map(docId => {
     const listaAsigs  = byDoc[docId];
     const totalHoras  = listaAsigs.reduce((s, a) => s + calcHorasAsig(a), 0);
     const carga       = nivelCarga(totalHoras);
     const materias    = [...new Set(listaAsigs.map(a => a.materia))];
-    const materiasStr = materias.length > 2
-      ? materias.slice(0,2).join(', ') + ' +' + (materias.length - 2) + ' más'
-      : materias.join(', ');
+    const doc         = DB.get('docentes').find(d => d.id == docId) || {};
+    const ini         = ((doc.p_nombre||'')[0]||'') + ((doc.p_apellido||'')[0]||'');
+    const nombre      = [doc.p_nombre, doc.s_nombre, doc.p_apellido, doc.s_apellido].filter(Boolean).join(' ');
 
-    var idsSerialized = JSON.stringify(listaAsigs.map(function(a){ return a.id; }));
-    return '<tr>'
-      + '<td style="cursor:pointer" onclick="verTableroDocente(' + docId + ')" title="Ver tablero de carga"><strong>' + nombreDocente(docId) + '</strong></td>'
-      + '<td style="font-size:13px;color:#475569;cursor:pointer" onclick="verTableroDocente(' + docId + ')">' + materiasStr + '</td>'
-      + '<td style="cursor:pointer" onclick="verTableroDocente(' + docId + ')"><span class="carga-badge ' + carga.cls + '">' + totalHoras.toFixed(1) + ' h/sem</span></td>'
-      + '<td style="cursor:pointer" onclick="verTableroDocente(' + docId + ')"><span class="carga-badge ' + carga.cls + '">' + carga.nivel + '</span>' + (totalHoras >= CARGA_CONFIG.alta ? ' <i class="bi bi-exclamation-triangle-fill text-danger" title="Sobrecarga: supera ' + CARGA_CONFIG.alta + ' h/sem"></i>' : '') + '</td>'
-      + '<td class="text-center">'
-      + '<button class="btn btn-sm btn-outline-primary me-1" title="Editar" onclick="verTableroDocente(' + docId + ')"><i class="bi bi-pencil-fill"></i></button>'
-      + '<button class="btn btn-sm btn-outline-danger" title="Eliminar todas las asignaciones de este docente" onclick="eliminarAsignacionesDocente(' + docId + ',this)">'
+    const badgeColor  = carga.cls === 'badge-alta'  ? '#EF4444'
+                      : carga.cls === 'badge-media' ? '#F59E0B'
+                      : '#16A34A';
+
+    const materiasHtml = materias.map(m =>
+      '<span style="display:inline-block;background:rgba(79,70,229,.08);color:var(--indigo-600);'
+      + 'font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;margin:2px">' + m + '</span>'
+    ).join('');
+
+    const alertIcon = totalHoras >= CARGA_CONFIG.alta
+      ? '<i class="bi bi-exclamation-triangle-fill text-danger ms-1" style="font-size:11px" title="Sobrecarga"></i>' : '';
+
+    return '<div class="doc-card" onclick="verTableroDocente(' + docId + ')" title="Ver tablero de carga">'
+      + '<div class="user-avatar" style="width:54px;height:54px;font-size:20px;flex-shrink:0;margin-bottom:4px">' + ini.toUpperCase() + '</div>'
+      + '<div style="font-weight:700;font-size:13px;color:var(--slate-900);text-align:center;line-height:1.3">' + nombre + '</div>'
+      + '<span class="carga-badge ' + carga.cls + '" style="font-size:11px">' + totalHoras.toFixed(1) + ' h/sem ' + carga.nivel + alertIcon + '</span>'
+      + '<div style="display:flex;flex-wrap:wrap;justify-content:center;gap:2px;margin-top:4px">' + materiasHtml + '</div>'
+      + '<div class="d-flex gap-2 mt-2" onclick="event.stopPropagation()">'
+      + '<button class="btn btn-sm" style="background:rgba(79,70,229,.1);color:var(--indigo-600);border:none;border-radius:8px;padding:4px 12px;font-size:12px" onclick="verTableroDocente(' + docId + ')" title="Ver tablero">'
+      + '<i class="bi bi-bar-chart-fill me-1"></i>Tablero</button>'
+      + '<button class="btn btn-sm" style="background:rgba(239,68,68,.1);color:#EF4444;border:none;border-radius:8px;padding:4px 10px;font-size:12px" onclick="eliminarAsignacionesDocente(' + docId + ',this)" title="Eliminar asignaciones">'
       + '<i class="bi bi-trash-fill"></i></button>'
-      + '</td>'
-      + '</tr>';
+      + '</div>'
+      + '</div>';
   }).join('');
 }
 
