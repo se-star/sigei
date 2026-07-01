@@ -9155,6 +9155,10 @@ function renderModalSeguimiento() {
       +'<div style="font-size:10px;color:var(--slate-400);font-weight:600;text-transform:uppercase;letter-spacing:.04em">'+k.l+'</div></div>';
   }).join('');
 
+  // Precargar puntos de Drive en paralelo
+  if (!window._driveDotCache) window._driveDotCache = {};
+  _drivePreloadDots(docId, periodo);
+
   document.getElementById('seg-oc-body').innerHTML = SEG_ENTREGABLES.map(function(e, i) {
     var ent = ents[e.key] || { estado:'Pendiente', fecha:'', obs:'' };
     var cfg = SEG_CFG[ent.estado] || SEG_CFG['Pendiente'];
@@ -9289,6 +9293,42 @@ async function _driveListFiles(folderId, apiKey) {
   } catch(e) { console.warn('Drive listFiles error:', e); return []; }
 }
 
+async function _drivePreloadDots(docId, periodo) {
+  var apiKey = _driveApiKey();
+  if (!apiKey) return;
+  var doc = (DB.get('docentes')||[]).find(function(d){ return d.id == docId; });
+  if (!doc || !doc.drive_folder_id) return;
+  try {
+    var periodoId = await _driveFindFolder(doc.drive_folder_id, 'Periodo ' + periodo, apiKey);
+    if (!periodoId) return;
+    // Chequear todas las carpetas de entregables en paralelo
+    await Promise.all(SEG_ENTREGABLES.map(async function(e) {
+      var cacheKey = 'dot_' + docId + '_' + periodo + '_' + e.key;
+      if (window._driveDotCache && window._driveDotCache[cacheKey] !== undefined) {
+        // ya cacheado — solo encender el punto si existe
+        if (window._driveDotCache[cacheKey]) _segActivarDot(docId, periodo, e.key);
+        return;
+      }
+      try {
+        var entId = await _driveFindFolder(periodoId, e.label, apiKey);
+        var hasFiles = false;
+        if (entId) {
+          var files = await _driveListFiles(entId, apiKey);
+          hasFiles = files.length > 0;
+        }
+        if (!window._driveDotCache) window._driveDotCache = {};
+        window._driveDotCache[cacheKey] = hasFiles;
+        if (hasFiles) _segActivarDot(docId, periodo, e.key);
+      } catch(err) { /* silencioso */ }
+    }));
+  } catch(err) { /* silencioso */ }
+}
+
+function _segActivarDot(docId, periodo, entKey) {
+  var el = document.getElementById('dd-' + docId + '-' + periodo + '-' + entKey);
+  if (el) el.classList.add('visible');
+}
+
 function _driveFileIcon(mimeType) {
   if (!mimeType) return '<i class="bi bi-file-earmark" style="color:#6366F1"></i>';
   if (mimeType === 'application/pdf')
@@ -9354,9 +9394,10 @@ async function driveCargarArchivos(docId, periodo, entKey, containerEl) {
         + ' Sin archivos subidos aún.</div>';
       return;
     }
-    // Marcar punto en la tarjeta
-    var dotEl = document.getElementById('dd-'+docId+'-'+periodo+'-'+entKey);
-    if (dotEl) dotEl.classList.add('visible');
+    // Marcar punto + actualizar caché
+    if (!window._driveDotCache) window._driveDotCache = {};
+    window._driveDotCache['dot_'+docId+'_'+periodo+'_'+entKey] = true;
+    _segActivarDot(docId, periodo, entKey);
     containerEl.innerHTML = '<div class="seg-drive-files">'
       + files.map(function(f) {
           var date = f.modifiedTime
