@@ -2340,6 +2340,9 @@
             <select class="form-select form-select-sm" id="filtro-asig-docente" onchange="renderAsignaciones()" style="width:200px">
               <option value="">Todos los docentes</option>
             </select>
+            <button class="btn btn-sm btn-outline-warning" id="btn-sin-asig" onclick="toggleFiltroSinAsig()" title="Mostrar solo docentes sin ninguna asignación">
+              <i class="bi bi-person-x-fill me-1"></i>Sin asignación
+            </button>
             <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="abrirAsignacion()">
               <i class="bi bi-plus-lg"></i> Nueva asignación
             </button>
@@ -5695,6 +5698,18 @@ function actualizarTotalHorasModal() {
 }
 
 // ── Render tabla ────────────────────────────────────────────────────────
+var _filtroSinAsig = false;
+function toggleFiltroSinAsig() {
+  _filtroSinAsig = !_filtroSinAsig;
+  var btn = document.getElementById('btn-sin-asig');
+  if (btn) {
+    btn.classList.toggle('btn-outline-warning', !_filtroSinAsig);
+    btn.classList.toggle('btn-warning', _filtroSinAsig);
+    btn.style.color = _filtroSinAsig ? '#fff' : '';
+  }
+  renderAsignaciones();
+}
+
 function renderAsignaciones() {
   migrarAsignaciones();
 
@@ -5714,6 +5729,35 @@ function renderAsignaciones() {
   }
   let asigs = DB.get('asignaciones');
   if (fDoc.value) asigs = asigs.filter(a => a.docente_id == fDoc.value);
+
+  // Filtro: solo docentes sin asignación
+  const grid = document.getElementById('asig-cards-grid');
+  if (_filtroSinAsig) {
+    const docIdsConAsig = new Set(DB.get('asignaciones').map(a => String(a.docente_id)));
+    const sinAsig = docentes.filter(d => d.estado === 'Activo' && !docIdsConAsig.has(String(d.id)));
+    if (!sinAsig.length) {
+      grid.innerHTML = '<div style="grid-column:1/-1"><div class="empty-state-full">'
+        + '<div class="es-icon" style="background:#D1FAE5;color:#059669"><i class="bi bi-check-circle-fill"></i></div>'
+        + '<h6>¡Todos los docentes tienen asignaciones!</h6>'
+        + '<p>Cada docente activo tiene al menos una materia asignada.</p>'
+        + '</div></div>';
+    } else {
+      grid.innerHTML = sinAsig.map(function(d) {
+        var nombre = [d.p_nombre, d.s_nombre, d.p_apellido, d.s_apellido].filter(Boolean).join(' ');
+        var ini = ((d.p_nombre||'')[0]||'') + ((d.p_apellido||'')[0]||'');
+        var did = d.id;
+        return '<div class="doc-card" onclick="abrirAsignacion()" title="Crear asignación para este docente">'
+          + '<div class="doc-card-avatar" style="background:linear-gradient(135deg,#FEF3C7,#FDE68A);color:#B45309">' + ini.toUpperCase() + '</div>'
+          + '<div style="width:100%">'
+          + '<div class="doc-card-name">' + nombre + '</div>'
+          + '<div class="doc-card-sub">' + (d.tipo_vinc||'Docente') + '</div>'
+          + '<div style="margin-top:10px;display:flex;justify-content:center">'
+          + '<span style="font-size:11px;font-weight:700;background:#FEF3C7;color:#B45309;padding:3px 12px;border-radius:20px"><i class="bi bi-exclamation-triangle-fill me-1"></i>Sin asignación</span>'
+          + '</div></div></div>';
+      }).join('');
+    }
+    return;
+  }
 
   // Group by docente
   const byDoc = {};
