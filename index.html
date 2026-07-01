@@ -20,42 +20,21 @@
 <style>
   /* ══ DESIGN TOKENS ═══════════════════════════════════════════════════ */
   :root {
-    /* ── Indigo / primary ── */
-    --indigo-700: #4338CA;
-    --indigo-600: #4F46E5;
-    --indigo-500: #6366F1;
-    --indigo-100: #E0E7FF;
-    --indigo-50:  #EEF2FF;
-    /* Alias para código existente */
-    --blue-600:  #4F46E5;
-    --blue-700:  #4338CA;
-    --blue-50:   #EEF2FF;
-    --blue-100:  #E0E7FF;
-    --slate-900: #0F172A;
-    --slate-800: #1E293B;
-    --slate-700: #334155;
-    --slate-600: #475569;
-    --slate-500: #64748B;
-    --slate-400: #94A3B8;
-    --slate-300: #CBD5E1;
-    --slate-200: #E2E8F0;
-    --slate-100: #F1F5F9;
-    --slate-50:  #F8FAFC;
-    --white:     #FFFFFF;
-    --green-500: #10B981;
-    --amber-500: #F59E0B;
-    --red-500:   #EF4444;
+    --indigo-700: #4338CA; --indigo-600: #4F46E5; --indigo-500: #6366F1;
+    --indigo-100: #E0E7FF; --indigo-50:  #EEF2FF;
+    --blue-600:  #4F46E5; --blue-700:  #4338CA;
+    --blue-50:   #EEF2FF; --blue-100:  #E0E7FF;
+    --slate-900: #0F172A; --slate-800: #1E293B; --slate-700: #334155;
+    --slate-600: #475569; --slate-500: #64748B; --slate-400: #94A3B8;
+    --slate-300: #CBD5E1; --slate-200: #E2E8F0; --slate-100: #F1F5F9;
+    --slate-50:  #F8FAFC; --white: #FFFFFF;
+    --green-500: #10B981; --amber-500: #F59E0B; --red-500: #EF4444;
     --sidebar-w: 264px;
-    --radius-sm: 8px;
-    --radius-md: 12px;
-    --radius-lg: 16px;
+    --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px;
     --shadow-sm: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
     --shadow-md: 0 4px 12px rgba(0,0,0,.08), 0 1px 3px rgba(0,0,0,.04);
-    /* Sidebar oscuro (color único en todo el sidebar) */
-    --sb-bg:     #1e1b4b;
-    --sb-border: rgba(255,255,255,.07);
-    /* Page background lavanda */
-    --page-bg:   #EDEEFF;
+    --sb-bg: #1e1b4b; --sb-border: rgba(255,255,255,.07);
+    --page-bg: #EDEEFF;
     --ease-spring: cubic-bezier(.34,1.56,.64,1);
     --ease-smooth: cubic-bezier(.4,0,.2,1);
   }
@@ -72,15 +51,13 @@
 
   /* ══ SIDEBAR ══════════════════════════════════════════════════════════ */
   #sidebar {
-    width: var(--sidebar-w);
-    height: 100vh;
+    width: var(--sidebar-w); height: 100vh;
     background: var(--sb-bg);
     border-right: 1px solid var(--sb-border);
     box-shadow: 4px 0 24px rgba(0,0,0,.25);
     position: fixed; top: 0; left: 0; z-index: 200;
     display: flex; flex-direction: column;
-    transition: width .25s ease;
-    overflow: hidden;
+    transition: width .25s ease; overflow: hidden;
   }
   body.sidebar-collapsed #sidebar { overflow: visible; }
 
@@ -89,31 +66,20 @@
     padding: 22px 20px 18px;
     border-bottom: 1px solid rgba(255,255,255,.07);
   }
-  .brand-logo {
-    display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
-  }
+  .brand-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
   .brand-logo .logo-icon {
     width: 42px; height: 42px; border-radius: 12px;
     background: rgba(255,255,255,.15);
     display: flex; align-items: center; justify-content: center;
-    font-size: 18px; flex-shrink: 0;
-    box-shadow: 0 4px 12px rgba(0,0,0,.25);
+    font-size: 18px; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,0,0,.25);
   }
-  .brand-logo h6 {
-    color: #fff; font-weight: 700; font-size: 15px; margin: 0; line-height: 1.2;
-  }
+  .brand-logo h6 { color: #fff; font-weight: 700; font-size: 15px; margin: 0; line-height: 1.2; }
   .brand-logo small { color: rgba(255,255,255,.55); font-size: 11px; display: block; }
-  #user-email-display {
-    font-size: 11px; color: rgba(255,255,255,.55);
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-    margin-bottom: 8px;
-  }
+  #user-email-display { display: none; }
   #sidebar .brand button {
     width: 100%; padding: 7px 12px;
-    background: rgba(255,255,255,.1);
-    border: 1px solid rgba(255,255,255,.15);
-    border-radius: var(--radius-sm);
-    color: rgba(255,255,255,.8); font-size: 11px;
+    background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.15);
+    border-radius: var(--radius-sm); color: rgba(255,255,255,.8); font-size: 11px;
     cursor: pointer; display: flex; align-items: center; gap: 6px;
     transition: background .2s, color .2s;
   }
@@ -135,13 +101,11 @@
   #sidebar nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,.12); border-radius: 3px; }
   #sidebar nav .nav-section {
     font-size: 10px; font-weight: 700; letter-spacing: .08em;
-    color: rgba(255,255,255,.35); padding: 16px 20px 6px;
-    text-transform: uppercase;
+    color: rgba(255,255,255,.35); padding: 16px 20px 6px; text-transform: uppercase;
   }
   #sidebar nav a {
     display: flex; align-items: center; gap: 10px;
-    padding: 9px 12px 9px 16px;
-    color: rgba(255,255,255,.6);
+    padding: 9px 12px 9px 16px; color: rgba(255,255,255,.6);
     text-decoration: none; font-size: 13px; font-weight: 500;
     transition: color .18s, background .18s;
     white-space: nowrap; position: relative;
@@ -150,8 +114,7 @@
   #sidebar nav a i { font-size: 15px; flex-shrink: 0; }
   #sidebar nav a:hover  { background: rgba(255,255,255,.07); color: #fff; }
   #sidebar nav a.active {
-    background: var(--indigo-600);
-    color: #fff; font-weight: 600;
+    background: var(--indigo-600); color: #fff; font-weight: 600;
     box-shadow: 0 4px 14px rgba(79,70,229,.4);
   }
   #sidebar .version {
@@ -163,11 +126,8 @@
   #main { margin-left: var(--sidebar-w); min-height: 100vh; background: transparent; }
 
   .topbar {
-    background: var(--white);
-    border-bottom: 1px solid #EBEBFF;
-    padding: 0 28px;
-    height: 60px;
-    display: flex; align-items: center; justify-content: space-between;
+    background: var(--white); border-bottom: 1px solid #EBEBFF; padding: 0 28px;
+    height: 60px; display: flex; align-items: center; justify-content: space-between;
     position: sticky; top: 0; z-index: 100;
     box-shadow: 0 1px 16px rgba(79,70,229,.06);
   }
@@ -183,14 +143,11 @@
 
   /* ══ STAT CARDS ══════════════════════════════════════════════════════ */
   .stat-card {
-    background: var(--white);
-    border-radius: 18px;
-    padding: 22px 20px 18px;
+    background: var(--white); border-radius: 18px; padding: 22px 20px 18px;
     box-shadow: 0 2px 8px rgba(79,70,229,.07), 0 1px 2px rgba(79,70,229,.04);
     border: 1px solid rgba(79,70,229,.09);
     display: flex; flex-direction: column; gap: 14px;
-    transition: box-shadow .2s, transform .2s;
-    position: relative; overflow: hidden;
+    transition: box-shadow .2s, transform .2s; position: relative; overflow: hidden;
   }
   .stat-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px;
     background:var(--sc-accent,var(--indigo-600)); border-radius:18px 18px 0 0; opacity:0; transition:opacity .2s; }
@@ -208,8 +165,7 @@
 
   /* ══ CARD PANEL ══════════════════════════════════════════════════════ */
   .card-panel {
-    background: var(--white);
-    border-radius: 18px;
+    background: var(--white); border-radius: 18px;
     border: 1px solid rgba(79,70,229,.09);
     box-shadow: 0 2px 8px rgba(79,70,229,.07), 0 1px 2px rgba(79,70,229,.04);
     overflow: hidden;
@@ -280,7 +236,7 @@
     transition: border-color .2s, box-shadow .2s;
   }
   .search-bar input:focus {
-    border-color: var(--indigo-600); outline: none;
+    border-color: var(--blue-600); outline: none;
     box-shadow: 0 0 0 3px rgba(79,70,229,.14);
     background: var(--white);
   }
@@ -718,12 +674,7 @@
     font-size: 13px; font-weight: 700; color: #fff;
     flex-shrink: 0; letter-spacing: .5px;
   }
-  .sidebar-user {
-    display: flex; align-items: center; gap: 10px;
-    padding: 10px 0; margin-bottom: 8px;
-    border-top: 1px solid rgba(255,255,255,.1);
-    padding-top: 12px;
-  }
+  .sidebar-user { display: none; }
   .sidebar-user-info { flex: 1; min-width: 0; }
   .sidebar-user-info .name { color: #fff; font-size: 12px; font-weight: 600;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -1039,7 +990,7 @@
 
   .seg-charts-grid {
     display:grid;
-    grid-template-columns:1fr 2fr;
+    grid-template-columns:1fr;
     gap:14px;
     margin-bottom:16px;
   }
@@ -1935,7 +1886,7 @@
         <small>Gestión Institucional ALFATIC</small>
       </div>
     </div>
-    <!-- user-email-display y sidebar-role se usan en JS; se mantienen ocultos -->
+    <!-- email/rol ocultos para compatibilidad JS -->
     <div id="user-email-display" style="display:none"></div>
     <div id="sidebar-role" style="display:none">Administrador</div>
   </div>
@@ -2676,12 +2627,7 @@
 
       <!-- Charts -->
       <div class="seg-charts-grid" id="seg-charts-row">
-        <div class="card-panel" style="padding:18px">
-          <div style="font-size:12px;font-weight:700;color:var(--slate-600);margin-bottom:14px"><i class="bi bi-pie-chart-fill me-1" style="color:#4F46E5"></i>Estado general</div>
-          <div style="position:relative;height:160px"><canvas id="seg-chart-donut"></canvas></div>
-          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;justify-content:center" id="seg-donut-legend"></div>
-        </div>
-        <div class="card-panel" style="padding:18px;min-width:0">
+<div class="card-panel" style="padding:18px;min-width:0">
           <div style="font-size:12px;font-weight:700;color:var(--slate-600);margin-bottom:14px"><i class="bi bi-grid-fill me-1" style="color:#16A34A"></i>Distribución por entregable</div>
           <div id="seg-heatmap" style="overflow-x:auto"></div>
         </div>
@@ -5686,7 +5632,6 @@ function eliminarAsignacionesDocente(docId, btn) {
 // ── Tablero docente ─────────────────────────────────────────────────────
 function renderTableroDocente(forcedId) {
   migrarAsignaciones();
-  // forcedId evita depender del <select> oculto que puede no tener opciones cargadas aún
   var selVal = document.getElementById('tablero-doc-sel').value;
   const docId = (forcedId != null ? String(forcedId) : selVal) || selVal;
   if (forcedId != null) document.getElementById('tablero-doc-sel').value = forcedId;
@@ -10066,4 +10011,3 @@ _auth.onAuthStateChanged(async function(user) {
 
 </body>
 </html>
-                                                               
