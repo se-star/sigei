@@ -2857,30 +2857,18 @@
         </div>
       </div>
 
-      <!-- Matriz de permisos por rol -->
+      <!-- Acceso rápido: abrir modal de permisos -->
       <div class="card-panel mb-3">
         <div class="panel-header">
-          <h6><i class="bi bi-shield-lock-fill me-2"></i>Control de Acceso — Módulos por Rol</h6>
-          <button class="btn btn-sm text-white" style="background:#6366F1" onclick="guardarPermisosRoles()">
-            <i class="bi bi-save me-1"></i>Guardar cambios
+          <h6><i class="bi bi-shield-lock-fill me-2"></i>Control de Acceso</h6>
+          <button class="btn btn-sm text-white" style="background:#6366F1"
+            onclick="abrirMatrizPermisos()">
+            <i class="bi bi-pencil-square me-1"></i>Configurar módulos por rol
           </button>
         </div>
-        <p style="font-size:12px;color:var(--slate-500);margin:0 0 16px">
-          Activa o desactiva el acceso a cada módulo por rol. El Superadmin siempre tiene acceso total.
+        <p style="font-size:12px;color:var(--slate-500);margin:0">
+          Define qué módulos puede ver cada rol. El Superadmin siempre tiene acceso total.
         </p>
-        <div class="table-responsive">
-          <table class="sigei-table sa-matrix-table" id="sa-matrix-table">
-            <thead>
-              <tr>
-                <th style="text-align:left;min-width:160px">Módulo</th>
-                <th>Administrador</th>
-                <th>Coordinador</th>
-                <th>Docente</th>
-              </tr>
-            </thead>
-            <tbody id="sa-matrix-body"></tbody>
-          </table>
-        </div>
       </div>
 
       <!-- Configuración Google Drive -->
@@ -8909,22 +8897,7 @@ function renderSuperadmin() {
       : 'AIzaSy…';
   }
 
-  // Matriz de permisos
-  var config = getPermisosRoles();
-  var tbody  = document.getElementById('sa-matrix-body');
-  if (tbody) {
-    tbody.innerHTML = SA_MODULOS.map(function(mod) {
-      var cols = SA_ROLES.map(function(rol) {
-        var checked = config[rol] && config[rol].includes(mod.key) ? 'checked' : '';
-        var disabled = mod.key === 'dashboard' ? 'disabled' : ''; // dashboard siempre activo
-        return '<td><input type="checkbox" class="sa-toggle" id="sa-perm-'+rol+'-'+mod.key+'" '+checked+' '+disabled+'></td>';
-      }).join('');
-      return '<tr>'
-        + '<td><i class="bi '+mod.icon+' me-2" style="color:var(--slate-400)"></i>'+mod.label+'</td>'
-        + cols
-        + '</tr>';
-    }).join('');
-  }
+  // La matriz de permisos se rellena al abrir el modal (abrirMatrizPermisos)
 
   // Monitor de actividad — poblar filtros
   var actividad = (DB.get('actividad') || []).slice().reverse();
@@ -9001,9 +8974,31 @@ function guardarPermisosRoles() {
   // También en roles/_config (compatibilidad hacia atrás)
   _fs.collection('roles').doc('_config').set({ permisos_roles: config })
     .catch(function(e) {});
+  // Cerrar modal si está abierto
+  var mp = bootstrap.Modal.getInstance(document.getElementById('modalMatrizPermisos'));
+  if (mp) mp.hide();
   // Aplicar inmediatamente al sidebar
   applyRoleRestrictions();
   toast('Permisos de acceso actualizados correctamente.');
+}
+
+function abrirMatrizPermisos() {
+  // Repoblar la tabla antes de mostrar
+  var config = getPermisosRoles();
+  var tbody = document.getElementById('sa-matrix-body');
+  if (tbody) {
+    tbody.innerHTML = SA_MODULOS.map(function(mod) {
+      var cols = SA_ROLES.map(function(rol) {
+        var checked = config[rol] && config[rol].includes(mod.key) ? 'checked' : '';
+        var disabled = mod.key === 'dashboard' ? 'disabled' : '';
+        return '<td><input type="checkbox" class="sa-toggle" id="sa-perm-'+rol+'-'+mod.key+'" '+checked+' '+disabled+'></td>';
+      }).join('');
+      return '<tr>'
+        + '<td style="padding-left:24px"><i class="bi '+mod.icon+' me-2" style="color:var(--slate-400)"></i>'+mod.label+'</td>'
+        + cols + '</tr>';
+    }).join('');
+  }
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('modalMatrizPermisos')).show();
 }
 
 // ════════════════════════════════════════════════
@@ -10302,6 +10297,48 @@ function abrirSoporte() {
 </div>
 
 
+
+<!-- Modal Matriz de Permisos -->
+<div class="modal fade" tabindex="-1" id="modalMatrizPermisos">
+  <div class="modal-dialog modal-dialog-scrollable" style="max-width:min(700px,96vw)">
+    <div class="modal-content" style="border-radius:18px;overflow:hidden;border:none;box-shadow:0 24px 64px rgba(0,0,0,.18)">
+      <div class="modal-header" style="background:var(--sb-bg);padding:20px 24px;border:none">
+        <div>
+          <h6 class="modal-title text-white fw-bold mb-0" style="font-size:16px">
+            <i class="bi bi-shield-lock-fill me-2" style="color:#A5B4FC"></i>Control de Acceso — Módulos por Rol
+          </h6>
+          <p class="text-white mb-0 mt-1" style="font-size:12px;opacity:.65">
+            El Superadmin siempre tiene acceso total.
+          </p>
+        </div>
+        <button class="btn-close btn-close-white ms-3" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-0">
+        <div class="table-responsive">
+          <table class="sigei-table sa-matrix-table mb-0" id="sa-matrix-table">
+            <thead>
+              <tr>
+                <th style="text-align:left;min-width:160px;padding-left:24px">Módulo</th>
+                <th>Administrador</th>
+                <th>Coordinador</th>
+                <th>Docente</th>
+              </tr>
+            </thead>
+            <tbody id="sa-matrix-body"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer" style="padding:16px 24px;border-top:1px solid rgba(79,70,229,.1)">
+        <button class="btn btn-sm" data-bs-dismiss="modal"
+          style="color:var(--slate-500);border:1px solid var(--slate-200)">Cancelar</button>
+        <button class="btn btn-sm text-white" style="background:#6366F1"
+          onclick="guardarPermisosRoles()">
+          <i class="bi bi-save me-1"></i>Guardar cambios
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Modal Soporte -->
 <div class="modal fade" tabindex="-1" id="modalSoporte">
