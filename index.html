@@ -2161,7 +2161,26 @@
               <h6 style="margin:0"><i class="bi bi-journal-check me-2" style="color:#4F46E5"></i>Seguimiento Pedagógico — Periodo actual</h6>
               <a href="#" onclick="navigate('seguimiento')" style="font-size:12px;color:var(--indigo-600);font-weight:600;white-space:nowrap">Ver detalle →</a>
             </div>
-            <div id="dash-seg-entregables" style="padding:0 12px 14px;display:flex;flex-wrap:wrap;gap:6px"></div>
+            <!-- Círculo de progreso + entregables -->
+            <div style="display:flex;align-items:center;gap:16px;padding:0 16px 14px">
+              <!-- Círculo -->
+              <div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:4px">
+                <div style="position:relative;width:80px;height:80px">
+                  <svg width="80" height="80" viewBox="0 0 80 80" style="transform:rotate(-90deg)">
+                    <circle cx="40" cy="40" r="32" fill="none" stroke="#E2E8F0" stroke-width="8"/>
+                    <circle id="dash-seg-ring" cx="40" cy="40" r="32" fill="none" stroke="#4F46E5" stroke-width="8"
+                      stroke-linecap="round" stroke-dasharray="201.06" stroke-dashoffset="201.06"
+                      style="transition:stroke-dashoffset .7s ease,stroke .3s"/>
+                  </svg>
+                  <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+                    <span id="dash-seg-pct" style="font-size:16px;font-weight:800;color:var(--slate-800);line-height:1">—</span>
+                  </div>
+                </div>
+                <span style="font-size:10px;font-weight:600;color:var(--slate-400)">Avance general</span>
+              </div>
+              <!-- Barras entregables -->
+              <div id="dash-seg-entregables" style="flex:1;display:flex;flex-wrap:wrap;gap:6px;min-width:0"></div>
+            </div>
             <div id="dash-seg-empty" style="display:none;padding:20px;text-align:center;color:var(--slate-400);font-size:13px">
               <i class="bi bi-journal-x" style="font-size:28px;display:block;margin-bottom:8px;opacity:.4"></i>Sin datos de seguimiento para este periodo.
             </div>
@@ -4605,6 +4624,20 @@ function renderDashboard() {
 
     segEmpty.style.display = 'none';
     segContainer.style.display = '';
+
+    // Calcular pctGeneral para el círculo del dashboard
+    var totalAprobDash = resumen.reduce(function(acc, r){ return acc + r.aprobados; }, 0);
+    var totalAplicDash = resumen.reduce(function(acc, r){ return acc + r.aplicables; }, 0);
+    var pctDash = totalAplicDash > 0 ? Math.round(totalAprobDash / totalAplicDash * 100) : 0;
+    var dashRing = document.getElementById('dash-seg-ring');
+    var dashPct  = document.getElementById('dash-seg-pct');
+    if (dashPct) dashPct.textContent = pctDash + '%';
+    if (dashRing) {
+      var circum = 201.06;
+      dashRing.style.strokeDashoffset = circum - (pctDash / 100) * circum;
+      dashRing.style.stroke = pctDash >= 80 ? '#16A34A' : pctDash >= 50 ? '#F59E0B' : '#EF4444';
+    }
+
     segContainer.innerHTML = resumen.map(function(r) {
       var barColor = r.pct >= 80 ? '#16A34A' : r.pct >= 50 ? '#F59E0B' : '#EF4444';
       var bgColor  = r.pct >= 80 ? '#F0FDF4' : r.pct >= 50 ? '#FFFBEB' : '#FEF2F2';
