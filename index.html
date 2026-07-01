@@ -4085,7 +4085,7 @@ const DB = {
 
   // Load all collections from Firestore into memory
   loadAll: async function() {
-    const COLS = ['docentes','secciones','horarios','sedes','permisos','asignaciones','cronograma','grados','seguimiento','actividad','usuarios'];
+    const COLS = ['docentes','secciones','horarios','sedes','permisos','asignaciones','cronograma','grados','seguimiento','actividad','usuarios','permisos_roles'];
     const snaps = await Promise.all(COLS.map(k => _fs.collection('sigei').doc(k).get()));
     snaps.forEach((snap, i) => {
       _cache[COLS[i]] = snap.exists ? (snap.data().items || []) : [];
@@ -4096,21 +4096,29 @@ const DB = {
       window._SIGEI_APP_CONFIG = cfgSnap.exists ? cfgSnap.data() : {};
     } catch(e) { window._SIGEI_APP_CONFIG = {}; }
 
-    // Leer permisos_roles: primero desde sigei/app_config (legible por todos), luego roles/_config
-    try {
-      if (window._SIGEI_APP_CONFIG && window._SIGEI_APP_CONFIG.permisos_roles) {
+    // permisos_roles ya cargado como parte de COLS desde sigei/permisos_roles
+    // Persistir en localStorage para respaldo offline
+    if (_cache['permisos_roles'] && _cache['permisos_roles'].length) {
+      try { localStorage.setItem('sigei_permisos_roles', JSON.stringify(_cache['permisos_roles'])); } catch(e) {}
+    } else {
+      // Fallback 1: sigei/app_config (corrección intermedia anterior)
+      if (window._SIGEI_APP_CONFIG && window._SIGEI_APP_CONFIG.permisos_roles && window._SIGEI_APP_CONFIG.permisos_roles.length) {
         _cache['permisos_roles'] = window._SIGEI_APP_CONFIG.permisos_roles;
         try { localStorage.setItem('sigei_permisos_roles', JSON.stringify(_cache['permisos_roles'])); } catch(e) {}
       }
-    } catch(e) {}
-    // Intentar también roles/_config (puede fallar por permisos en cuentas no-admin)
-    try {
-      const configSnap = await _fs.collection('roles').doc('_config').get();
-      if (configSnap.exists && configSnap.data().permisos_roles) {
-        _cache['permisos_roles'] = configSnap.data().permisos_roles;
-        try { localStorage.setItem('sigei_permisos_roles', JSON.stringify(_cache['permisos_roles'])); } catch(e) {}
+      // Fallback 2: roles/_config (legado)
+      if (!_cache['permisos_roles'] || !_cache['permisos_roles'].length) {
+        try {
+          const configSnap = await _fs.collection('roles').doc('_config').get();
+          if (configSnap.exists && configSnap.data().permisos_roles) {
+            _cache['permisos_roles'] = configSnap.data().permisos_roles;
+            try { localStorage.setItem('sigei_permisos_roles', JSON.stringify(_cache['permisos_roles'])); } catch(e) {}
+            // Migrar: guardar en el lugar correcto para futuras cargas
+            _fs.collection('sigei').doc('permisos_roles').set({ items: _cache['permisos_roles'] }).catch(function(){});
+          }
+        } catch(e) {}
       }
-    } catch(e) { console.warn('loadAll permisos_roles roles/_config:', e.message); }
+    }
 
     // Leer datos TOTP del usuario actual desde roles/{uid} y fusionarlos en el array usuarios
     try {
@@ -8966,16 +8974,13 @@ function guardarPermisosRoles() {
   _cache['permisos_roles'] = config;
   // Guardar en localStorage (inmediato, funciona offline)
   try { localStorage.setItem('sigei_permisos_roles', JSON.stringify(config)); } catch(e) {}
-  // Guardar en sigei/app_config (legible por TODOS los usuarios autenticados)
-  _fs.collection('sigei').doc('app_config').set({ permisos_roles: config }, { merge: true })
-    .then(function(){
-      if (window._SIGEI_APP_CONFIG) window._SIGEI_APP_CONFIG.permisos_roles = config;
-      console.log('permisos_roles guardado en sigei/app_config OK');
-    })
-    .catch(function(e){ console.warn('sigei/app_config write falló:', e.message); });
+  // Guardar en sigei/permisos_roles (misma colección que todo el sistema — legible por todos)
+  _fs.collection('sigei').doc('permisos_roles').set({ items: config })
+    .then(function(){ console.log('permisos_roles guardado en sigei/permisos_roles OK'); })
+    .catch(function(e){ console.warn('sigei/permisos_roles write falló:', e.message); });
   // También en roles/_config (compatibilidad hacia atrás)
   _fs.collection('roles').doc('_config').set({ permisos_roles: config })
-    .catch(function(e){ console.warn('roles/_config write falló (no crítico):', e.message); });
+    .catch(function(e) {});
   // Aplicar inmediatamente al sidebar
   applyRoleRestrictions();
   toast('Permisos de acceso actualizados correctamente.');
