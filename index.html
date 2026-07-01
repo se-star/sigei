@@ -3709,49 +3709,53 @@
 
 
 <!-- Offcanvas Sede -->
-<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasSede" style="width:min(520px,96vw)">
-  <div class="offcanvas-header border-bottom" style="background:var(--slate-900);padding:20px 24px">
-    <div>
-      <h6 class="offcanvas-title text-white mb-0" style="font-weight:700;font-size:15px" id="offcanvasSede-title">Nueva Sede</h6>
-      <small class="text-white-50" style="font-size:11px">Gestión de Sedes</small>
-    </div>
-    <button class="btn-close btn-close-white ms-3" data-bs-dismiss="offcanvas"></button>
-  </div>
-  <div class="offcanvas-body" style="overflow-y:auto;padding:24px">
-    <input type="hidden" id="sede-id">
-    <div class="row g-3">
-      <div class="col-12">
-        <label class="form-label" style="font-size:12px;font-weight:600">Nombre de la Sede *</label>
-        <input type="text" class="form-control form-control-sm" id="sede-nombre" placeholder="Ej: Sede Central">
+<div class="modal fade" tabindex="-1" id="modalSede">
+  <div class="modal-dialog modal-dialog-scrollable" style="max-width:min(520px,96vw)">
+    <div class="modal-content" style="border-radius:18px;overflow:hidden;border:none;box-shadow:0 24px 64px rgba(0,0,0,.18)">
+      <div class="modal-header" style="background:var(--sb-bg);padding:20px 24px;border:none">
+        <div>
+          <h6 class="modal-title text-white mb-0" style="font-weight:700;font-size:15px" id="offcanvasSede-title">Nueva Sede</h6>
+          <small class="text-white-50" style="font-size:11px">Gestión de Sedes</small>
+        </div>
+        <button class="btn-close btn-close-white ms-3" data-bs-dismiss="modal"></button>
       </div>
-      <div class="col-12">
-        <label class="form-label" style="font-size:12px;font-weight:600">Dirección</label>
-        <input type="text" class="form-control form-control-sm" id="sede-direccion">
-      </div>
-      <div class="col-6">
-        <label class="form-label" style="font-size:12px;font-weight:600">Teléfono</label>
-        <input type="text" class="form-control form-control-sm" id="sede-telefono">
-      </div>
-      <div class="col-6">
-        <label class="form-label" style="font-size:12px;font-weight:600">Email</label>
-        <input type="email" class="form-control form-control-sm" id="sede-email">
-      </div>
-      <div class="col-12">
-        <div class="form-check mt-1">
-          <input class="form-check-input" type="checkbox" id="sede-principal">
-          <label class="form-check-label" for="sede-principal" style="font-size:12px;font-weight:600">
-            <i class="bi bi-star-fill me-1" style="color:#F59E0B"></i>Sede Principal
-            <span style="font-size:11px;font-weight:400;color:var(--slate-400);margin-left:4px">— usada para filtrar docentes en asignación, horarios y reemplazos</span>
-          </label>
+      <div class="modal-body" style="padding:24px">
+        <input type="hidden" id="sede-id">
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label" style="font-size:12px;font-weight:600">Nombre de la Sede *</label>
+            <input type="text" class="form-control form-control-sm" id="sede-nombre" placeholder="Ej: Sede Central">
+          </div>
+          <div class="col-12">
+            <label class="form-label" style="font-size:12px;font-weight:600">Dirección</label>
+            <input type="text" class="form-control form-control-sm" id="sede-direccion">
+          </div>
+          <div class="col-6">
+            <label class="form-label" style="font-size:12px;font-weight:600">Teléfono</label>
+            <input type="text" class="form-control form-control-sm" id="sede-telefono">
+          </div>
+          <div class="col-6">
+            <label class="form-label" style="font-size:12px;font-weight:600">Email</label>
+            <input type="email" class="form-control form-control-sm" id="sede-email">
+          </div>
+          <div class="col-12">
+            <div class="form-check mt-1">
+              <input class="form-check-input" type="checkbox" id="sede-principal">
+              <label class="form-check-label" for="sede-principal" style="font-size:12px;font-weight:600">
+                <i class="bi bi-star-fill me-1" style="color:#F59E0B"></i>Sede Principal
+                <span style="font-size:11px;font-weight:400;color:var(--slate-400);margin-left:4px">— usada para filtrar docentes en asignación, horarios y reemplazos</span>
+              </label>
+            </div>
+          </div>
         </div>
       </div>
+      <div class="modal-footer border-top" style="padding:12px 20px">
+        <button class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn btn-sm text-white" style="background:var(--indigo-600)" onclick="guardarSede()">
+          <i class="bi bi-save me-1"></i>Guardar
+        </button>
+      </div>
     </div>
-  </div>
-  <div class="border-top p-3 d-flex gap-2 justify-content-end oc-footer">
-    <button class="btn btn-sm btn-secondary" data-bs-dismiss="offcanvas">Cancelar</button>
-    <button class="btn btn-sm text-white" style="background:var(--blue-600)" onclick="guardarSede()">
-      <i class="bi bi-save me-1"></i>Guardar
-    </button>
   </div>
 </div>
 
@@ -7548,7 +7552,7 @@ function abrirSede(id=null) {
     document.getElementById('sede-email').value     = s.email||'';
     document.getElementById('sede-principal').checked = !!s.es_principal;
   }
-  bootstrap.Offcanvas.getOrCreateInstance(document.getElementById('offcanvasSede')).show();
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('modalSede')).show();
 }
 
 function eliminarSede(id) {
@@ -7576,7 +7580,7 @@ function guardarSede() {
   if (!idEdit) { sedes.push({ id: DB.nextId('sedes'), ...data }); toast('Sede creada.'); }
   else { const idx=sedes.findIndex(s=>s.id==idEdit); Object.assign(sedes[idx],data); toast('Sede actualizada.'); }
   DB.set('sedes', sedes);
-  bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasSede')).hide();
+  bootstrap.Modal.getInstance(document.getElementById('modalSede')).hide();
   renderSedes();
 }
 
