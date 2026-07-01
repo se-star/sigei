@@ -10190,6 +10190,19 @@ _auth.onAuthStateChanged(async function(user) {
     }
   }
 });
+
+function abrirSoporte() {
+  var oc = bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasUserProfile'));
+  if (oc) oc.hide();
+  setTimeout(function() {
+    var usr = DB.get('usuarios').find(function(u) {
+      return u.email === (firebase.auth().currentUser ? firebase.auth().currentUser.email : '');
+    }) || {};
+    document.getElementById('sop-usuario').textContent = usr.nombre || (firebase.auth().currentUser ? firebase.auth().currentUser.email : '—');
+    document.getElementById('sop-rol').textContent     = usr.rol || '—';
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('modalSoporte')).show();
+  }, 150);
+}
 </script>
 
 
