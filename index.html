@@ -9385,7 +9385,10 @@ function renderSeguimiento() {
       + '</div>'
       + '<div class="seg-doc-prog">'
       + '<div class="seg-prog-bar"><div class="seg-prog-fill" style="width:' + pct + '%;background:' + pctColor + '"></div></div>'
-      + '<div class="seg-prog-pct" style="color:' + pctColor + '">' + aprobados + '/' + aplicables + '</div>'
+      + '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'
+      + '<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:' + (pct===100?'#D1FAE5':pct>=50?'#DBEAFE':'#EEF2FF') + ';color:' + pctColor + '">' + pct + '%</span>'
+      + '<div class="seg-prog-pct" style="color:var(--slate-400)">' + aprobados + '/' + aplicables + '</div>'
+      + '</div>'
       + '<i class="bi bi-chevron-right" style="font-size:11px;color:var(--slate-300)"></i>'
       + '</div>'
       + '</div>';
