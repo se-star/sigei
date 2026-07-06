@@ -2292,6 +2292,9 @@
           <button class="btn btn-sm btn-outline-success" onclick="exportarResumenGrados()" title="Exportar resumen a Excel">
             <i class="bi bi-file-earmark-excel me-1"></i>Exportar
           </button>
+          <button class="btn btn-sm btn-outline-secondary" onclick="importarGruposExcel()" title="Importar grupos desde Excel">
+            <i class="bi bi-file-earmark-arrow-up-fill me-1"></i>Importar
+          </button>
           <button class="btn btn-sm btn-outline-warning" onclick="crearGradoPreescolar()" title="Crear grado Preescolar si no existe">
             <i class="bi bi-stars me-1"></i>+ Preescolar
           </button>
@@ -2369,6 +2372,53 @@
 
       <!-- Grid de tarjetas de grado -->
       <div id="grados-cards" class="row g-3 mb-3"></div>
+
+      <!-- Modal Importar Grupos Excel -->
+      <div class="modal fade" id="modalImportGrupos" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header" style="background:var(--slate-900)">
+              <h6 class="modal-title text-white"><i class="bi bi-file-earmark-excel-fill me-2 text-success"></i>Importar Grupos desde Excel</h6>
+              <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              <div class="alert alert-info d-flex gap-2 align-items-start mb-3" style="font-size:13px">
+                <i class="bi bi-info-circle-fill mt-1 flex-shrink-0"></i>
+                <div>El archivo debe tener las columnas <strong>GRADO</strong> y <strong>GRUPO</strong> (obligatorias).<br>
+                Columnas opcionales: <strong>TURNO</strong> (Mañana/Tarde/Noche) y <strong>CAPACIDAD</strong> (número).<br>
+                Los grupos ya existentes en el mismo grado serán omitidos.</div>
+              </div>
+              <div class="mb-3 d-flex gap-2 align-items-center flex-wrap">
+                <div class="flex-grow-1">
+                  <label class="form-label fw-semibold mb-1" style="font-size:13px">Seleccionar archivo Excel</label>
+                  <input type="file" class="form-control form-control-sm" id="import-grupos-file" accept=".xlsx,.xls">
+                </div>
+                <div style="padding-top:22px">
+                  <button class="btn btn-sm btn-outline-success" onclick="descargarPlantillaGrupos()" title="Descargar plantilla">
+                    <i class="bi bi-file-earmark-arrow-down me-1"></i>Plantilla
+                  </button>
+                </div>
+              </div>
+              <div id="import-grupos-preview" style="display:none">
+                <p class="fw-semibold mb-2" style="font-size:13px">Vista previa — <span id="import-grupos-count"></span></p>
+                <div class="table-responsive" style="max-height:300px;overflow-y:auto">
+                  <table class="sigei-table" style="font-size:12px">
+                    <thead><tr><th>#</th><th>Grado</th><th>Grupo</th><th>Turno</th><th>Capacidad</th><th>Estado</th></tr></thead>
+                    <tbody id="import-grupos-tbody"></tbody>
+                  </table>
+                </div>
+              </div>
+              <div id="import-grupos-errors" style="display:none" class="alert alert-warning mt-2" style="font-size:12px"></div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+              <button class="btn btn-success btn-sm" id="btn-confirmar-import-grupos" style="display:none" onclick="confirmarImportGrupos()">
+                <i class="bi bi-check2-circle me-1"></i>Importar grupos
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <!-- tabla-secciones lives in offcanvasGrado -->
     </div>
@@ -5228,6 +5278,195 @@ function exportarResumenGrados() {
   XLSX.utils.book_append_sheet(wb, ws, 'Grados y Grupos');
   XLSX.writeFile(wb, 'Resumen_Grados_Grupos_SIGEI.xlsx');
   toast('Resumen exportado exitosamente.');
+}
+
+var _gruposImportRows = [];
+
+function descargarPlantillaGrupos() {
+  var grados = _sortGrados(DB.get('grados'));
+  var rows = [['GRADO','GRUPO','TURNO','CAPACIDAD']];
+  // Filas de ejemplo
+  if (grados.length) {
+    rows.push([grados[0].nombre, 'A', 'Mañana', 35]);
+    if (grados.length > 1) rows.push([grados[1].nombre, 'B', 'Tarde', 32]);
+  } else {
+    rows.push(['Primero','A','Mañana',35]);
+    rows.push(['Segundo','B','Tarde',32]);
+  }
+  // Hoja Referencia
+  var refRows = [['GRADOS VÁLIDOS (copiar exacto)','TURNOS VÁLIDOS']];
+  grados.forEach(function(g, i) {
+    refRows.push([g.nombre, i===0?'Mañana':i===1?'Tarde':i===2?'Noche':'']);
+  });
+  var wb = XLSX.utils.book_new();
+  var ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [{wch:20},{wch:10},{wch:12},{wch:12}];
+  XLSX.utils.book_append_sheet(wb, ws, 'Grupos');
+  var ws2 = XLSX.utils.aoa_to_sheet(refRows);
+  ws2['!cols'] = [{wch:24},{wch:14}];
+  XLSX.utils.book_append_sheet(wb, ws2, 'Referencia');
+  XLSX.writeFile(wb, 'Plantilla_Grupos_SIGEI.xlsx');
+  toast('Plantilla descargada. Usa la hoja "Referencia" para ver los valores válidos.');
+}
+
+function importarGruposExcel() {
+  _gruposImportRows = [];
+  document.getElementById('import-grupos-file').value = '';
+  document.getElementById('import-grupos-preview').style.display = 'none';
+  document.getElementById('import-grupos-errors').style.display = 'none';
+  document.getElementById('btn-confirmar-import-grupos').style.display = 'none';
+  document.getElementById('import-grupos-tbody').innerHTML = '';
+  new bootstrap.Modal(document.getElementById('modalImportGrupos')).show();
+
+  document.getElementById('import-grupos-file').onchange = function(e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      try {
+        var wb  = XLSX.read(ev.target.result, { type: 'binary' });
+        var ws  = wb.Sheets[wb.SheetNames[0]];
+        var raw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+
+        // Buscar fila de cabecera
+        var headerRow = -1;
+        for (var i = 0; i < Math.min(raw.length, 10); i++) {
+          var joined = raw[i].join('').toUpperCase();
+          if (joined.indexOf('GRADO') >= 0 && joined.indexOf('GRUPO') >= 0) { headerRow = i; break; }
+        }
+        if (headerRow < 0) {
+          _gruposImportError('No se encontró la cabecera. El archivo debe tener columnas GRADO y GRUPO.');
+          return;
+        }
+
+        var hdrs = raw[headerRow].map(function(h){ return String(h).toUpperCase().trim(); });
+        var iGrd  = hdrs.findIndex(function(h){ return h === 'GRADO' || h.indexOf('GRADO') >= 0; });
+        var iGrp  = hdrs.findIndex(function(h){ return h === 'GRUPO' || h === 'SECCIÓN' || h === 'SECCION' || h === 'NOMBRE'; });
+        var iTurn = hdrs.findIndex(function(h){ return h === 'TURNO' || h.indexOf('TURNO') >= 0; });
+        var iCap  = hdrs.findIndex(function(h){ return h === 'CAPACIDAD' || h === 'CUPOS' || h.indexOf('CAP') >= 0; });
+
+        if (iGrd < 0 || iGrp < 0) {
+          _gruposImportError('Faltan columnas obligatorias: GRADO y GRUPO.');
+          return;
+        }
+
+        var grados    = DB.get('grados');
+        var secciones = DB.get('secciones');
+        var errores   = [];
+        var okCount   = 0;
+        _gruposImportRows = [];
+
+        var dataRows = raw.slice(headerRow + 1).filter(function(r){ return r.some(function(c){ return String(c).trim() !== ''; }); });
+
+        dataRows.forEach(function(r, idx) {
+          var gradoNom = String(r[iGrd] || '').trim();
+          var grupoNom = String(r[iGrp] || '').trim();
+          var turno    = iTurn >= 0 ? String(r[iTurn] || '').trim() : '';
+          var cap      = iCap  >= 0 ? parseInt(r[iCap])  : 0;
+          if (isNaN(cap) || cap < 0) cap = 0;
+
+          if (!gradoNom || !grupoNom) {
+            errores.push('Fila ' + (idx+1) + ': Grado y Grupo son obligatorios.');
+            _gruposImportRows.push({ estado: 'ERROR', gradoNom: gradoNom||'—', grupoNom: grupoNom||'—', turno: turno, cap: cap, err: 'Datos incompletos' });
+            return;
+          }
+
+          // Buscar grado por nombre (case-insensitive)
+          var grado = grados.find(function(g){ return g.nombre.toLowerCase() === gradoNom.toLowerCase(); });
+          if (!grado) {
+            // Intento partial
+            grado = grados.find(function(g){ return g.nombre.toLowerCase().indexOf(gradoNom.toLowerCase()) >= 0 || gradoNom.toLowerCase().indexOf(g.nombre.toLowerCase()) >= 0; });
+          }
+          if (!grado) {
+            errores.push('Fila ' + (idx+1) + ': Grado "' + gradoNom + '" no encontrado.');
+            _gruposImportRows.push({ estado: 'ERROR', gradoNom: gradoNom, grupoNom: grupoNom, turno: turno, cap: cap, err: 'Grado no encontrado' });
+            return;
+          }
+
+          // Verificar si ya existe
+          var existe = secciones.find(function(s){ return s.grado_id == grado.id && s.nombre.toLowerCase() === grupoNom.toLowerCase(); });
+          if (existe) {
+            _gruposImportRows.push({ estado: 'EXISTE', gradoNom: grado.nombre, grupoNom: grupoNom, turno: turno, cap: cap, grado_id: grado.id });
+            return;
+          }
+
+          _gruposImportRows.push({ estado: 'OK', gradoNom: grado.nombre, grupoNom: grupoNom, turno: turno, cap: cap, grado_id: grado.id });
+          okCount++;
+        });
+
+        document.getElementById('import-grupos-count').textContent =
+          dataRows.length + ' filas · ' + okCount + ' nuevos · ' +
+          _gruposImportRows.filter(function(r){ return r.estado==='EXISTE'; }).length + ' ya existentes · ' +
+          _gruposImportRows.filter(function(r){ return r.estado==='ERROR'; }).length + ' errores';
+
+        document.getElementById('import-grupos-tbody').innerHTML = _gruposImportRows.map(function(x, i) {
+          var badgeCls = x.estado === 'OK' ? 'baja' : x.estado === 'EXISTE' ? 'media' : 'alta';
+          var badgeLbl = x.estado === 'OK' ? 'Nuevo' : x.estado === 'EXISTE' ? 'Ya existe' : 'Error';
+          return '<tr>'
+            + '<td>' + (i+1) + '</td>'
+            + '<td>' + x.gradoNom + '</td>'
+            + '<td>' + x.grupoNom + '</td>'
+            + '<td>' + (x.turno||'—') + '</td>'
+            + '<td>' + (x.cap||'—') + '</td>'
+            + '<td><span class="carga-badge ' + badgeCls + '">' + badgeLbl + '</span>'
+            + (x.err ? ' <span style="font-size:11px;color:#64748B">(' + x.err + ')</span>' : '') + '</td>'
+            + '</tr>';
+        }).join('');
+
+        document.getElementById('import-grupos-preview').style.display = '';
+
+        if (errores.length) {
+          var errEl = document.getElementById('import-grupos-errors');
+          errEl.innerHTML = '<strong>Advertencias:</strong><ul class="mb-0 mt-1">'
+            + errores.slice(0, 10).map(function(e){ return '<li style="font-size:11px">' + e + '</li>'; }).join('')
+            + (errores.length > 10 ? '<li>...y ' + (errores.length-10) + ' más</li>' : '')
+            + '</ul>';
+          errEl.style.display = '';
+        } else {
+          document.getElementById('import-grupos-errors').style.display = 'none';
+        }
+
+        if (okCount > 0) {
+          var btn = document.getElementById('btn-confirmar-import-grupos');
+          btn.innerHTML = '<i class="bi bi-check2-circle me-1"></i>Importar ' + okCount + ' grupo' + (okCount>1?'s':'');
+          btn.style.display = '';
+        }
+
+      } catch(ex) { _gruposImportError('Error leyendo el archivo: ' + ex.message); }
+    };
+    reader.readAsBinaryString(file);
+  };
+}
+
+function _gruposImportError(msg) {
+  var el = document.getElementById('import-grupos-errors');
+  el.textContent = msg;
+  el.style.display = '';
+  document.getElementById('btn-confirmar-import-grupos').style.display = 'none';
+  document.getElementById('import-grupos-preview').style.display = 'none';
+}
+
+function confirmarImportGrupos() {
+  var okRows = _gruposImportRows.filter(function(r){ return r.estado === 'OK'; });
+  if (!okRows.length) return;
+  var secciones = DB.get('secciones');
+  var nextId = secciones.reduce(function(m, s){ return Math.max(m, s.id||0); }, 0) + 1;
+  okRows.forEach(function(r) {
+    secciones.push({
+      id:        nextId++,
+      nombre:    r.grupoNom,
+      grado_id:  r.grado_id,
+      turno:     r.turno || '',
+      capacidad: r.cap   || 30,
+      director_id: null,
+      aula_id:   null
+    });
+  });
+  DB.set('secciones', secciones);
+  var modal = bootstrap.Modal.getInstance(document.getElementById('modalImportGrupos'));
+  if (modal) modal.hide();
+  renderGrados();
+  toast('✅ ' + okRows.length + ' grupo' + (okRows.length>1?'s':'') + ' importados correctamente.');
 }
 
 function crearGradoPreescolar() {
