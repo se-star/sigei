@@ -2264,6 +2264,9 @@
           <button class="btn btn-sm btn-outline-success" onclick="document.getElementById('xlsxDocentes').click()">
             <i class="bi bi-file-earmark-excel-fill me-1"></i>Importar Excel
           </button>
+          <button class="btn btn-sm btn-outline-primary" onclick="exportarDocentesExcel()" title="Exportar docentes a Excel">
+            <i class="bi bi-file-earmark-arrow-down-fill me-1"></i>Exportar Excel
+          </button>
           <input type="file" id="xlsxDocentes" accept=".xlsx,.xls,.csv" class="d-none" onchange="cargarExcelDocentes(event)">
         </div>
         <div id="tabla-docentes" class="doc-cards-grid"></div>
@@ -10195,6 +10198,32 @@ function cargarExcelDocentes(ev) {
   };
   reader.readAsBinaryString(file);
 }
+function exportarDocentesExcel() {
+  var docentes = (DB.get('docentes') || []).slice();
+  if (!docentes.length) { toast('No hay docentes para exportar.', false); return; }
+  var rows = [['Cédula','Primer Nombre','Segundo Nombre','Primer Apellido','Segundo Apellido','Estado','Email','Tipo Vinculación','Decreto']];
+  docentes.forEach(function(d) {
+    rows.push([
+      d.cedula        || '',
+      d.p_nombre      || '',
+      d.s_nombre      || '',
+      d.p_apellido    || '',
+      d.s_apellido    || '',
+      d.estado        || '',
+      d.email         || '',
+      d.tipo_vinc     || '',
+      d.decreto       || ''
+    ]);
+  });
+  var wb = XLSX.utils.book_new();
+  var ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [{wch:14},{wch:18},{wch:18},{wch:18},{wch:18},{wch:10},{wch:28},{wch:20},{wch:14}];
+  ws['!rows'] = [{hpt:20}];
+  XLSX.utils.book_append_sheet(wb, ws, 'Docentes');
+  XLSX.writeFile(wb, 'Docentes_SIGEI.xlsx');
+  toast('✅ ' + (rows.length - 1) + ' docentes exportados correctamente.');
+}
+
 function xlsxFecha(val) {
   if (!val) return '';
   if (val instanceof Date) return val.toISOString().slice(0,10);
