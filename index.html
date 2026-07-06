@@ -10198,26 +10198,40 @@ function cargarExcelDocentes(ev) {
   };
   reader.readAsBinaryString(file);
 }
-function exportarDocentesExcel() {
-  var docentes = (DB.get('docentes') || []).slice();
-  if (!docentes.length) { toast('No hay docentes para exportar.', false); return; }
-  var rows = [['Cédula','Primer Nombre','Segundo Nombre','Primer Apellido','Segundo Apellido','Estado','Email','Tipo Vinculación','Decreto']];
-  docentes.forEach(function(d) {
+async function exportarDocentesExcel() {
+  var rawDocs = (DB.get('docentes') || []).slice();
+  if (!rawDocs.length) { toast('No hay docentes para exportar.', false); return; }
+  var sedes = DB.get('sedes') || [];
+
+  var rows = [[
+    // Identificación
+    'Cédula','Primer Nombre','Segundo Nombre','Primer Apellido','Segundo Apellido','Género','Fecha Nacimiento',
+    // Contacto
+    'Teléfono','Celular','Correo','Municipio','Dirección',
+    // Contractual
+    'Estado','Área','Nivel','Tipo Vinculación','Decreto','Sede'
+  ]];
+
+  for (var i = 0; i < rawDocs.length; i++) {
+    var d = await decryptDocente(rawDocs[i]);
+    var sede = d.sede_id ? (sedes.find(function(s){ return s.id == d.sede_id; }) || null) : null;
     rows.push([
-      d.cedula        || '',
-      d.p_nombre      || '',
-      d.s_nombre      || '',
-      d.p_apellido    || '',
-      d.s_apellido    || '',
-      d.estado        || '',
-      d.email         || '',
-      d.tipo_vinc     || '',
-      d.decreto       || ''
+      d.cedula     || '', d.p_nombre  || '', d.s_nombre   || '',
+      d.p_apellido || '', d.s_apellido|| '', d.genero     || '', d.fecha_nac  || '',
+      d.telefono   || '', d.celular   || '', d.correo || d.email || '',
+      d.municipio  || '', d.direccion || '',
+      d.estado     || '', d.area      || '', d.nivel      || '',
+      d.tipo_vinc  || '', d.decreto   || '', sede ? sede.nombre : ''
     ]);
-  });
+  }
+
   var wb = XLSX.utils.book_new();
   var ws = XLSX.utils.aoa_to_sheet(rows);
-  ws['!cols'] = [{wch:14},{wch:18},{wch:18},{wch:18},{wch:18},{wch:10},{wch:28},{wch:20},{wch:14}];
+  ws['!cols'] = [
+    {wch:14},{wch:16},{wch:16},{wch:16},{wch:16},{wch:10},{wch:14},
+    {wch:14},{wch:14},{wch:28},{wch:16},{wch:24},
+    {wch:10},{wch:20},{wch:14},{wch:20},{wch:12},{wch:22}
+  ];
   ws['!rows'] = [{hpt:20}];
   XLSX.utils.book_append_sheet(wb, ws, 'Docentes');
   XLSX.writeFile(wb, 'Docentes_SIGEI.xlsx');
