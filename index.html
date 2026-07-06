@@ -2388,16 +2388,9 @@
                 Columnas opcionales: <strong>TURNO</strong> (Mañana/Tarde/Noche) y <strong>CAPACIDAD</strong> (número).<br>
                 Los grupos ya existentes en el mismo grado serán omitidos.</div>
               </div>
-              <div class="mb-3 d-flex gap-2 align-items-center flex-wrap">
-                <div class="flex-grow-1">
-                  <label class="form-label fw-semibold mb-1" style="font-size:13px">Seleccionar archivo Excel</label>
-                  <input type="file" class="form-control form-control-sm" id="import-grupos-file" accept=".xlsx,.xls">
-                </div>
-                <div style="padding-top:22px">
-                  <button class="btn btn-sm btn-outline-success" onclick="descargarPlantillaGrupos()" title="Descargar plantilla">
-                    <i class="bi bi-file-earmark-arrow-down me-1"></i>Plantilla
-                  </button>
-                </div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold" style="font-size:13px">Seleccionar archivo Excel</label>
+                <input type="file" class="form-control" id="import-grupos-file" accept=".xlsx,.xls">
               </div>
               <div id="import-grupos-preview" style="display:none">
                 <p class="fw-semibold mb-2" style="font-size:13px">Vista previa — <span id="import-grupos-count"></span></p>
@@ -2411,6 +2404,9 @@
               <div id="import-grupos-errors" style="display:none" class="alert alert-warning mt-2" style="font-size:12px"></div>
             </div>
             <div class="modal-footer">
+              <button class="btn btn-outline-success btn-sm me-auto" onclick="descargarPlantillaGrupos()">
+                <i class="bi bi-file-earmark-arrow-down me-1"></i>Plantilla
+              </button>
               <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
               <button class="btn btn-success btn-sm" id="btn-confirmar-import-grupos" style="display:none" onclick="confirmarImportGrupos()">
                 <i class="bi bi-check2-circle me-1"></i>Importar grupos
@@ -5316,7 +5312,7 @@ function importarGruposExcel() {
   document.getElementById('import-grupos-errors').style.display = 'none';
   document.getElementById('btn-confirmar-import-grupos').style.display = 'none';
   document.getElementById('import-grupos-tbody').innerHTML = '';
-  new bootstrap.Modal(document.getElementById('modalImportGrupos')).show();
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('modalImportGrupos')).show();
 
   document.getElementById('import-grupos-file').onchange = function(e) {
     var file = e.target.files[0];
