@@ -2374,37 +2374,6 @@
       <!-- Grid de tarjetas de grado -->
       <div id="grados-cards" class="row g-3 mb-3"></div>
 
-      <!-- Modal Importar Grupos Excel -->
-      <div class="modal fade" id="modalImportGrupos" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-          <div class="modal-content">
-            <div class="modal-header" style="background:var(--slate-900)">
-              <h6 class="modal-title text-white"><i class="bi bi-file-earmark-excel-fill me-2 text-success"></i>Importar Grupos desde Excel</h6>
-              <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-              <p class="fw-semibold mb-2" style="font-size:13px">Vista previa — <span id="import-grupos-count"></span></p>
-              <div class="table-responsive" style="max-height:340px;overflow-y:auto">
-                <table class="sigei-table" style="font-size:12px">
-                  <thead><tr><th>#</th><th>Grado</th><th>Grupo</th><th>Turno</th><th>Capacidad</th><th>Estado</th></tr></thead>
-                  <tbody id="import-grupos-tbody"></tbody>
-                </table>
-              </div>
-              <div id="import-grupos-errors" class="alert alert-warning mt-3 mb-0" style="display:none;font-size:12px"></div>
-            </div>
-            <div class="modal-footer">
-              <button class="btn btn-outline-success btn-sm me-auto" onclick="descargarPlantillaGrupos()">
-                <i class="bi bi-file-earmark-arrow-down me-1"></i>Plantilla
-              </button>
-              <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
-              <button class="btn btn-success btn-sm" id="btn-confirmar-import-grupos" onclick="confirmarImportGrupos()">
-                <i class="bi bi-check2-circle me-1"></i>Importar grupos
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- tabla-secciones lives in offcanvasGrado -->
     </div>
 
@@ -4008,6 +3977,37 @@
       <i class="bi bi-save me-1"></i>Guardar
     </button>
   </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Importar Grupos Excel -->
+<div class="modal fade" id="modalImportGrupos" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header" style="background:var(--slate-900)">
+        <h6 class="modal-title text-white"><i class="bi bi-file-earmark-excel-fill me-2 text-success"></i>Importar Grupos desde Excel</h6>
+        <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p class="fw-semibold mb-2" style="font-size:13px">Vista previa — <span id="import-grupos-count"></span></p>
+        <div class="table-responsive" style="max-height:340px;overflow-y:auto">
+          <table class="sigei-table" style="font-size:12px">
+            <thead><tr><th>#</th><th>Grado</th><th>Grupo</th><th>Turno</th><th>Capacidad</th><th>Estado</th></tr></thead>
+            <tbody id="import-grupos-tbody"></tbody>
+          </table>
+        </div>
+        <div id="import-grupos-errors" class="alert alert-warning mt-3 mb-0" style="display:none;font-size:12px"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-success btn-sm me-auto" onclick="descargarPlantillaGrupos()">
+          <i class="bi bi-file-earmark-arrow-down me-1"></i>Plantilla
+        </button>
+        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn btn-success btn-sm" id="btn-confirmar-import-grupos" onclick="confirmarImportGrupos()">
+          <i class="bi bi-check2-circle me-1"></i>Importar grupos
+        </button>
+      </div>
     </div>
   </div>
 </div>
