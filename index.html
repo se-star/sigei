@@ -2292,9 +2292,10 @@
           <button class="btn btn-sm btn-outline-success" onclick="exportarResumenGrados()" title="Exportar resumen a Excel">
             <i class="bi bi-file-earmark-excel me-1"></i>Exportar
           </button>
-          <button class="btn btn-sm btn-outline-secondary" onclick="importarGruposExcel()" title="Importar grupos desde Excel">
+          <button class="btn btn-sm btn-outline-secondary" onclick="document.getElementById('import-grupos-input').click()" title="Importar grupos desde Excel">
             <i class="bi bi-file-earmark-arrow-up-fill me-1"></i>Importar
           </button>
+          <input type="file" id="import-grupos-input" accept=".xlsx,.xls" style="display:none" onchange="importarGruposExcel(this)">
           <button class="btn btn-sm btn-outline-warning" onclick="crearGradoPreescolar()" title="Crear grado Preescolar si no existe">
             <i class="bi bi-stars me-1"></i>+ Preescolar
           </button>
@@ -2382,39 +2383,21 @@
               <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-              <div class="alert alert-info d-flex gap-2 align-items-start mb-3" style="font-size:13px">
-                <i class="bi bi-info-circle-fill mt-1 flex-shrink-0"></i>
-                <div>El archivo debe tener las columnas <strong>GRADO</strong> y <strong>GRUPO</strong> (obligatorias).<br>
-                Columnas opcionales: <strong>TURNO</strong> (Mañana/Tarde/Noche) y <strong>CAPACIDAD</strong> (número).<br>
-                Los grupos ya existentes en el mismo grado serán omitidos.</div>
+              <p class="fw-semibold mb-2" style="font-size:13px">Vista previa — <span id="import-grupos-count"></span></p>
+              <div class="table-responsive" style="max-height:340px;overflow-y:auto">
+                <table class="sigei-table" style="font-size:12px">
+                  <thead><tr><th>#</th><th>Grado</th><th>Grupo</th><th>Turno</th><th>Capacidad</th><th>Estado</th></tr></thead>
+                  <tbody id="import-grupos-tbody"></tbody>
+                </table>
               </div>
-              <div class="mb-3">
-                <label class="form-label fw-semibold" style="font-size:13px">Archivo Excel</label>
-                <div class="input-group">
-                  <button class="btn btn-outline-secondary" type="button" onclick="document.getElementById('import-grupos-file').click()">
-                    <i class="bi bi-folder2-open me-1"></i>Elegir archivo
-                  </button>
-                  <span class="form-control" id="import-grupos-filename" style="color:var(--slate-500);font-size:13px;display:flex;align-items:center">Sin archivo seleccionado</span>
-                </div>
-                <input type="file" id="import-grupos-file" accept=".xlsx,.xls" style="display:none">
-              </div>
-              <div id="import-grupos-preview" style="display:none">
-                <p class="fw-semibold mb-2" style="font-size:13px">Vista previa — <span id="import-grupos-count"></span></p>
-                <div class="table-responsive" style="max-height:300px;overflow-y:auto">
-                  <table class="sigei-table" style="font-size:12px">
-                    <thead><tr><th>#</th><th>Grado</th><th>Grupo</th><th>Turno</th><th>Capacidad</th><th>Estado</th></tr></thead>
-                    <tbody id="import-grupos-tbody"></tbody>
-                  </table>
-                </div>
-              </div>
-              <div id="import-grupos-errors" style="display:none" class="alert alert-warning mt-2" style="font-size:12px"></div>
+              <div id="import-grupos-errors" class="alert alert-warning mt-3 mb-0" style="display:none;font-size:12px"></div>
             </div>
             <div class="modal-footer">
               <button class="btn btn-outline-success btn-sm me-auto" onclick="descargarPlantillaGrupos()">
                 <i class="bi bi-file-earmark-arrow-down me-1"></i>Plantilla
               </button>
               <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
-              <button class="btn btn-success btn-sm" id="btn-confirmar-import-grupos" style="display:none" onclick="confirmarImportGrupos()">
+              <button class="btn btn-success btn-sm" id="btn-confirmar-import-grupos" onclick="confirmarImportGrupos()">
                 <i class="bi bi-check2-circle me-1"></i>Importar grupos
               </button>
             </div>
@@ -5326,22 +5309,18 @@ function descargarPlantillaGrupos() {
   toast('Plantilla descargada. Usa la hoja "Referencia" para ver los valores válidos.');
 }
 
-function importarGruposExcel() {
+function importarGruposExcel(input) {
+  var file = input ? input.files[0] : null;
+  if (input) input.value = '';
+  if (!file) return;
   _gruposImportRows = [];
-  document.getElementById('import-grupos-file').value = '';
-  document.getElementById('import-grupos-filename').textContent = 'Sin archivo seleccionado';
-  document.getElementById('import-grupos-preview').style.display = 'none';
+  document.getElementById('import-grupos-tbody').innerHTML = '<tr><td colspan="6" class="text-center text-muted py-3">Procesando...</td></tr>';
   document.getElementById('import-grupos-errors').style.display = 'none';
   document.getElementById('btn-confirmar-import-grupos').style.display = 'none';
-  document.getElementById('import-grupos-tbody').innerHTML = '';
+  document.getElementById('import-grupos-count').textContent = file.name;
   bootstrap.Modal.getOrCreateInstance(document.getElementById('modalImportGrupos')).show();
-
-  document.getElementById('import-grupos-file').onchange = function(e) {
-    var file = e.target.files[0];
-    if (!file) return;
-    document.getElementById('import-grupos-filename').textContent = file.name;
-    var reader = new FileReader();
-    reader.onload = function(ev) {
+  var reader = new FileReader();
+  reader.onload = function(ev) {
       try {
         var wb  = XLSX.read(ev.target.result, { type: 'binary' });
         var ws  = wb.Sheets[wb.SheetNames[0]];
@@ -5454,7 +5433,6 @@ function importarGruposExcel() {
       } catch(ex) { _gruposImportError('Error leyendo el archivo: ' + ex.message); }
     };
     reader.readAsBinaryString(file);
-  };
 }
 
 function _gruposImportError(msg) {
@@ -5462,7 +5440,7 @@ function _gruposImportError(msg) {
   el.textContent = msg;
   el.style.display = '';
   document.getElementById('btn-confirmar-import-grupos').style.display = 'none';
-  document.getElementById('import-grupos-preview').style.display = 'none';
+  document.getElementById('import-grupos-tbody').innerHTML = '';
 }
 
 function confirmarImportGrupos() {
