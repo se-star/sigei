@@ -2389,8 +2389,14 @@
                 Los grupos ya existentes en el mismo grado serán omitidos.</div>
               </div>
               <div class="mb-3">
-                <label class="form-label fw-semibold" style="font-size:13px">Seleccionar archivo Excel</label>
-                <input type="file" class="form-control" id="import-grupos-file" accept=".xlsx,.xls">
+                <label class="form-label fw-semibold" style="font-size:13px">Archivo Excel</label>
+                <div class="input-group">
+                  <button class="btn btn-outline-secondary" type="button" onclick="document.getElementById('import-grupos-file').click()">
+                    <i class="bi bi-folder2-open me-1"></i>Elegir archivo
+                  </button>
+                  <span class="form-control" id="import-grupos-filename" style="color:var(--slate-500);font-size:13px;display:flex;align-items:center">Sin archivo seleccionado</span>
+                </div>
+                <input type="file" id="import-grupos-file" accept=".xlsx,.xls" style="display:none">
               </div>
               <div id="import-grupos-preview" style="display:none">
                 <p class="fw-semibold mb-2" style="font-size:13px">Vista previa — <span id="import-grupos-count"></span></p>
@@ -5308,6 +5314,7 @@ function descargarPlantillaGrupos() {
 function importarGruposExcel() {
   _gruposImportRows = [];
   document.getElementById('import-grupos-file').value = '';
+  document.getElementById('import-grupos-filename').textContent = 'Sin archivo seleccionado';
   document.getElementById('import-grupos-preview').style.display = 'none';
   document.getElementById('import-grupos-errors').style.display = 'none';
   document.getElementById('btn-confirmar-import-grupos').style.display = 'none';
@@ -5317,6 +5324,7 @@ function importarGruposExcel() {
   document.getElementById('import-grupos-file').onchange = function(e) {
     var file = e.target.files[0];
     if (!file) return;
+    document.getElementById('import-grupos-filename').textContent = file.name;
     var reader = new FileReader();
     reader.onload = function(ev) {
       try {
