@@ -2408,50 +2408,6 @@
         </div>
       </div>
 
-      <!-- Modal importar asignaciones Excel -->
-      <div class="modal fade" id="modalImportAsig" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-          <div class="modal-content">
-            <div class="modal-header" style="background:var(--slate-900)">
-              <h6 class="modal-title text-white"><i class="bi bi-file-earmark-excel-fill me-2 text-success"></i>Importar Asignaciones desde Excel</h6>
-              <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-              <div class="alert alert-info d-flex gap-2 align-items-start mb-3" style="font-size:13px">
-                <i class="bi bi-info-circle-fill mt-1 flex-shrink-0"></i>
-                <div>Use la plantilla <strong>Plantilla_Asignaciones_SIGEI.xlsx</strong>. Una fila por bloque de horario.<br>
-                El sistema agrupará automáticamente por docente, materia y grupo.</div>
-              </div>
-              <div class="mb-3">
-                <label class="form-label fw-semibold" style="font-size:13px">Seleccionar archivo Excel</label>
-                <input type="file" class="form-control" id="import-asig-file" accept=".xlsx,.xls">
-              </div>
-              <div id="import-asig-preview" style="display:none">
-                <p class="fw-semibold mb-2" style="font-size:13px">Vista previa — <span id="import-asig-count"></span></p>
-                <div class="table-responsive" style="max-height:300px;overflow-y:auto">
-                  <table class="sigei-table" style="font-size:12px">
-                    <thead>
-                      <tr>
-                        <th>#</th><th>Docente</th><th>Materia</th><th>Grado</th>
-                        <th>Grupo</th><th>Día</th><th>Hora inicio</th><th>Hora fin</th><th>Estado</th>
-                      </tr>
-                    </thead>
-                    <tbody id="import-asig-tbody"></tbody>
-                  </table>
-                </div>
-              </div>
-              <div id="import-asig-errors" style="display:none" class="alert alert-warning mt-2" style="font-size:12px"></div>
-            </div>
-            <div class="modal-footer">
-              <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
-              <button class="btn btn-success btn-sm" id="btn-confirmar-import-asig" style="display:none" onclick="confirmarImportAsig()">
-                <i class="bi bi-check2-circle me-1"></i> Importar asignaciones
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- Tarjetas agrupadas por docente -->
       <div id="asig-cards-grid" class="doc-cards-grid"></div>
 
@@ -3977,6 +3933,47 @@
       <i class="bi bi-save me-1"></i>Guardar
     </button>
   </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Importar Asignaciones Excel -->
+<div class="modal fade" id="modalImportAsig" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header" style="background:var(--slate-900)">
+        <h6 class="modal-title text-white"><i class="bi bi-file-earmark-excel-fill me-2 text-success"></i>Importar Asignaciones desde Excel</h6>
+        <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-info d-flex gap-2 align-items-start mb-3" style="font-size:13px">
+          <i class="bi bi-info-circle-fill mt-1 flex-shrink-0"></i>
+          <div>Use la plantilla <strong>Plantilla_Asignaciones_SIGEI.xlsx</strong>. Una fila por bloque de horario.<br>
+          El sistema agrupará automáticamente por docente, materia y grupo.</div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold" style="font-size:13px">Seleccionar archivo Excel</label>
+          <input type="file" class="form-control" id="import-asig-file" accept=".xlsx,.xls">
+        </div>
+        <div id="import-asig-preview" style="display:none">
+          <p class="fw-semibold mb-2" style="font-size:13px">Vista previa — <span id="import-asig-count"></span></p>
+          <div class="table-responsive" style="max-height:300px;overflow-y:auto">
+            <table class="sigei-table" style="font-size:12px">
+              <thead>
+                <tr><th>#</th><th>Docente</th><th>Materia</th><th>Grado</th><th>Grupo</th><th>Día</th><th>Hora inicio</th><th>Hora fin</th><th>Estado</th></tr>
+              </thead>
+              <tbody id="import-asig-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div id="import-asig-errors" style="display:none" class="alert alert-warning mt-2"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn btn-success btn-sm" id="btn-confirmar-import-asig" style="display:none" onclick="confirmarImportAsig()">
+          <i class="bi bi-check2-circle me-1"></i> Importar asignaciones
+        </button>
+      </div>
     </div>
   </div>
 </div>
