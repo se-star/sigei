@@ -3993,7 +3993,7 @@
         <p class="fw-semibold mb-2" style="font-size:13px">Vista previa — <span id="import-grupos-count"></span></p>
         <div class="table-responsive" style="max-height:340px;overflow-y:auto">
           <table class="sigei-table" style="font-size:12px">
-            <thead><tr><th>#</th><th>Grado</th><th>Grupo</th><th>Turno</th><th>Capacidad</th><th>Estado</th></tr></thead>
+            <thead><tr><th>#</th><th>Grado</th><th>Grupo</th><th>Turno</th><th>Capacidad</th><th>Docente Guía</th><th>Estado</th></tr></thead>
             <tbody id="import-grupos-tbody"></tbody>
           </table>
         </div>
@@ -5284,14 +5284,14 @@ var _gruposImportRows = [];
 
 function descargarPlantillaGrupos() {
   var grados = _sortGrados(DB.get('grados'));
-  var rows = [['GRADO','GRUPO','TURNO','CAPACIDAD']];
+  var rows = [['GRADO','GRUPO','TURNO','CAPACIDAD','DOCENTE GUÍA']];
   // Filas de ejemplo
   if (grados.length) {
-    rows.push([grados[0].nombre, 'A', 'Mañana', 35]);
-    if (grados.length > 1) rows.push([grados[1].nombre, 'B', 'Tarde', 32]);
+    rows.push([grados[0].nombre, 'A', 'Mañana', 35, '']);
+    if (grados.length > 1) rows.push([grados[1].nombre, 'B', 'Tarde', 32, '']);
   } else {
-    rows.push(['Primero','A','Mañana',35]);
-    rows.push(['Segundo','B','Tarde',32]);
+    rows.push(['Primero','A','Mañana',35,'']);
+    rows.push(['Segundo','B','Tarde',32,'']);
   }
   // Hoja Referencia
   var refRows = [['GRADOS VÁLIDOS (copiar exacto)','TURNOS VÁLIDOS']];
@@ -5300,7 +5300,7 @@ function descargarPlantillaGrupos() {
   });
   var wb = XLSX.utils.book_new();
   var ws = XLSX.utils.aoa_to_sheet(rows);
-  ws['!cols'] = [{wch:20},{wch:10},{wch:12},{wch:12}];
+  ws['!cols'] = [{wch:20},{wch:10},{wch:12},{wch:12},{wch:26}];
   XLSX.utils.book_append_sheet(wb, ws, 'Grupos');
   var ws2 = XLSX.utils.aoa_to_sheet(refRows);
   ws2['!cols'] = [{wch:24},{wch:14}];
@@ -5342,6 +5342,7 @@ function importarGruposExcel(input) {
         var iGrp  = hdrs.findIndex(function(h){ return h === 'GRUPO' || h === 'SECCIÓN' || h === 'SECCION' || h === 'NOMBRE'; });
         var iTurn = hdrs.findIndex(function(h){ return h === 'TURNO' || h.indexOf('TURNO') >= 0; });
         var iCap  = hdrs.findIndex(function(h){ return h === 'CAPACIDAD' || h === 'CUPOS' || h.indexOf('CAP') >= 0; });
+        var iDoc  = hdrs.findIndex(function(h){ return h.indexOf('DOCENTE') >= 0 || h.indexOf('DIRECTOR') >= 0 || h.indexOf('GUIA') >= 0 || h.indexOf('GUÍA') >= 0; });
 
         if (iGrd < 0 || iGrp < 0) {
           _gruposImportError('Faltan columnas obligatorias: GRADO y GRUPO.');
@@ -5350,6 +5351,7 @@ function importarGruposExcel(input) {
 
         var grados    = DB.get('grados');
         var secciones = DB.get('secciones');
+        var docentes  = DB.get('docentes') || [];
         var errores   = [];
         var okCount   = 0;
         _gruposImportRows = [];
@@ -5362,6 +5364,19 @@ function importarGruposExcel(input) {
           var turno    = iTurn >= 0 ? String(r[iTurn] || '').trim() : '';
           var cap      = iCap  >= 0 ? parseInt(r[iCap])  : 0;
           if (isNaN(cap) || cap < 0) cap = 0;
+          // Buscar docente guía
+          var docenteNom = iDoc >= 0 ? String(r[iDoc] || '').trim() : '';
+          var directorId = null;
+          var directorNom = '—';
+          if (docenteNom) {
+            var docMatch = docentes.find(function(d) {
+              var nombre = (d.p_nombre + ' ' + d.p_apellido).toLowerCase();
+              var nombreCompleto = (d.p_nombre + ' ' + (d.s_nombre||'') + ' ' + d.p_apellido + ' ' + (d.s_apellido||'')).toLowerCase();
+              return nombre === docenteNom.toLowerCase() || nombreCompleto.indexOf(docenteNom.toLowerCase()) >= 0 || docenteNom.toLowerCase().indexOf(nombre) >= 0;
+            });
+            if (docMatch) { directorId = docMatch.id; directorNom = docMatch.p_nombre + ' ' + docMatch.p_apellido; }
+            else directorNom = docenteNom + ' ⚠️';
+          }
 
           if (!gradoNom || !grupoNom) {
             errores.push('Fila ' + (idx+1) + ': Grado y Grupo son obligatorios.');
@@ -5384,11 +5399,11 @@ function importarGruposExcel(input) {
           // Verificar si ya existe
           var existe = secciones.find(function(s){ return s.grado_id == grado.id && s.nombre.toLowerCase() === grupoNom.toLowerCase(); });
           if (existe) {
-            _gruposImportRows.push({ estado: 'EXISTE', gradoNom: grado.nombre, grupoNom: grupoNom, turno: turno, cap: cap, grado_id: grado.id });
+            _gruposImportRows.push({ estado: 'EXISTE', gradoNom: grado.nombre, grupoNom: grupoNom, turno: turno, cap: cap, grado_id: grado.id, directorId: directorId, directorNom: directorNom });
             return;
           }
 
-          _gruposImportRows.push({ estado: 'OK', gradoNom: grado.nombre, grupoNom: grupoNom, turno: turno, cap: cap, grado_id: grado.id });
+          _gruposImportRows.push({ estado: 'OK', gradoNom: grado.nombre, grupoNom: grupoNom, turno: turno, cap: cap, grado_id: grado.id, directorId: directorId, directorNom: directorNom });
           okCount++;
         });
 
@@ -5406,6 +5421,7 @@ function importarGruposExcel(input) {
             + '<td>' + x.grupoNom + '</td>'
             + '<td>' + (x.turno||'—') + '</td>'
             + '<td>' + (x.cap||'—') + '</td>'
+            + '<td>' + (x.directorNom||'—') + '</td>'
             + '<td><span class="carga-badge ' + badgeCls + '">' + badgeLbl + '</span>'
             + (x.err ? ' <span style="font-size:11px;color:#64748B">(' + x.err + ')</span>' : '') + '</td>'
             + '</tr>';
@@ -5454,7 +5470,7 @@ function confirmarImportGrupos() {
       grado_id:  r.grado_id,
       turno:     r.turno || '',
       capacidad: r.cap   || 30,
-      director_id: null,
+      director_id: r.directorId || null,
       aula_id:   null
     });
   });
