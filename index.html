@@ -4331,6 +4331,21 @@ const PAGE_ICONS = {
 
 function navigate(page) {
   function _run() {
+    // Cerrar modales y offcanvases abiertos antes de cambiar de página
+    document.querySelectorAll('.modal.show').forEach(function(m) {
+      var inst = bootstrap.Modal.getInstance(m);
+      if (inst) inst.hide();
+    });
+    document.querySelectorAll('.offcanvas.show').forEach(function(o) {
+      var inst = bootstrap.Offcanvas.getInstance(o);
+      if (inst) inst.hide();
+    });
+    // Limpiar backdrop atascado
+    document.querySelectorAll('.modal-backdrop').forEach(function(el) { el.remove(); });
+    document.body.classList.remove('modal-open');
+    document.body.style.removeProperty('overflow');
+    document.body.style.removeProperty('padding-right');
+
     // Hide all page sections
     ['dashboard','docentes','grados','asignaciones','horarios','cronograma','seguimiento',
      'actividad','usuarios','sedes','permisos','superadmin'].forEach(function(p) {
