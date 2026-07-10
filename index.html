@@ -717,6 +717,23 @@
   .det-label { font-size:10px;font-weight:600;color:var(--slate-400);text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px; }
   .det-val   { font-size:13px;font-weight:500;color:var(--slate-800);word-break:break-word; }
   /* Grilla tarjetas docentes */
+  /* ── Tablero de Carga Académica ── */
+  .tablero-stat-card {
+    background: #F8FAFC; border: 1px solid #E8ECF2;
+    border-radius: 12px; padding: 14px; text-align: center;
+  }
+  .tablero-stat-val  { font-size: 20px; font-weight: 800; margin: 4px 0; color: #0F172A; }
+  .tablero-stat-lbl  { font-size: 10px; color: #94A3B8; text-transform: uppercase; letter-spacing: .5px; font-weight: 600; }
+  .tablero-bar-txt   { font-size: 12px; color: #64748B; }
+  .tablero-asig-card {
+    background: #F8FAFC; border: 1px solid #E8ECF2;
+    border-radius: 12px; padding: 16px;
+  }
+  .tablero-asig-mat  { font-weight: 700; font-size: 14px; color: #0F172A; }
+  .tablero-curso-row { background: #f0f4f8; border-radius: 8px; padding: 8px 12px; margin-bottom: 6px; }
+  .tablero-curso-nombre { font-weight: 600; font-size: 13px; color: #1E293B; }
+  .tablero-curso-dia    { font-size: 12px; color: #64748B; }
+
   /* ── Tarjetas de Asignación Académica ── */
   .asig-card-nombre {
     font-weight: 700; font-size: 13px; color: var(--slate-800);
@@ -947,6 +964,17 @@
   body.dark-mode .module-header-icon  { filter: brightness(.8) saturate(1.2); }
   /* Barra de filtros bajo el module-header */
   body.dark-mode .module-filter-bar { border-bottom-color: #2D3F55 !important; }
+
+  /* ── Tablero de Carga Académica ── */
+  body.dark-mode .tablero-stat-card  { background: #1A2B3C !important; border-color: #2D3F55 !important; }
+  body.dark-mode .tablero-stat-val   { color: #E2E8F0 !important; }
+  body.dark-mode .tablero-stat-lbl   { color: #64748B !important; }
+  body.dark-mode .tablero-bar-txt    { color: #94A3B8 !important; }
+  body.dark-mode .tablero-asig-card  { background: #1A2B3C !important; border-color: #2D3F55 !important; }
+  body.dark-mode .tablero-asig-mat   { color: #E2E8F0 !important; }
+  body.dark-mode .tablero-curso-row  { background: #111F2E !important; }
+  body.dark-mode .tablero-curso-nombre { color: #CBD5E1 !important; }
+  body.dark-mode .tablero-curso-dia  { color: #64748B !important; }
 
   /* ── Asignación académica — tarjetas ── */
   body.dark-mode .asig-card-nombre { color: #E2E8F0; }
@@ -6466,17 +6494,17 @@ function renderTableroDocente(forcedId) {
     { icon:'bi-book-fill',   color:'#8b5cf6', val: totalMats,                      lbl:'Materias' },
     { icon:'bi-people-fill', color:'#10b981', val: totalGrupos,                    lbl:'Grupos' },
   ].forEach(c => {
-    html += '<div class="col-4"><div style="background:#F8FAFC;border:1px solid #E8ECF2;border-radius:12px;padding:14px;text-align:center">'
+    html += '<div class="col-4"><div class="tablero-stat-card">'
       + '<i class="bi ' + c.icon + '" style="font-size:22px;color:' + c.color + '"></i>'
-      + '<div style="font-size:20px;font-weight:800;margin:4px 0;color:#0F172A">' + c.val + '</div>'
-      + '<div style="font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;font-weight:600">' + c.lbl + '</div>'
+      + '<div class="tablero-stat-val">' + c.val + '</div>'
+      + '<div class="tablero-stat-lbl">' + c.lbl + '</div>'
       + '</div></div>';
   });
-  html += '<div class="col-12"><div style="background:#F8FAFC;border:1px solid #E8ECF2;border-radius:12px;padding:14px">'
-    + '<div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Carga horaria</div>'
+  html += '<div class="col-12"><div class="tablero-stat-card" style="text-align:left">'
+    + '<div class="tablero-stat-lbl" style="margin-bottom:8px">Carga horaria</div>'
     + '<div class="carga-bar-wrap mb-2"><div class="carga-bar carga-' + carga.cls + '" style="width:' + pct + '%"></div></div>'
     + '<div class="d-flex justify-content-between align-items-center">'
-    + '<span style="font-size:12px;color:#64748b">' + totalHoras.toFixed(1) + ' / ' + CARGA_CONFIG.alta + ' h</span>'
+    + '<span class="tablero-bar-txt">' + totalHoras.toFixed(1) + ' / ' + CARGA_CONFIG.alta + ' h</span>'
     + '<span class="carga-badge ' + carga.cls + '">' + carga.nivel + '</span>'
     + '</div></div>';
   html += '</div>';
@@ -6488,18 +6516,18 @@ function renderTableroDocente(forcedId) {
     asigs.forEach(a => {
       const horasA = calcHorasAsig(a).toFixed(1);
       const cargaA = nivelCarga(parseFloat(horasA));
-      html += '<div class="col-12"><div style="background:#F8FAFC;border:1px solid #E8ECF2;border-radius:12px;padding:16px">'
+      html += '<div class="col-12"><div class="tablero-asig-card">'
         + '<div class="d-flex align-items-center justify-content-between mb-2">'
-        + '<span style="font-weight:700;font-size:14px">' + a.materia + '</span>'
+        + '<span class="tablero-asig-mat">' + a.materia + '</span>'
         + '<span class="carga-badge ' + cargaA.cls + '">' + horasA + ' h/sem</span>'
         + '</div>';
       (a.cursos||[]).forEach(c => {
         const sec = secciones.find(s => s.id == c.seccion_id);
-        html += '<div style="background:#f8fafc;border-radius:8px;padding:8px 12px;margin-bottom:6px">';
-        html += '<div style="font-weight:600;font-size:13px">'
+        html += '<div class="tablero-curso-row">';
+        html += '<div class="tablero-curso-nombre">'
           + (sec ? nombreGrado(sec.grado_id) + ' — ' + sec.nombre : 'Sección eliminada') + '</div>';
         (c.dias||[]).forEach(d => {
-          html += '<div style="font-size:12px;color:#64748b">'
+          html += '<div class="tablero-curso-dia">'
             + d.dia + ': ' + d.hora_inicio + ' – ' + d.hora_fin + '</div>';
         });
         html += '</div>';
