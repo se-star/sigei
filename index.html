@@ -10372,6 +10372,43 @@ function importarDatos(ev) {
 // ══════════════════════════════════════════════
 //  IMPORTAR EXCEL — DOCENTES
 // ══════════════════════════════════════════════
+function descargarPlantillaDocentes() {
+  var wb = XLSX.utils.book_new();
+
+  // Hoja principal con encabezados
+  var headers = ['Cedula/DNI','Primer Nombre','Segundo Nombre','Primer Apellido','Segundo Apellido',
+    'Fecha Nacimiento','Genero','Telefono','Celular','Correo','Municipio','Direccion','Estado'];
+  var ejemplo = ['12345678','María','Alejandra','García','López',
+    '1985-06-15','Femenino','3001234567','3117654321','maria.garcia@ejemplo.com','Bogotá','Calle 1 # 2-3','Activo'];
+  var ws = XLSX.utils.aoa_to_sheet([headers, ejemplo]);
+  ws['!cols'] = [{wch:14},{wch:16},{wch:16},{wch:16},{wch:16},
+    {wch:16},{wch:10},{wch:14},{wch:14},{wch:28},{wch:14},{wch:22},{wch:10}];
+  XLSX.utils.book_append_sheet(wb, ws, 'Docentes');
+
+  // Hoja de referencia
+  var ref = [
+    ['CAMPO','VALORES VÁLIDOS / NOTAS'],
+    ['Cedula/DNI','Solo números, sin puntos ni guiones'],
+    ['Primer Nombre','Obligatorio'],
+    ['Primer Apellido','Obligatorio'],
+    ['Fecha Nacimiento','Formato YYYY-MM-DD (ej: 1985-06-15)'],
+    ['Genero','Masculino / Femenino / Otro'],
+    ['Estado','Activo / Inactivo / Licencia / Retirado (por defecto: Activo)'],
+    ['Correo','Dirección de correo electrónico'],
+    ['Segundo Nombre','Opcional'],
+    ['Segundo Apellido','Opcional'],
+    ['Telefono','Opcional'],
+    ['Celular','Opcional'],
+    ['Municipio','Opcional'],
+    ['Direccion','Opcional'],
+  ];
+  var ws2 = XLSX.utils.aoa_to_sheet(ref);
+  ws2['!cols'] = [{wch:20},{wch:40}];
+  XLSX.utils.book_append_sheet(wb, ws2, 'Referencia');
+
+  XLSX.writeFile(wb, 'Plantilla_Docentes_SIGEI.xlsx');
+  toast('Plantilla descargada. Completa la hoja "Docentes" y usa la hoja "Referencia" como guía.');
+}
 const COL_ALIASES = {
   cedula:     ['cedula','cedula/dni','ci','dni','documento','id','rut','curp'],
   p_nombre:   ['primer nombre','p_nombre','nombre','nombres','first name','firstname','nombre1'],
