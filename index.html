@@ -5628,26 +5628,39 @@ function _gruposImportError(msg) {
 }
 
 function confirmarImportGrupos() {
-  var okRows = _gruposImportRows.filter(function(r){ return r.estado === 'OK'; });
-  if (!okRows.length) return;
+  var toImport = _gruposImportRows.filter(function(r){ return r.estado === 'OK' || r.estado === 'EXISTE'; });
+  if (!toImport.length) return;
   var secciones = DB.get('secciones');
   var nextId = secciones.reduce(function(m, s){ return Math.max(m, s.id||0); }, 0) + 1;
-  okRows.forEach(function(r) {
-    secciones.push({
-      id:        nextId++,
-      nombre:    r.grupoNom,
-      grado_id:  r.grado_id,
-      turno:     r.turno || '',
-      capacidad: r.cap   || 30,
-      director_id: r.directorId || null,
-      aula_id:   null
-    });
+  var added = 0, updated = 0;
+  toImport.forEach(function(r) {
+    if (r.estado === 'OK') {
+      secciones.push({
+        id:         nextId++,
+        nombre:     r.grupoNom,
+        grado_id:   r.grado_id,
+        turno:      r.turno || '',
+        capacidad:  r.cap   || 30,
+        docente_id: r.directorId || null,
+        aula_id:    null
+      });
+      added++;
+    } else if (r.estado === 'EXISTE' && r.directorId) {
+      // Actualizar docente guía del grupo existente
+      var idx = secciones.findIndex(function(s){
+        return s.grado_id == r.grado_id && s.nombre.toLowerCase() === r.grupoNom.toLowerCase();
+      });
+      if (idx >= 0) { secciones[idx].docente_id = r.directorId; updated++; }
+    }
   });
   DB.set('secciones', secciones);
   var modal = bootstrap.Modal.getInstance(document.getElementById('modalImportGrupos'));
   if (modal) modal.hide();
   renderGrados();
-  toast('✅ ' + okRows.length + ' grupo' + (okRows.length>1?'s':'') + ' importados correctamente.');
+  var msg = '';
+  if (added)   msg += added   + ' grupo' + (added>1?'s':'')   + ' importados';
+  if (updated) msg += (msg?', ':'')+updated + ' docente' + (updated>1?'s':'') + ' actualizados';
+  toast('✅ ' + msg + '.');
 }
 
 function crearGradoPreescolar() {
@@ -8085,7 +8098,7 @@ function confirmarImportAsig() {
       var ya = secciones.find(function(s){ return s.grado_id == r.gradoId && s.nombre.toLowerCase() === r.secNom.toLowerCase(); });
       if (!ya) {
         var newId = secciones.length ? Math.max.apply(null, secciones.map(function(s){ return s.id||0; })) + 1 : 1;
-        var newSec = { id: newId, nombre: r.secNom, grado_id: r.gradoId, turno: '', capacidad: 0, director_id: null, aula_id: null };
+        var newSec = { id: newId, nombre: r.secNom, grado_id: r.gradoId, turno: '', capacidad: 0, docente_id: null, aula_id: null };
         secciones.push(newSec);
         secCreadas++;
       }
@@ -10828,7 +10841,15 @@ function confirmarImportExcel() {
     if (!cedula) { skipped++; return; }
     const get = (k) => String(row[mapa[k]] != null ? row[mapa[k]] : '').trim();
     const sedeNom = get('sede');
-    const sedeObj = sedeNom ? (DB.get('sedes')||[]).find(function(s){ return normalizar(s.nombre)===normalizar(sedeNom); }) : null;
+    var sedeObj = null;
+    if (sedeNom) {
+      var _sedes = DB.get('sedes') || [];
+      var _sedenom = normalizar(sedeNom);
+      // 1) coincidencia exacta
+      sedeObj = _sedes.find(function(s){ return normalizar(s.nombre) === _sedenom; });
+      // 2) coincidencia parcial (una contiene a la otra)
+      if (!sedeObj) sedeObj = _sedes.find(function(s){ var sn=normalizar(s.nombre); return sn.includes(_sedenom)||_sedenom.includes(sn); });
+    }
     const nuevo = {
       cedula, p_nombre: get('p_nombre'), s_nombre: get('s_nombre'),
       p_apellido: get('p_apellido'), s_apellido: get('s_apellido'),
