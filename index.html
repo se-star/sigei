@@ -8998,7 +8998,13 @@ function buscarGlobal(q) {
     if (nombre.toLowerCase().includes(q)) {
       res.push({ g:'Seguimiento Pedagógico', ico:'bi-journal-check', bg:'#EEF2FF', col:'#4F46E5',
         t: nombre, s:'Ver seguimiento del docente',
-        fn: function(){ navigate('seguimiento'); } });
+        fn: (function(id){ return function(){
+          var periodo = parseInt((document.getElementById('seg-filtro-periodo')||{}).value) || 1;
+          var año     = parseInt((document.getElementById('seg-filtro-año')||{}).value)    || new Date().getFullYear();
+          navigate('seguimiento');
+          setTimeout(function(){ abrirSeguimientoDocente(id, periodo, año); }, 150);
+        }; })(d.id)
+      });
     }
   });
   DB.get('asignaciones').forEach(function(a) {
