@@ -4650,8 +4650,11 @@ const _CAMPOS_PRIVADOS = ['cedula','fecha_nac','genero','telefono','celular','co
 
 async function initEncKey(uid) {
   try {
+    // Clave institucional compartida — todos los usuarios del sistema usan la misma clave
+    // para que Admins y Coordinadores puedan leer los datos cifrados por cualquier usuario.
+    const sharedSecret = 'SIGEI-ALFATIC-IER-SANTANDERCITO-2026-INSTITUCIONAL';
     const base = await crypto.subtle.importKey(
-      'raw', new TextEncoder().encode(uid), 'PBKDF2', false, ['deriveKey']
+      'raw', new TextEncoder().encode(sharedSecret), 'PBKDF2', false, ['deriveKey']
     );
     _encKey = await crypto.subtle.deriveKey(
       { name: 'PBKDF2', salt: _ENC_SALT, iterations: 100000, hash: 'SHA-256' },
