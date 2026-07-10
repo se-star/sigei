@@ -913,6 +913,19 @@
   body.dark-mode h1,body.dark-mode h2,body.dark-mode h3,
   body.dark-mode h4,body.dark-mode h5,body.dark-mode h6 { color:#F1F5F9; }
 
+  /* ── Module header (panel superior de módulos) ── */
+  body.dark-mode .module-header {
+    background: #1A2B3C !important;
+    border-bottom-color: #2D3F55 !important;
+  }
+  body.dark-mode .module-header h5    { color: #E2E8F0 !important; }
+  body.dark-mode .module-header p     { color: #64748B !important; }
+  body.dark-mode .mh-stat strong      { color: #E2E8F0 !important; }
+  body.dark-mode .mh-stat span        { color: #64748B !important; }
+  body.dark-mode .module-header-icon  { filter: brightness(.8) saturate(1.2); }
+  /* Barra de filtros bajo el module-header */
+  body.dark-mode .module-filter-bar { border-bottom-color: #2D3F55 !important; }
+
   /* ── Tarjetas docentes (Docentes + Asignación) ── */
   body.dark-mode .doc-card {
     background: #1A2B3C;
@@ -2326,7 +2339,7 @@
             </button>
           </div>
         </div>
-        <div style="padding:12px 20px;display:flex;gap:8px;align-items:center;border-bottom:1px solid #F1F5F9;flex-wrap:wrap">
+        <div class="module-filter-bar" style="padding:12px 20px;display:flex;gap:8px;align-items:center;border-bottom:1px solid #F1F5F9;flex-wrap:wrap">
           <div class="search-bar" style="flex:1;min-width:180px;max-width:260px">
             <i class="bi bi-search"></i>
             <input type="text" class="form-control" id="buscar-docente" placeholder="Buscar docente..." oninput="_db_doc()">
@@ -2702,7 +2715,7 @@
           </div>
         </div>
         <!-- Toolbar -->
-        <div style="padding:12px 20px;display:flex;gap:8px;align-items:center;border-bottom:1px solid #F1F5F9;flex-wrap:wrap">
+        <div class="module-filter-bar" style="padding:12px 20px;display:flex;gap:8px;align-items:center;border-bottom:1px solid #F1F5F9;flex-wrap:wrap">
           <select class="form-select form-select-sm" id="filtro-docente-permiso" onchange="renderPermisos()" style="width:160px">
             <option value="">Todos los docentes</option>
           </select>
