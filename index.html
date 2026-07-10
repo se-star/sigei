@@ -7968,7 +7968,11 @@ function importarAsignacionesExcel() {
           var secMatch = gradoMatch
             ? secciones.find(function(s){ return s.grado_id == gradoMatch.id && s.nombre.toLowerCase() === secNom.toLowerCase(); })
             : null;
-          if (gradoMatch && !secMatch) { warns.push('Grupo "' + secNom + '" no existe en ' + gradoNom); estado = 'ERROR'; }
+          if (gradoMatch && !secMatch) {
+            // No es un error bloqueante — la sección se creará automáticamente al importar
+            warns.push('Se creará grupo "' + secNom + '" en ' + gradoNom);
+            if (estado !== 'ERROR') estado = 'WARN';
+          }
 
           // Validar día
           if (!diasValidos.includes(dia)) { warns.push('Día inválido: "' + dia + '"'); estado = 'ERROR'; }
@@ -7986,6 +7990,7 @@ function importarAsignacionesExcel() {
             docente_id: docMatch ? docMatch.id : null,
             materia:    materia,
             gradoNom:   gradoNom,
+            gradoId:    gradoMatch ? gradoMatch.id : null,
             secNom:     secNom,
             seccion_id: secMatch ? secMatch.id : null,
             dia:        dia,
@@ -7996,24 +8001,38 @@ function importarAsignacionesExcel() {
         }
 
         _asigImportRows = rows;
-        var okCount  = rows.filter(function(x){ return x.estado === 'OK'; }).length;
-        var errCount = rows.filter(function(x){ return x.estado === 'ERROR'; }).length;
+        var okCount   = rows.filter(function(x){ return x.estado === 'OK'; }).length;
+        var warnCount = rows.filter(function(x){ return x.estado === 'WARN'; }).length;
+        var errCount  = rows.filter(function(x){ return x.estado === 'ERROR'; }).length;
+        var importables = okCount + warnCount;
+
+        // Secciones que se crearán automáticamente
+        var seccionesNuevas = {};
+        rows.filter(function(x){ return x.estado === 'WARN' && x.gradoId && !x.seccion_id; })
+          .forEach(function(x){ seccionesNuevas[x.gradoId + '|' + x.secNom] = { grado_id: x.gradoId, nombre: x.secNom }; });
+        var nSecNuevas = Object.keys(seccionesNuevas).length;
+
         document.getElementById('import-asig-count').textContent =
-          rows.length + ' filas leídas — ' + okCount + ' válidas, ' + errCount + ' con error';
+          rows.length + ' filas leídas — ' + importables + ' válidas'
+          + (nSecNuevas ? ' (' + nSecNuevas + ' grupo(s) nuevos se crearán)' : '')
+          + (errCount ? ', ' + errCount + ' con error' : '');
 
         var tbody = document.getElementById('import-asig-tbody');
-        tbody.innerHTML = rows.map(function(x, i){
-          var bg = x.estado === 'ERROR' ? 'background:#FEF2F2' : '';
+        tbody.innerHTML = rows.map(function(x){
+          var bg = x.estado === 'ERROR' ? 'background:#FEF2F2'
+                 : x.estado === 'WARN'  ? 'background:#FFFBEB' : '';
+          var badgeCls = x.estado === 'OK' ? 'baja' : x.estado === 'WARN' ? 'media' : 'alta';
+          var badgeTxt = x.estado === 'WARN' ? 'NUEVO' : x.estado;
           return '<tr style="' + bg + '">'
             + '<td>' + x.fila + '</td>'
             + '<td>' + x.docenteNom + '</td>'
             + '<td>' + x.materia + '</td>'
             + '<td>' + x.gradoNom + '</td>'
-            + '<td>' + x.secNom + '</td>'
+            + '<td>' + x.secNom + (x.estado==='WARN'?'<span style="font-size:9px;color:#B45309;margin-left:4px">+nuevo</span>':'') + '</td>'
             + '<td>' + x.dia + '</td>'
             + '<td>' + x.hora_inicio + '</td>'
             + '<td>' + x.hora_fin + '</td>'
-            + '<td><span class="carga-badge ' + (x.estado === 'OK' ? 'baja' : 'alta') + '">' + x.estado + '</span></td>'
+            + '<td><span class="carga-badge ' + badgeCls + '">' + badgeTxt + '</span></td>'
             + '</tr>';
         }).join('');
 
@@ -8030,11 +8049,11 @@ function importarAsignacionesExcel() {
           document.getElementById('import-asig-errors').style.display = 'none';
         }
 
-        if (okCount > 0) {
+        if (importables > 0) {
           document.getElementById('btn-confirmar-import-asig').style.display = '';
-          document.getElementById('btn-confirmar-import-asig').textContent = '';
           document.getElementById('btn-confirmar-import-asig').innerHTML =
-            '<i class="bi bi-check2-circle me-1"></i>Importar ' + okCount + ' registros válidos';
+            '<i class="bi bi-check2-circle me-1"></i>Importar ' + importables + ' registros'
+            + (nSecNuevas ? ' + crear ' + nSecNuevas + ' grupo(s)' : '');
         }
 
       } catch(ex) {
@@ -8054,8 +8073,36 @@ function mostrarErrorImportAsig(msg) {
 }
 
 function confirmarImportAsig() {
-  var okRows = _asigImportRows.filter(function(r){ return r.estado === 'OK'; });
-  if (!okRows.length) return;
+  var importRows = _asigImportRows.filter(function(r){ return r.estado === 'OK' || r.estado === 'WARN'; });
+  if (!importRows.length) return;
+
+  // ── Auto-crear secciones faltantes (filas WARN) ──────────────────────
+  var secciones = DB.get('secciones').slice();
+  var secCreadas = 0;
+  importRows.filter(function(r){ return r.estado === 'WARN' && r.gradoId && !r.seccion_id; })
+    .forEach(function(r) {
+      // Verificar que no se haya creado ya en esta misma pasada
+      var ya = secciones.find(function(s){ return s.grado_id == r.gradoId && s.nombre.toLowerCase() === r.secNom.toLowerCase(); });
+      if (!ya) {
+        var newId = secciones.length ? Math.max.apply(null, secciones.map(function(s){ return s.id||0; })) + 1 : 1;
+        var newSec = { id: newId, nombre: r.secNom, grado_id: r.gradoId, turno: '', capacidad: 0, director_id: null, aula_id: null };
+        secciones.push(newSec);
+        secCreadas++;
+      }
+    });
+  if (secCreadas) DB.set('secciones', secciones);
+
+  // Resolver seccion_id para filas WARN que aún no lo tienen
+  importRows.forEach(function(r) {
+    if (!r.seccion_id && r.gradoId) {
+      var s = secciones.find(function(s){ return s.grado_id == r.gradoId && s.nombre.toLowerCase() === r.secNom.toLowerCase(); });
+      if (s) r.seccion_id = s.id;
+    }
+  });
+
+  // Descartar filas que aún no tienen docente o sección válidos
+  var okRows = importRows.filter(function(r){ return r.docente_id && r.seccion_id; });
+  if (!okRows.length) { toast('No hay filas válidas para importar.', false); return; }
 
   // Agrupar por docente_id + materia + seccion_id → una asignación con varios días
   var mapa = {};
@@ -8119,8 +8166,10 @@ function confirmarImportAsig() {
   });
 
   bootstrap.Modal.getInstance(document.getElementById('modalImportAsig')).hide();
-  toast('Importación completada: ' + nuevas + ' asignaciones nuevas, ' + actualizadas + ' actualizadas.');
+  toast('✅ ' + nuevas + ' asignaciones nuevas, ' + actualizadas + ' actualizadas'
+    + (secCreadas ? ', ' + secCreadas + ' grupo(s) creados automáticamente.' : '.'));
   renderAsignaciones();
+  if (secCreadas) renderGrados();
   _asigImportRows = [];
 }
 
@@ -10638,12 +10687,18 @@ const COL_ALIASES = {
   municipio:  ['municipio','ciudad','city','localidad','canton'],
   direccion:  ['direccion','address','domicilio'],
   estado:     ['estado','status','situacion'],
+  area:       ['area','área','especialidad','asignatura principal','area de conocimiento'],
+  nivel:      ['nivel','nivel educativo','escolaridad','formacion','titulo'],
+  tipo_vinc:  ['tipo vinculacion','tipo vinculación','tipo_vinc','vinculacion','tipo contrato','contrato','modalidad'],
+  decreto:    ['decreto','decreto docente','decreto ley','decreto/resolución','decreto/resolucion'],
+  sede:       ['sede','sede educativa','sede principal','establecimiento'],
 };
 const COL_LABELS = {
   cedula:'Cedula/DNI', p_nombre:'Primer Nombre', s_nombre:'Segundo Nombre',
   p_apellido:'Primer Apellido', s_apellido:'Segundo Apellido', fecha_nac:'Fecha Nacimiento',
   genero:'Genero', telefono:'Telefono', celular:'Celular', correo:'Correo',
   municipio:'Municipio', direccion:'Direccion', estado:'Estado',
+  area:'Área', nivel:'Nivel', tipo_vinc:'Tipo Vinculación', decreto:'Decreto', sede:'Sede',
 };
 let _xlsxRows = [], _xlsxHeaders = [];
 
@@ -10772,6 +10827,8 @@ function confirmarImportExcel() {
     const cedula = String(row[mapa.cedula]||'').trim();
     if (!cedula) { skipped++; return; }
     const get = (k) => String(row[mapa[k]] != null ? row[mapa[k]] : '').trim();
+    const sedeNom = get('sede');
+    const sedeObj = sedeNom ? (DB.get('sedes')||[]).find(function(s){ return normalizar(s.nombre)===normalizar(sedeNom); }) : null;
     const nuevo = {
       cedula, p_nombre: get('p_nombre'), s_nombre: get('s_nombre'),
       p_apellido: get('p_apellido'), s_apellido: get('s_apellido'),
@@ -10779,6 +10836,11 @@ function confirmarImportExcel() {
       genero: get('genero'), telefono: get('telefono'), celular: get('celular'),
       correo: get('correo'), municipio: get('municipio'), direccion: get('direccion'),
       estado: xlsxEstado(mapa.estado !== null ? row[mapa.estado] : 'Activo'),
+      area:      get('area'),
+      nivel:     get('nivel'),
+      tipo_vinc: get('tipo_vinc'),
+      decreto:   get('decreto'),
+      sede_id:   sedeObj ? sedeObj.id : null,
     };
     if (!nuevo.p_nombre || !nuevo.p_apellido) { skipped++; return; }
     const existIdx = docs.findIndex(d => d.cedula === cedula);
