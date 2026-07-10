@@ -717,6 +717,27 @@
   .det-label { font-size:10px;font-weight:600;color:var(--slate-400);text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px; }
   .det-val   { font-size:13px;font-weight:500;color:var(--slate-800);word-break:break-word; }
   /* Grilla tarjetas docentes */
+  /* ── Tarjetas de Asignación Académica ── */
+  .asig-card-nombre {
+    font-weight: 700; font-size: 13px; color: var(--slate-800);
+    text-align: center; line-height: 1.3;
+  }
+  .asig-mat-chip {
+    display: inline-block; font-size: 10px; font-weight: 600;
+    padding: 2px 8px; border-radius: 20px; margin: 2px;
+    background: rgba(79,70,229,.1); color: var(--indigo-600);
+  }
+  .asig-btn-tablero {
+    background: rgba(79,70,229,.1); color: var(--indigo-600);
+    border: none; border-radius: 8px; padding: 4px 12px; font-size: 12px;
+  }
+  .asig-btn-tablero:hover { background: rgba(79,70,229,.2); color: var(--indigo-700); }
+  .asig-btn-del {
+    background: rgba(239,68,68,.1); color: #EF4444;
+    border: none; border-radius: 8px; padding: 4px 10px; font-size: 12px;
+  }
+  .asig-btn-del:hover { background: rgba(239,68,68,.2); }
+
   .doc-cards-grid {
     display:grid;
     grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
@@ -926,6 +947,14 @@
   body.dark-mode .module-header-icon  { filter: brightness(.8) saturate(1.2); }
   /* Barra de filtros bajo el module-header */
   body.dark-mode .module-filter-bar { border-bottom-color: #2D3F55 !important; }
+
+  /* ── Asignación académica — tarjetas ── */
+  body.dark-mode .asig-card-nombre { color: #E2E8F0; }
+  body.dark-mode .asig-mat-chip    { background: rgba(99,102,241,.22); color: #A5B4FC; }
+  body.dark-mode .asig-btn-tablero { background: rgba(99,102,241,.2);  color: #A5B4FC; }
+  body.dark-mode .asig-btn-tablero:hover { background: rgba(99,102,241,.35); color: #C7D2FE; }
+  body.dark-mode .asig-btn-del     { background: rgba(239,68,68,.18);  color: #FCA5A5; }
+  body.dark-mode .asig-btn-del:hover { background: rgba(239,68,68,.3); }
 
   /* ── Tarjetas docentes (Docentes + Asignación) ── */
   body.dark-mode .doc-card {
@@ -6183,8 +6212,7 @@ function renderAsignaciones() {
                       : '#16A34A';
 
     const materiasHtml = materias.map(m =>
-      '<span style="display:inline-block;background:rgba(79,70,229,.08);color:var(--indigo-600);'
-      + 'font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;margin:2px">' + m + '</span>'
+      '<span class="asig-mat-chip">' + m + '</span>'
     ).join('');
 
     const alertIcon = totalHoras >= CARGA_CONFIG.alta
@@ -6192,13 +6220,13 @@ function renderAsignaciones() {
 
     return '<div class="doc-card" onclick="verTableroDocente(' + docId + ')" title="Ver tablero de carga">'
       + '<div class="user-avatar" style="width:54px;height:54px;font-size:20px;flex-shrink:0;margin-bottom:4px">' + ini.toUpperCase() + '</div>'
-      + '<div style="font-weight:700;font-size:13px;color:var(--slate-900);text-align:center;line-height:1.3">' + nombre + '</div>'
+      + '<div class="asig-card-nombre">' + nombre + '</div>'
       + '<span class="carga-badge ' + carga.cls + '" style="font-size:11px">' + totalHoras.toFixed(1) + ' h/sem ' + carga.nivel + alertIcon + '</span>'
       + '<div style="display:flex;flex-wrap:wrap;justify-content:center;gap:2px;margin-top:4px">' + materiasHtml + '</div>'
       + '<div class="d-flex gap-2 mt-2" onclick="event.stopPropagation()">'
-      + '<button class="btn btn-sm" style="background:rgba(79,70,229,.1);color:var(--indigo-600);border:none;border-radius:8px;padding:4px 12px;font-size:12px" onclick="verTableroDocente(' + docId + ')" title="Ver tablero">'
+      + '<button class="btn btn-sm asig-btn-tablero" onclick="verTableroDocente(' + docId + ')" title="Ver tablero">'
       + '<i class="bi bi-bar-chart-fill me-1"></i>Tablero</button>'
-      + '<button class="btn btn-sm" style="background:rgba(239,68,68,.1);color:#EF4444;border:none;border-radius:8px;padding:4px 10px;font-size:12px" onclick="eliminarAsignacionesDocente(' + docId + ',this)" title="Eliminar asignaciones">'
+      + '<button class="btn btn-sm asig-btn-del" onclick="eliminarAsignacionesDocente(' + docId + ',this)" title="Eliminar asignaciones">'
       + '<i class="bi bi-trash-fill"></i></button>'
       + '</div>'
       + '</div>';
