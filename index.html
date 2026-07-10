@@ -8422,42 +8422,59 @@ function docentesLibresEnBloque(dia, hora_inicio, hora_fin, excluirDocId) {
 
 // Renderiza la sección de bloques con selectores de reemplazo por hora
 function actualizarBloquesSugeridos() {
-  var docId   = parseInt(document.getElementById('perm-docente').value);
-  var fecha   = document.getElementById('perm-fecha-reemplazo-inicio').value;
-  var horaIni = document.getElementById('perm-hora-reemplazo-inicio').value;
-  var horaFin = document.getElementById('perm-hora-reemplazo-fin').value;
-  var cont    = document.getElementById('reemplazo-bloques-container');
+  var docId    = parseInt(document.getElementById('perm-docente').value);
+  var fechaIni = document.getElementById('perm-fecha-reemplazo-inicio').value;
+  var fechaFin = document.getElementById('perm-fecha-reemplazo-fin').value || fechaIni;
+  var horaIni  = document.getElementById('perm-hora-reemplazo-inicio').value;
+  var horaFin  = document.getElementById('perm-hora-reemplazo-fin').value;
+  var cont     = document.getElementById('reemplazo-bloques-container');
   if (!cont) return;
 
   var placeholder = '<div style="font-size:12px;color:var(--slate-400);padding:10px;background:var(--slate-50);border-radius:8px;border:1px dashed var(--slate-200)">'
     + '<i class="bi bi-info-circle me-1"></i>Seleccione el docente y la fecha de reemplazo para ver disponibilidad por bloque horario.</div>';
 
-  if (!docId || !fecha) { cont.innerHTML = placeholder; return; }
+  if (!docId || !fechaIni) { cont.innerHTML = placeholder; return; }
 
-  var DIAS = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
-  var dia  = DIAS[new Date(fecha + 'T12:00:00').getDay()];
+  var DIAS_ES  = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  var MESES_ES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  var secciones = DB.get('secciones') || [];
+  var grados    = DB.get('grados')    || [];
+  var asigs     = (DB.get('asignaciones') || []).filter(function(a){ return a.docente_id == docId && a.estado === 'Activo'; });
 
-  if (dia === 'Sábado' || dia === 'Domingo') {
+  // ── Enumerar días hábiles en el rango (máx 30) ──────────────────────────
+  var fechas = [];
+  var cur = new Date(fechaIni + 'T12:00:00');
+  var end = new Date(fechaFin  + 'T12:00:00');
+  while (cur <= end && fechas.length < 30) {
+    var dow = cur.getDay();
+    if (dow >= 1 && dow <= 5) {
+      fechas.push({
+        fecha: cur.toISOString().slice(0, 10),
+        dia:   DIAS_ES[dow],
+        label: DIAS_ES[dow] + ' ' + cur.getDate() + ' ' + MESES_ES[cur.getMonth()]
+      });
+    }
+    cur.setDate(cur.getDate() + 1);
+  }
+
+  if (!fechas.length) {
     cont.innerHTML = '<div style="font-size:12px;color:var(--slate-400);padding:10px;background:var(--slate-50);border-radius:8px">'
-      + '<i class="bi bi-moon me-1"></i>No hay clases ese día (fin de semana).</div>';
+      + '<i class="bi bi-moon me-1"></i>El rango no contiene días hábiles (lun–vie).</div>';
     return;
   }
 
-  // Bloques del docente ausente en ese día
-  var secciones = DB.get('secciones') || [];
-  var grados    = DB.get('grados')    || [];
-  var bloques   = [];
-  (DB.get('asignaciones') || []).filter(function(a){ return a.docente_id == docId && a.estado === 'Activo'; })
-    .forEach(function(asig) {
+  var html = '';
+
+  fechas.forEach(function(f, fi) {
+    // Bloques del docente en este día de la semana
+    var bloques = [];
+    asigs.forEach(function(asig) {
       (asig.cursos || []).forEach(function(curso) {
         (curso.dias || []).forEach(function(d) {
-          if (d.dia !== dia) return;
-          // Si se especificó rango horario, omitir bloques fuera del rango
+          if (d.dia !== f.dia) return;
           if (horaIni && horaFin) {
-            var bIni = timeToMins(d.hora_inicio);
-            var bFin = timeToMins(d.hora_fin);
-            var rIni = timeToMins(horaIni);
-            var rFin = timeToMins(horaFin);
+            var bIni = timeToMins(d.hora_inicio), bFin = timeToMins(d.hora_fin);
+            var rIni = timeToMins(horaIni),        rFin = timeToMins(horaFin);
             if (bFin <= rIni || bIni >= rFin) return;
           }
           var sec  = secciones.find(function(s){ return s.id == curso.seccion_id; });
@@ -8467,55 +8484,80 @@ function actualizarBloquesSugeridos() {
             hora_fin:    d.hora_fin,
             materia:     curso.materia || asig.materia || '',
             seccion_id:  curso.seccion_id,
-            label:       (grad ? grad.nombre + ' ' : '') + (sec ? sec.nombre : 'Grupo ?'),
+            label:       (grad ? grad.nombre + ' ' : '') + (sec ? sec.nombre : 'Grupo ?')
           });
         });
       });
     });
+    bloques.sort(function(a,b){ return timeToMins(a.hora_inicio) - timeToMins(b.hora_inicio); });
 
-  bloques.sort(function(a,b){ return timeToMins(a.hora_inicio) - timeToMins(b.hora_inicio); });
+    var hasBloques  = bloques.length > 0;
+    var accordId    = 'perm-day-' + f.fecha;
+    var badgeColor  = hasBloques ? 'var(--blue-600)' : '#10B981';
+    var badgeText   = hasBloques ? bloques.length + ' bloque(s)' : 'Sin clases';
 
-  if (!bloques.length) {
-    cont.innerHTML = '<div style="font-size:12px;color:#10B981;padding:10px;background:#F0FDF4;border-radius:8px;border:1px solid #BBF7D0">'
-      + '<i class="bi bi-check-circle me-1"></i>El docente no tiene clases el <strong>' + dia + '</strong>.</div>';
-    return;
-  }
-
-  var html = '<div style="font-size:11px;font-weight:700;color:var(--slate-500);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">'
-    + '<i class="bi bi-calendar-week me-1"></i>' + dia + ' — Clases del docente ausente</div>';
-
-  bloques.forEach(function(bloque, idx) {
-    var libres = docentesLibresEnBloque(dia, bloque.hora_inicio, bloque.hora_fin, docId);
-    var opts   = '<option value="">— Sin reemplazo —</option>'
-      + libres.map(function(d){
-          return '<option value="'+d.id+'">'
-            + [d.p_nombre, d.s_nombre, d.p_apellido, d.s_apellido].filter(Boolean).join(' ')
-            + '</option>';
-        }).join('');
-
-    html += '<div style="border:1px solid var(--slate-200);border-radius:8px;padding:10px 12px;margin-bottom:8px;background:#fff">'
-      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
+    html += '<div style="border:1px solid var(--slate-200);border-radius:10px;margin-bottom:8px;overflow:hidden">'
+      // ── Cabecera del día (clickable) ──
+      + '<div onclick="var b=document.getElementById(\''+accordId+'\');b.style.display=b.style.display===\'none\'?\'block\':\'none\'"'
+      + '  style="display:flex;align-items:center;justify-content:space-between;padding:9px 14px;'
+      + 'background:var(--slate-50);cursor:pointer;user-select:none">'
       + '  <span style="font-size:12px;font-weight:700;color:var(--slate-700)">'
-      + '    <i class="bi bi-clock me-1" style="color:var(--blue-500)"></i>'
-      + bloque.hora_inicio + ' – ' + bloque.hora_fin + '</span>'
-      + '  <span style="font-size:11px;color:var(--slate-500);background:var(--slate-100);padding:2px 7px;border-radius:12px">'
-      + bloque.materia + ' · ' + bloque.label + '</span>'
+      + '    <i class="bi bi-calendar-day me-2" style="color:var(--blue-500)"></i>' + f.label + '</span>'
+      + '  <span style="font-size:11px;font-weight:600;color:'+badgeColor+'">'+badgeText+'</span>'
       + '</div>'
-      + '<select class="form-select form-select-sm reemplazo-bloque-sel"'
-      + '  data-hi="'+bloque.hora_inicio+'" data-hf="'+bloque.hora_fin+'"'
-      + '  data-sec="'+bloque.seccion_id+'" data-mat="'+encodeURIComponent(bloque.materia)+'">'
-      + opts + '</select>'
-      + '<div style="font-size:10px;color:var(--slate-400);margin-top:4px"><i class="bi bi-people me-1"></i>'
-      + libres.length + ' docente(s) disponible(s) en este horario</div>'
-      + '</div>';
+      // ── Cuerpo ──
+      + '<div id="' + accordId + '" style="display:' + (fi === 0 ? 'block' : 'block') + '">';
+
+    if (!hasBloques) {
+      html += '<div style="font-size:12px;color:#10B981;padding:8px 14px;border-top:1px solid var(--slate-100)">'
+        + '<i class="bi bi-check-circle me-1"></i>El docente no tiene clases el ' + f.dia + '.</div>';
+    } else {
+      html += '<div style="padding:10px 12px">';
+      bloques.forEach(function(bloque) {
+        var libres = docentesLibresEnBloque(f.dia, bloque.hora_inicio, bloque.hora_fin, docId);
+        var opts = '<option value="">— Sin reemplazo —</option>'
+          + libres.map(function(d){
+              return '<option value="'+d.id+'">'
+                + [d.p_nombre, d.s_nombre, d.p_apellido, d.s_apellido].filter(Boolean).join(' ')
+                + '</option>';
+            }).join('');
+
+        html += '<div style="border:1px solid var(--slate-200);border-radius:8px;padding:10px 12px;margin-bottom:8px;background:var(--white)">'
+          + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
+          + '  <span style="font-size:12px;font-weight:700;color:var(--slate-700)">'
+          + '    <i class="bi bi-clock me-1" style="color:var(--blue-500)"></i>'
+          + bloque.hora_inicio + ' – ' + bloque.hora_fin + '</span>'
+          + '  <span style="font-size:11px;color:var(--slate-500);background:var(--slate-100);padding:2px 7px;border-radius:12px">'
+          + bloque.materia + ' · ' + bloque.label + '</span>'
+          + '</div>'
+          + '<select class="form-select form-select-sm reemplazo-bloque-sel"'
+          + '  data-fecha="' + f.fecha + '" data-dia="' + f.dia + '"'
+          + '  data-hi="'    + bloque.hora_inicio + '" data-hf="' + bloque.hora_fin + '"'
+          + '  data-sec="'   + bloque.seccion_id  + '" data-mat="' + encodeURIComponent(bloque.materia) + '">'
+          + opts + '</select>'
+          + '<div style="font-size:10px;color:var(--slate-400);margin-top:4px">'
+          + '  <i class="bi bi-people me-1"></i>'
+          + libres.length + ' docente(s) libre(s) el ' + f.dia + ' en este horario</div>'
+          + '</div>';
+      });
+      html += '</div>'; // padding wrapper
+    }
+
+    html += '</div></div>'; // body + card
   });
 
   cont.innerHTML = html;
 
-  // Restaurar selecciones previas si las hay (al editar un permiso existente)
+  // Restaurar selecciones al editar un permiso existente
   var prevBloques = window._permBloquesRestaure || [];
   prevBloques.forEach(function(pb) {
-    var sel = cont.querySelector('select[data-hi="'+pb.hora_inicio+'"][data-hf="'+pb.hora_fin+'"]');
+    var sel;
+    if (pb.fecha) {
+      sel = cont.querySelector('select[data-fecha="'+pb.fecha+'"][data-hi="'+pb.hora_inicio+'"][data-hf="'+pb.hora_fin+'"]');
+    }
+    if (!sel) { // compatibilidad con permisos antiguos sin fecha guardada
+      sel = cont.querySelector('select[data-hi="'+pb.hora_inicio+'"][data-hf="'+pb.hora_fin+'"]');
+    }
     if (sel && pb.docente_reemplazo_id) sel.value = pb.docente_reemplazo_id;
   });
   window._permBloquesRestaure = [];
@@ -8536,11 +8578,13 @@ function guardarPermiso() {
   const perms  = DB.get('permisos');
   const idEdit = document.getElementById('perm-id').value;
 
-  // Recoger reemplazos por bloque
+  // Recoger reemplazos por bloque (incluye fecha y día específico)
   var reemplazos_bloques = [];
   document.querySelectorAll('.reemplazo-bloque-sel').forEach(function(sel) {
     if (sel.value) {
       reemplazos_bloques.push({
+        fecha:                sel.dataset.fecha || '',
+        dia:                  sel.dataset.dia   || '',
         hora_inicio:          sel.dataset.hi,
         hora_fin:             sel.dataset.hf,
         seccion_id:           parseInt(sel.dataset.sec),
