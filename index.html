@@ -865,9 +865,11 @@
     --slate-100: #1E2F42;
     --slate-50:  #162032;
     --white:     #1A2B3C;
-    --blue-50:   #162645;
-    --blue-100:  #1d3461;
-    --page-bg:   #0F1E2E;
+    --blue-50:    #162645;
+    --blue-100:   #1d3461;
+    --indigo-50:  #1E1B4B;
+    --indigo-100: #312E81;
+    --page-bg:    #0F1E2E;
     background:  #0F1E2E;
     color:       #CBD5E1;
   }
@@ -964,6 +966,24 @@
   body.dark-mode .module-header-icon  { filter: brightness(.8) saturate(1.2); }
   /* Barra de filtros bajo el module-header */
   body.dark-mode .module-filter-bar { border-bottom-color: #2D3F55 !important; }
+
+  /* ── Seguimiento Pedagógico — modal detalle ── */
+  body.dark-mode #seg-modal-kpi                { background: #0F1E2E !important; border-bottom-color: #2D3F55 !important; }
+  body.dark-mode #seg-modal-kpi > div          { border-right-color: #2D3F55 !important; }
+  body.dark-mode .seg-ent-grid                 { background: #0F1E2E; }
+  body.dark-mode .seg-ent-card                 { background: #1A2B3C !important; border-color: #2D3F55 !important; box-shadow: 0 2px 8px rgba(0,0,0,.3) !important; }
+  body.dark-mode .seg-ent-num                  { background: #1E3A5F !important; color: #93C5FD !important; }
+  body.dark-mode .seg-ent-lbl                  { color: #CBD5E1 !important; }
+  body.dark-mode .seg-oc-num                   { background: #1E3A5F !important; color: #93C5FD !important; }
+  body.dark-mode .seg-oc-item                  { border-color: #2D3F55 !important; }
+  body.dark-mode .seg-oc-item:hover            { border-color: #4C6EAF !important; }
+  body.dark-mode .seg-drive-section            { border-top-color: #2D3F55 !important; }
+  body.dark-mode .seg-drive-toggle             { color: #818CF8 !important; }
+  body.dark-mode .seg-drive-toggle:hover       { color: #A5B4FC !important; }
+  body.dark-mode .seg-drive-loading            { color: #818CF8 !important; }
+  body.dark-mode .seg-drive-file               { background: #111F2E !important; border-color: #2D3F55 !important; }
+  body.dark-mode .seg-drive-file:hover         { background: #1A2B3C !important; border-color: #4C6EAF !important; }
+  body.dark-mode .seg-drive-file-name          { color: #CBD5E1 !important; }
 
   /* ── Tablero de Carga Académica ── */
   body.dark-mode .tablero-stat-card  { background: #1A2B3C !important; border-color: #2D3F55 !important; }
