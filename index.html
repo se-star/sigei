@@ -4647,7 +4647,11 @@ function emptyGrid(msg, opts) {
 function toast(msg, ok=true, ms=3500) {
   const el = document.createElement('div');
   el.className = `toast-msg ${ok?'ok':'err'}`;
-  el.innerHTML = `<i class="bi bi-${ok?'check-circle-fill text-success':'x-circle-fill text-danger'}"></i>${msg}`;
+  const ico = document.createElement('i');
+  ico.className = `bi bi-${ok?'check-circle-fill text-success':'x-circle-fill text-danger'}`;
+  const txt = document.createTextNode(msg);
+  el.appendChild(ico);
+  el.appendChild(txt);
   document.getElementById('toast-container').appendChild(el);
   setTimeout(() => el.remove(), ms);
 }
@@ -5122,7 +5126,7 @@ async function guardarNuevoDocente() {
   const encDoc = await encryptDocente({ id: DB.nextId('docentes'), ...plainData });
   docs.push(encDoc);
   DB.set('docentes', docs);
-  bootstrap.Modal.getInstance(document.getElementById('modalNuevoDocente')).hide();
+  bootstrap.Modal.getInstance(document.getElementById('modalNuevoDocente'))?.hide();
   toast('Docente guardado exitosamente.');
   renderDocentes();
 }
@@ -5311,7 +5315,7 @@ async function verDocente(id) {
     abrirDocente(id);
   };
   document.getElementById('det-btn-eliminar').onclick = function() {
-    bootstrap.Modal.getInstance(document.getElementById('modalDocenteDetalle')).hide();
+    bootstrap.Modal.getInstance(document.getElementById('modalDocenteDetalle'))?.hide();
     setTimeout(function(){ eliminarDocente(id); }, 300);
   };
 
@@ -5982,7 +5986,7 @@ function guardarSeccion() {
     toast('Grupo actualizado.');
   }
   DB.set('secciones', secciones);
-  bootstrap.Modal.getInstance(document.getElementById('modalSeccionForm')).hide();
+  bootstrap.Modal.getInstance(document.getElementById('modalSeccionForm'))?.hide();
   renderGrados();
 }
 
@@ -6543,7 +6547,7 @@ function guardarAsignacion() {
     DB.set('asignaciones', asigs);
     sincronizarHorarios(asigId, data);
     _reactivarBtn();
-    bootstrap.Modal.getInstance(document.getElementById('modalAsignacion')).hide();
+    bootstrap.Modal.getInstance(document.getElementById('modalAsignacion'))?.hide();
     renderAsignaciones();
     if (document.getElementById('tablero-doc-sel').value == data.docente_id) renderTableroDocente();
   } catch(e) {
@@ -7156,7 +7160,7 @@ function guardarEvento() {
     toast('Evento actualizado.');
   }
   DB.set('cronograma', lista);
-  bootstrap.Modal.getInstance(document.getElementById('modalEvento')).hide();
+  bootstrap.Modal.getInstance(document.getElementById('modalEvento'))?.hide();
   renderCronograma();
   renderDashboard(); // refresh próximo evento
 }
@@ -8259,7 +8263,7 @@ function confirmarImportAsig() {
     sincronizarHorarios(asig.id, { docente_id: asig.docente_id, materia: asig.materia, cursos: asig.cursos });
   });
 
-  bootstrap.Modal.getInstance(document.getElementById('modalImportAsig')).hide();
+  bootstrap.Modal.getInstance(document.getElementById('modalImportAsig'))?.hide();
   toast('✅ ' + nuevas + ' asignaciones nuevas, ' + actualizadas + ' actualizadas'
     + (secCreadas ? ', ' + secCreadas + ' grupo(s) creados automáticamente.' : '.'));
   renderAsignaciones();
@@ -8351,7 +8355,7 @@ function guardarSede() {
   if (!idEdit) { sedes.push({ id: DB.nextId('sedes'), ...data }); toast('Sede creada.'); }
   else { const idx=sedes.findIndex(s=>s.id==idEdit); Object.assign(sedes[idx],data); toast('Sede actualizada.'); }
   DB.set('sedes', sedes);
-  bootstrap.Modal.getInstance(document.getElementById('modalSede')).hide();
+  bootstrap.Modal.getInstance(document.getElementById('modalSede'))?.hide();
   renderSedes();
 }
 
@@ -8837,7 +8841,7 @@ function guardarPermiso() {
   if (!idEdit) { perms.push({ id: DB.nextId('permisos'), ...data }); toast('Novedad registrada.'); }
   else { const idx = perms.findIndex(p => p.id == idEdit); Object.assign(perms[idx], data); toast('Novedad actualizada.'); }
   DB.set('permisos', perms);
-  bootstrap.Modal.getInstance(document.getElementById('offcanvasPermiso')).hide();
+  bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasPermiso'))?.hide();
   renderPermisos();
   if (document.getElementById('page-horarios') && !document.getElementById('page-horarios').classList.contains('d-none')) renderHorarios();
   else { /* cache-bust so next open of horarios reflects change */ }
@@ -9375,6 +9379,13 @@ function guardarUsuario() {
         return;
       }
     }
+    // Helper: cierra sesión en la app secundaria y la elimina para evitar leak de memoria
+    function _cleanupSecondary(app) {
+      app.auth().signOut().catch(function(){}).finally(function(){
+        app.delete().catch(function(){});
+      });
+    }
+
     secondaryApp.auth().createUserWithEmailAndPassword(email, pass)
       .then(function(cred) {
         var newUser = {
@@ -9390,8 +9401,8 @@ function guardarUsuario() {
         usuarios.push(newUser);
         DB.set('usuarios', usuarios);
         syncRoleDoc(newUser);
-        secondaryApp.auth().signOut();
-        bootstrap.Modal.getInstance(document.getElementById('modalUsuario')).hide();
+        _cleanupSecondary(secondaryApp);
+        bootstrap.Modal.getInstance(document.getElementById('modalUsuario'))?.hide();
         renderUsuarios();
         toast('Usuario creado exitosamente.');
         resetUsrBtn();
@@ -9416,8 +9427,8 @@ function guardarUsuario() {
             }
             DB.set('usuarios', usuarios2);
             if (idxEl !== -1) syncRoleDoc(usuarios2[idxEl]);
-            secondaryApp.auth().signOut();
-            bootstrap.Modal.getInstance(document.getElementById('modalUsuario')).hide();
+            _cleanupSecondary(secondaryApp);
+            bootstrap.Modal.getInstance(document.getElementById('modalUsuario'))?.hide();
             renderUsuarios();
             toast('Usuario reactivado exitosamente.');
             resetUsrBtn();
@@ -9436,8 +9447,8 @@ function guardarUsuario() {
                 usuarios3.push(newUser);
                 DB.set('usuarios', usuarios3);
                 syncRoleDoc(newUser);
-                secondaryApp.auth().signOut();
-                bootstrap.Modal.getInstance(document.getElementById('modalUsuario')).hide();
+                _cleanupSecondary(secondaryApp);
+                bootstrap.Modal.getInstance(document.getElementById('modalUsuario'))?.hide();
                 renderUsuarios();
                 toast('Usuario registrado exitosamente.');
                 resetUsrBtn();
@@ -9477,7 +9488,7 @@ function guardarUsuario() {
       if (roleEl) roleEl.textContent = rol;
       if (idx !== -1) { window._SIGEI_USER = usuarios[idx]; applyRoleRestrictions(); }
     }
-    bootstrap.Modal.getInstance(document.getElementById('modalUsuario')).hide();
+    bootstrap.Modal.getInstance(document.getElementById('modalUsuario'))?.hide();
     renderUsuarios();
     toast('Usuario actualizado.');
     resetUsrBtn();
@@ -10200,7 +10211,7 @@ function guardarSeguimientoDocente() {
     };
   });
   DB.set('seguimiento', all);
-  bootstrap.Modal.getInstance(document.getElementById('modalSeguimientoDocente')).hide();
+  bootstrap.Modal.getInstance(document.getElementById('modalSeguimientoDocente'))?.hide();
   renderSeguimiento();
   toast('Seguimiento guardado correctamente.');
 }
@@ -10970,7 +10981,7 @@ function confirmarImportExcel() {
     } else { skipped++; }
   });
   DB.set('docentes', docs);
-  bootstrap.Modal.getInstance(document.getElementById('modalImportExcel')).hide();
+  bootstrap.Modal.getInstance(document.getElementById('modalImportExcel'))?.hide();
   renderDocentes();
   toast('Importacion: ' + added + ' nuevos, ' + updated + ' actualizados, ' + skipped + ' omitidos.');
 }
