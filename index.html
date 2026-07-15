@@ -13,7 +13,7 @@
   <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
   <link rel="preload" href="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js" as="script">
   <link rel="preload" href="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js" as="script">
-  <link rel="preload" href="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js" as="script">
+  <link rel="preload" href="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-comphat.js" as="script">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
@@ -4652,9 +4652,9 @@ async function initEncKey(uid) {
   try {
     // Clave institucional compartida — todos los usuarios del sistema usan la misma clave
     // para que Admins y Coordinadores puedan leer los datos cifrados por cualquier usuario.
-    const sharedSecret = 'SIGEI-ALFATIC-IER-SANTANDERCITO-2026-INSTITUCIONAL';
+    const sharedSecret = uid;
     const base = await crypto.subtle.importKey(
-      'raw', new TextEncoder().encode(sharedSecret), 'PBKDF2', false, ['deriveKey']
+      'raw', new TextEncoder().encode(uid), 'PBKDF2', false, ['deriveKey']
     );
     _encKey = await crypto.subtle.deriveKey(
       { name: 'PBKDF2', salt: _ENC_SALT, iterations: 100000, hash: 'SHA-256' },
