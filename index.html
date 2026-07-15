@@ -10928,7 +10928,7 @@ function abrirPerfilUsuario() {
   // Initials: first 2 letters of email or real name
   var usuarios = DB.get('usuarios') || [];
   var uRecord  = usuarios.find(function(u){ return u.email === email; });
-  var nombre   = uRecord ? ((uRecord.p_nombre||'') + ' ' + (uRecord.p_apellido||'')).trim() : '';
+  var nombre   = uRecord ? (uRecord.nombre || ((uRecord.p_nombre||'') + ' ' + (uRecord.p_apellido||'')).trim()) : '';
   var initials = nombre
     ? nombre.split(' ').slice(0, 2).map(function(w){ return w[0]; }).join('').toUpperCase()
     : email.substring(0, 2).toUpperCase();
