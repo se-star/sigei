@@ -5946,7 +5946,7 @@ function abrirSeccion(id=null) {
 
   const dSel = document.getElementById('sec-docente');
   dSel.innerHTML = '<option value="">Sin asignar</option>' +
-    DB.get('docentes').filter(d=>d.estado==='Activo' && d.nivel!=='Directivo').map(d=>`<option value="${d.id}">${d.p_nombre} ${d.p_apellido}</option>`).join('');
+    DB.get('docentes').filter(d=>d.estado==='Activo' && d.nivel!=='Directivo').map(d=>`<option value="${d.id}">${[d.p_nombre,d.s_nombre,d.p_apellido,d.s_apellido].filter(Boolean).join(' ')}</option>`).join('');
 
 
   if (id) {
@@ -7812,7 +7812,7 @@ function editarHorario(id) {
 
   const dSel = document.getElementById('hor-docente');
   dSel.innerHTML = '<option value="">Sin asignar</option>' +
-    DB.get('docentes').filter(d=>d.estado==='Activo' && d.nivel!=='Directivo').map(d=>`<option value="${d.id}">${d.p_nombre} ${d.p_apellido}</option>`).join('');
+    DB.get('docentes').filter(d=>d.estado==='Activo' && d.nivel!=='Directivo').map(d=>`<option value="${d.id}">${[d.p_nombre,d.s_nombre,d.p_apellido,d.s_apellido].filter(Boolean).join(' ')}</option>`).join('');
 
 
   ['hor-id','hor-materia','hor-inicio','hor-fin'].forEach(x => {
