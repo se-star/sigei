@@ -6018,9 +6018,11 @@ const DIAS_CORTO  = { 'Lunes':'L','Martes':'Ma','Miércoles':'Mi','Jueves':'J','
 const CARGA_CONFIG = { baja: 18, alta: 28 };
 
 // ── Migración v6→v7: dias:string[] → dias:[{dia,hora_inicio,hora_fin}] ──
+let _asigMigDone = false;
 function migrarAsignaciones() {
+  if (_asigMigDone) return;
   const asigs = DB.get('asignaciones');
-  if (!asigs.length) return;
+  if (!asigs.length) { _asigMigDone = true; return; }
   let changed = false;
   const migradas = asigs.map(a => {
     // v5→v6: flat → cursos[]
@@ -6050,6 +6052,7 @@ function migrarAsignaciones() {
     return { ...a, cursos: cursosMig };
   });
   if (changed) DB.set('asignaciones', migradas);
+  _asigMigDone = true;
 }
 
 // ── Cálculo de horas ────────────────────────────────────────────────────
@@ -9572,7 +9575,6 @@ function migrarRoles() {
   if (changed) DB.set('usuarios', usuarios);
   usuarios.forEach(function(u){ if (u.uid) syncRoleDoc(u); });
   var conUid = usuarios.filter(function(u){ return u.uid; }).length;
-  console.log('Migración de roles: ' + conUid + ' de ' + usuarios.length + ' usuarios sincronizados.');
   return conUid + '/' + usuarios.length;
 }
 
@@ -9788,7 +9790,6 @@ function guardarPermisosRoles() {
   try { localStorage.setItem('sigei_permisos_roles', JSON.stringify(config)); } catch(e) {}
   // Guardar en sigei/permisos_roles (misma colección que todo el sistema — legible por todos)
   _fs.collection('sigei').doc('permisos_roles').set({ items: config })
-    .then(function(){ console.log('permisos_roles guardado en sigei/permisos_roles OK'); })
     .catch(function(e){ console.warn('sigei/permisos_roles write falló:', e.message); });
   // También en roles/_config (compatibilidad hacia atrás)
   _fs.collection('roles').doc('_config').set({ permisos_roles: config })
@@ -10257,7 +10258,6 @@ async function _driveFindFolder(parentId, name, apiKey) {
   try {
     var resp = await fetch(url);
     var data = await resp.json();
-    console.log('[Drive] Buscar "' + name + '" en ' + parentId + ':', JSON.stringify(data));
     if (data.error) throw new Error(data.error.message + ' (código ' + data.error.code + ')');
     if (data.files && data.files.length) {
       _driveFolderCache[cacheKey] = data.files[0].id;
