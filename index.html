@@ -3158,6 +3158,25 @@
         </div>
       </div>
 
+      <!-- ── Migración de cifrado ─────────────────────────────────────── -->
+      <div class="card-panel mt-3">
+        <div class="panel-header">
+          <h6><i class="bi bi-key-fill me-2" style="color:#6366F1"></i>Migración de Cifrado de Datos</h6>
+        </div>
+        <div style="padding:16px 20px">
+          <p style="font-size:13px;color:var(--slate-600);margin-bottom:12px">
+            Si otros usuarios ven los datos de docentes cifrados (texto <code>ENC:...</code>), ejecuta esta migración
+            <strong>una sola vez</strong> con tu sesión de Superadmin. Re-cifra todos los datos con la clave institucional
+            compartida para que cualquier usuario pueda acceder.
+          </p>
+          <button class="btn btn-sm text-white" style="background:#6366F1;font-weight:600"
+            onclick="ejecutarMigracionCifrado()" id="btn-migrar-cifrado">
+            <i class="bi bi-arrow-repeat me-1"></i>Migrar cifrado de docentes
+          </button>
+          <span id="migrar-cifrado-status" style="margin-left:12px;font-size:12px;color:var(--slate-500)"></span>
+        </div>
+      </div>
+
     </div><!-- /page-superadmin -->
 
   </div><!-- /content -->
@@ -4642,28 +4661,35 @@ let _chartEstado = null;
 
 // ══════════════════════════════════════════════════════════════════════
 //  CIFRADO DE DATOS PERSONALES — AES-GCM 256-bit (Web Crypto API)
-//  Clave derivada del UID de Firebase vía PBKDF2 (100 000 iteraciones)
-//  Los campos sensibles se almacenan cifrados en Firestore y en caché.
+//  Clave compartida institucional (igual para todos los usuarios).
+//  Clave legacy por UID para descifrar datos antiguos.
 //  Prefijo "ENC:" identifica valores cifrados para migración gradual.
 // ══════════════════════════════════════════════════════════════════════
-let _encKey = null;   // CryptoKey en memoria, nunca serializada
+let _encKey       = null;   // Clave compartida institucional (nueva)
+let _encKeyLegacy = null;   // Clave por UID (solo para descifrar datos antiguos)
 const _ENC_SALT = new TextEncoder().encode('SIGEI-IER-SANTANDERCITO-ALFATIC-2026');
+// Secreto institucional compartido — igual para todos los usuarios del sistema
+const _SHARED_SECRET = 'SIGEI-ALFATIC-IER-SANTANDERCITO-KEY-2026';
 const _CAMPOS_PRIVADOS = ['cedula','fecha_nac','genero','telefono','celular','correo','municipio','direccion'];
+
+async function _deriveKey(secret) {
+  const base = await crypto.subtle.importKey(
+    'raw', new TextEncoder().encode(secret), 'PBKDF2', false, ['deriveKey']
+  );
+  return crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt: _ENC_SALT, iterations: 100000, hash: 'SHA-256' },
+    base,
+    { name: 'AES-GCM', length: 256 },
+    false, ['encrypt', 'decrypt']
+  );
+}
 
 async function initEncKey(uid) {
   try {
-    // Los datos existentes fueron encriptados con el UID del usuario como clave.
-    // Usamos el UID para mantener compatibilidad con datos ya guardados en Firestore.
-    const sharedSecret = uid;
-    const base = await crypto.subtle.importKey(
-      'raw', new TextEncoder().encode(sharedSecret), 'PBKDF2', false, ['deriveKey']
-    );
-    _encKey = await crypto.subtle.deriveKey(
-      { name: 'PBKDF2', salt: _ENC_SALT, iterations: 100000, hash: 'SHA-256' },
-      base,
-      { name: 'AES-GCM', length: 256 },
-      false, ['encrypt', 'decrypt']
-    );
+    // Clave compartida institucional (nueva — igual para todos los usuarios)
+    _encKey = await _deriveKey(_SHARED_SECRET);
+    // Clave legacy por UID (para descifrar datos cifrados por versiones anteriores)
+    if (uid) _encKeyLegacy = await _deriveKey(uid);
   } catch(e) { console.warn('initEncKey error:', e); }
 }
 
@@ -4681,15 +4707,65 @@ async function encryptField(v) {
   } catch(e) { return v; }
 }
 
-async function decryptField(v) {
-  if (!v || typeof v !== 'string' || !v.startsWith('ENC:') || !_encKey) return v;
+async function _decryptWithKey(v, key) {
+  if (!key) return null;
   try {
     const buf = Uint8Array.from(atob(v.slice(4)), c => c.charCodeAt(0));
     const dec = await crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv: buf.slice(0, 12) }, _encKey, buf.slice(12)
+      { name: 'AES-GCM', iv: buf.slice(0, 12) }, key, buf.slice(12)
     );
     return new TextDecoder().decode(dec);
-  } catch(e) { return v; }   // retorna cifrado si falla (clave incorrecta / dato legacy)
+  } catch(e) { return null; }
+}
+
+async function decryptField(v) {
+  if (!v || typeof v !== 'string' || !v.startsWith('ENC:')) return v;
+  // Intenta con clave compartida (nueva)
+  const r1 = await _decryptWithKey(v, _encKey);
+  if (r1 !== null) return r1;
+  // Fallback: clave legacy por UID (datos cifrados por versiones anteriores)
+  const r2 = await _decryptWithKey(v, _encKeyLegacy);
+  if (r2 !== null) return r2;
+  return v;  // no se pudo descifrar — devuelve tal cual
+}
+
+// ── Migración: re-cifra todos los docentes con la clave compartida ─────
+// Llamar una vez desde Superadmin después de actualizar el sistema.
+async function migrarCifradoDocentes() {
+  const docentes = DB.get('docentes');
+  let migrados = 0;
+  const actualizados = [];
+  for (const doc of docentes) {
+    const descifrado = await decryptDocente(doc);  // usa ambas claves
+    const recifrado  = await encryptDocente(descifrado); // re-cifra con clave compartida
+    actualizados.push(recifrado);
+    // Verifica si hubo cambio real
+    const cambio = _CAMPOS_PRIVADOS.some(f => doc[f] !== recifrado[f]);
+    if (cambio) migrados++;
+  }
+  await DB.set('docentes', actualizados);
+  return migrados;
+}
+
+async function ejecutarMigracionCifrado() {
+  const btn    = document.getElementById('btn-migrar-cifrado');
+  const status = document.getElementById('migrar-cifrado-status');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Migrando...';
+  status.textContent = '';
+  try {
+    const n = await migrarCifradoDocentes();
+    status.style.color = 'var(--green-600,#16a34a)';
+    status.textContent = n > 0
+      ? `✓ ${n} docente(s) migrado(s) exitosamente. Todos los usuarios ya pueden ver los datos.`
+      : '✓ No había datos pendientes de migrar.';
+    btn.innerHTML = '<i class="bi bi-check-circle me-1"></i>Migración completada';
+  } catch(e) {
+    status.style.color = '#dc2626';
+    status.textContent = 'Error: ' + (e.message || e);
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i>Reintentar migración';
+  }
 }
 
 async function encryptDocente(doc) {
