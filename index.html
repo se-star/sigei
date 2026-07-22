@@ -6087,14 +6087,13 @@ function toggleOtraMateria() {
 
 function actualizarResumenHoras() {
   const docId  = document.getElementById('asig-docente').value;
-  const asigId = document.getElementById('asig-id').value;
   const div    = document.getElementById('asig-total-horas');
   if (!docId) { div.textContent = ''; return; }
   const horasActuales = DB.get('asignaciones')
-    .filter(a => a.docente_id == docId && a.estado === 'Activo' && (!asigId || a.id != asigId))
+    .filter(a => String(a.docente_id) === String(docId) && a.estado === 'Activo')
     .reduce((s, a) => s + calcHorasAsig(a), 0);
   const carga = nivelCarga(horasActuales);
-  div.innerHTML = 'Carga actual: <strong>' + horasActuales.toFixed(1) + 'h/sem</strong>&nbsp;'
+  div.innerHTML = 'Carga total: <strong>' + horasActuales.toFixed(1) + 'h/sem</strong>&nbsp;'
     + '<span class="carga-badge ' + carga.cls + '">' + carga.nivel + '</span>';
 }
 
