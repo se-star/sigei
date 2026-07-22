@@ -6442,7 +6442,18 @@ function abrirAsignacion(id) {
     const a = DB.get('asignaciones').find(x => x.id == id);
     if (!a) return;
     document.getElementById('asig-id').value      = a.id;
-    document.getElementById('asig-docente').value = a.docente_id;
+    dSel.value = a.docente_id;
+    // Si el docente no está en la lista filtrada (sede distinta, etc.), añadirlo
+    if (String(dSel.value) !== String(a.docente_id)) {
+      const _d = DB.get('docentes').find(x => String(x.id) === String(a.docente_id));
+      if (_d) {
+        const _opt = document.createElement('option');
+        _opt.value = _d.id;
+        _opt.textContent = [_d.p_nombre, _d.s_nombre, _d.p_apellido, _d.s_apellido].filter(Boolean).join(' ');
+        dSel.appendChild(_opt);
+        dSel.value = _d.id;
+      }
+    }
     document.getElementById('asig-estado').value  = a.estado || 'Activo';
 
     const enLista = MATERIAS.includes(a.materia);
