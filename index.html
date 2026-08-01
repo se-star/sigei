@@ -7612,33 +7612,58 @@ async function restaurarClaseDesdeModal(cancelacionId) {
 }
 
 function verClasesCanceladas() {
-  var iso = new Date().toISOString().slice(0,10);
-  // Recalcular la fecha del día visible
   var offset = _horarioDiaOffset || 0;
   var d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate() + offset);
-  iso = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  var iso = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
 
   var lista = (DB.get('cancelaciones') || []).filter(function(c){ return c.fecha === iso; });
   if (!lista.length) { toast('No hay clases canceladas para este día.', true); return; }
 
-  var html = lista.map(function(c, i) {
-    var sec = DB.get('secciones').find(function(s){ return String(s.id) === String(c.seccion_id); });
-    var secNom = sec ? sec.nombre : (c.seccion_label || '—');
-    return '<div style="padding:10px 0;border-bottom:1px solid #F1F5F9;display:flex;align-items:center;gap:10px">'
-      + '<div style="flex:1">'
-      + '<div style="font-size:13px;font-weight:700;color:#1E293B">' + (c.materia||'—') + ' · ' + secNom + '</div>'
-      + '<div style="font-size:11px;color:#64748B">' + c.hora_inicio + '–' + c.hora_fin + (c.motivo ? ' · ' + c.motivo : '') + '</div>'
+  var meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  var fechaLabel = d.getDate() + ' ' + meses[d.getMonth()] + ' ' + d.getFullYear();
+
+  var tEl = document.getElementById('cansec-titulo');
+  var sEl = document.getElementById('cansec-sub');
+  if (tEl) tEl.textContent = 'Clases canceladas';
+  if (sEl) sEl.textContent = fechaLabel + ' · ' + lista.length + ' clase' + (lista.length>1?'s':'') + ' cancelada' + (lista.length>1?'s':'');
+
+  var grados = DB.get('grados') || [];
+  var html = lista.map(function(c) {
+    var sec  = DB.get('secciones').find(function(s){ return String(s.id) === String(c.seccion_id); });
+    var grado= sec ? grados.find(function(g){ return g.id == sec.grado_id; }) : null;
+    var secNom = sec ? ((grado ? grado.nombre.replace(' Grado','°') : '') + ' ' + sec.nombre) : (c.seccion_label || '—');
+    var asig = (DB.get('asignaciones') || []).find(function(a){ return String(a.id) === String(c.asignacion_id); });
+    var doc  = asig ? DB.get('docentes').find(function(d){ return d.id == asig.docente_id; }) : null;
+    var docFull = doc ? [doc.p_nombre, doc.s_nombre, doc.p_apellido, doc.s_apellido].filter(Boolean).join(' ') : '—';
+
+    return '<div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:12px;padding:14px 16px;margin-bottom:10px">'
+      + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:10px">'
+      + '<div>'
+      + '<div style="font-size:13px;font-weight:800;color:#991B1B">' + (c.materia||'—') + '</div>'
+      + '<div style="font-size:11px;color:#64748B;margin-top:2px">'
+      + '<i class="bi bi-mortarboard-fill me-1"></i>' + secNom
+      + ' &nbsp;·&nbsp; <i class="bi bi-clock me-1"></i>' + c.hora_inicio + '–' + c.hora_fin
       + '</div>'
-      + '<button onclick="restaurarCancelacion(' + c.id + ')" style="font-size:11px;padding:4px 10px;border-radius:6px;border:1.5px solid #16A34A;background:#fff;color:#16A34A;cursor:pointer;font-weight:700">'
-      + '<i class="bi bi-arrow-counterclockwise me-1"></i>Restaurar</button>'
+      + '</div>'
+      + '<span style="background:#FEE2E2;color:#991B1B;font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;flex-shrink:0;border:1px solid #FECACA">CANCELADA</span>'
+      + '</div>'
+      + '<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#fff;border-radius:8px;margin-bottom:8px">'
+      + '<div style="width:30px;height:30px;border-radius:50%;background:#EFF6FF;display:flex;align-items:center;justify-content:center;flex-shrink:0">'
+      + '<i class="bi bi-person-fill" style="color:#2563EB;font-size:13px"></i></div>'
+      + '<div><div style="font-size:12px;font-weight:700;color:#0F172A">' + docFull + '</div>'
+      + '<div style="font-size:10px;color:#64748B">Docente asignado</div></div>'
+      + '</div>'
+      + (c.motivo ? '<div style="display:flex;align-items:flex-start;gap:8px;padding:7px 10px;background:#fff;border-radius:8px;margin-bottom:8px">'
+        + '<i class="bi bi-chat-left-text-fill" style="color:#94A3B8;font-size:12px;margin-top:1px;flex-shrink:0"></i>'
+        + '<div style="font-size:11px;color:#475569">' + c.motivo + '</div></div>' : '')
+      + '<button class="btn btn-sm w-100" onclick="restaurarClaseDesdeModal(\'' + c.id + '\')"'
+      + ' style="background:#fff;border:1.5px solid #FECACA;color:#DC2626;font-weight:700;font-size:12px;border-radius:8px">'
+      + '<i class="bi bi-arrow-counterclockwise me-1"></i>Restaurar clase</button>'
       + '</div>';
   }).join('');
 
-  if (typeof Swal !== 'undefined') {
-    Swal.fire({ title: 'Clases canceladas hoy', html: '<div style="text-align:left">' + html + '</div>', confirmButtonText:'Cerrar', showClass:{popup:''}, hideClass:{popup:''} });
-  } else {
-    alert('Clases canceladas:\n' + lista.map(function(c){ return (c.materia||'—') + ' ' + c.hora_inicio + (c.motivo?' ('+c.motivo+')':''); }).join('\n'));
-  }
+  document.getElementById('cansec-content').innerHTML = html;
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('modalCanceladasSeccion')).show();
 }
 
 async function restaurarCancelacion(id) {
