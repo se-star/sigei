@@ -1251,6 +1251,34 @@
     background:rgba(0,0,0,.08);color:var(--slate-700);white-space:nowrap;flex-shrink:0 }
   .hor-card-docente { font-size:12px;color:var(--slate-500);display:flex;align-items:center;gap:5px;flex-wrap:wrap }
 
+  /* ══ HORARIO CARDS POR SECCIÓN ════════════════════════════════ */
+  .hor-sec-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;padding:4px 2px 32px }
+  .hor-sec-card { background:#fff;border:0.5px solid #E2E8F0;border-radius:12px;overflow:hidden;display:flex;flex-direction:column }
+  .hor-sec-head { display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:#F8FAFC;border-bottom:1px solid #E2E8F0;gap:8px }
+  .hor-sec-nombre { font-size:13px;font-weight:700;color:#0F172A;line-height:1.2 }
+  .hor-sec-dir { font-size:10px;color:#64748B;margin-top:1px }
+  .hor-sec-badge { font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap;flex-shrink:0 }
+  .hor-badge-ok { background:#D1FAE5;color:#065F46 }
+  .hor-badge-cancel { background:#FEE2E2;color:#991B1B }
+  .hor-badge-conflict { background:#FEF3C7;color:#92400E }
+  .hor-badge-shift { background:#D1FAE5;color:#065F46 }
+  .hor-sec-bloques { padding:10px 12px;display:flex;flex-direction:column;gap:5px }
+  .hor-bloque { display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;cursor:pointer;transition:filter .15s }
+  .hor-bloque:hover { filter:brightness(.95) }
+  .hor-bloque-normal  { background:#EEF2FF }
+  .hor-bloque-cancel  { background:#FEF2F2;cursor:default }
+  .hor-bloque-shift   { background:#F0FDF4 }
+  .hor-bloque-conflict{ background:#FFFBEB }
+  .hor-bloque-ausente { background:#FFF7ED }
+  .hor-bloque-ahora   { outline:2px solid var(--indigo-400);outline-offset:-2px }
+  .hor-bloque-dot { width:7px;height:7px;border-radius:50%;flex-shrink:0 }
+  .hor-bloque-hora { font-size:11px;font-weight:700;color:#64748B;min-width:34px;flex-shrink:0 }
+  .hor-bloque-chip { font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;flex-shrink:0 }
+  .chip-cancel  { background:#FEE2E2;color:#991B1B }
+  .chip-shift   { background:#D1FAE5;color:#065F46 }
+  .chip-conflict{ background:#FEF3C7;color:#92400E }
+  .chip-ausente { background:#FED7AA;color:#C2410C }
+
   /* Lista docentes seguimiento */
   .seg-doc-list { display:flex; flex-direction:column; }
   .seg-doc-row {
@@ -7253,7 +7281,7 @@ function minsToTime(m) {
 // ── Cancelación de clases ──────────────────────────────────────────────────
 
 function aplicarCancelacionesYShift(horarios, cancelaciones, dia) {
-  // Mapa: "seccion_id_hora_inicio" → true
+  // Mapa: "seccion_id_hora_inicio" → true  (bloques cancelados)
   var cancelSet = {};
   cancelaciones.forEach(function(c) {
     cancelSet[String(c.seccion_id) + '_' + c.hora_inicio] = true;
@@ -7261,6 +7289,16 @@ function aplicarCancelacionesYShift(horarios, cancelaciones, dia) {
 
   var otrosDias = horarios.filter(function(h) { return h.dia !== dia; });
   var esteDia   = horarios.filter(function(h) { return h.dia === dia; });
+
+  // Mapa: docente_id → [{hi, hf, seccion_id}] con los horarios ORIGINALES del día
+  // Usado para detectar conflictos al desplazar un bloque
+  var docenteOcupacion = {};
+  esteDia.forEach(function(h) {
+    if (!h.docente_id) return;
+    var key = String(h.docente_id);
+    if (!docenteOcupacion[key]) docenteOcupacion[key] = [];
+    docenteOcupacion[key].push({ hi: timeToMins(h.hora_inicio), hf: timeToMins(h.hora_fin), seccion_id: String(h.seccion_id) });
+  });
 
   // Agrupar por sección
   var porSeccion = {};
@@ -7275,23 +7313,49 @@ function aplicarCancelacionesYShift(horarios, cancelaciones, dia) {
   Object.values(porSeccion).forEach(function(bloques) {
     bloques.sort(function(a, b) { return timeToMins(a.hora_inicio) - timeToMins(b.hora_inicio); });
 
+    // Incluir bloques cancelados en el resultado (para mostrarlos en la vista)
+    bloques.forEach(function(b) {
+      if (cancelSet[String(b.seccion_id) + '_' + b.hora_inicio]) {
+        resultado.push(Object.assign({}, b, { _cancelada: true }));
+      }
+    });
+
     var activos = bloques.filter(function(b) {
       return !cancelSet[String(b.seccion_id) + '_' + b.hora_inicio];
     });
     if (!activos.length) return;
 
     // El cursor empieza en el hora_inicio del primer bloque ACTIVO
-    // (si el primer bloque fue cancelado, los siguientes NO avanzan al inicio — estudiantes llegan tarde)
     var cursor = timeToMins(activos[0].hora_inicio);
 
     activos.forEach(function(b) {
       var dur = timeToMins(b.hora_fin) - timeToMins(b.hora_inicio);
       if (dur <= 0) dur = 60;
-      resultado.push(Object.assign({}, b, {
-        hora_inicio: minsToTime(cursor),
-        hora_fin:    minsToTime(cursor + dur)
-      }));
-      cursor += dur;
+
+      var docKey    = String(b.docente_id);
+      var ocupacion = docenteOcupacion[docKey] || [];
+      var nuevoHi   = cursor;
+      var nuevoHf   = cursor + dur;
+
+      // Conflicto: el docente tiene otro bloque (en sección diferente) que se superpone con el nuevo horario
+      var hayConflicto = !!b.docente_id && ocupacion.some(function(occ) {
+        return occ.seccion_id !== String(b.seccion_id) && nuevoHi < occ.hf && nuevoHf > occ.hi;
+      });
+
+      if (hayConflicto) {
+        // Mantener en horario original, marcar conflicto — NO avanzar cursor
+        resultado.push(Object.assign({}, b, { _conflicto: true }));
+      } else {
+        var origHi  = b.hora_inicio;
+        var movido  = cursor !== timeToMins(b.hora_inicio);
+        resultado.push(Object.assign({}, b, {
+          hora_inicio:       minsToTime(nuevoHi),
+          hora_fin:          minsToTime(nuevoHf),
+          _shiftado:         movido,
+          _hora_inicio_orig: movido ? origHi : null
+        }));
+        cursor += dur;
+      }
     });
   });
 
@@ -7527,7 +7591,7 @@ function renderHorarios() {
     }
   });
 
-  // ── AGENDA LIST VIEW ──────────────────────────────────────────────
+  // ── CARDS POR SECCIÓN ─────────────────────────────────────────
   var _fechaDiaAct   = _fechasPorDia[_diaNombreActual] || '';
   var _ausentesAct   = _ausenciasPorFecha[_fechaDiaAct]  || new Set();
   var _reemplazosAct = _reemplazosPorFecha[_fechaDiaAct] || {};
@@ -7539,76 +7603,121 @@ function renderHorarios() {
     'Lengua Castellana':'Lengua Cast.','Lectura Crítica':'L. Crítica',
     'Constitución y Democracia':'C. y Demo.'};
 
-  // Sort blocks for the active day by start time
+  // Bloques del día activo (incluye _cancelada, _shiftado, _conflicto según corresponda)
   var bloquesDia = horarios.filter(function(h){ return h.dia === _diaNombreActual; })
     .slice().sort(function(a,b){ return timeToMins(a.hora_inicio) - timeToMins(b.hora_inicio); });
 
-  // Group by hora_inicio
-  var porFranja = {};
+  // Agrupar por sección
+  var porSeccion = {};
   bloquesDia.forEach(function(b) {
-    var k = b.hora_inicio;
-    if (!porFranja[k]) porFranja[k] = [];
-    porFranja[k].push(b);
+    var k = String(b.seccion_id);
+    if (!porSeccion[k]) porSeccion[k] = [];
+    porSeccion[k].push(b);
   });
-  var franjas = Object.keys(porFranja).sort(function(a,b){ return timeToMins(a)-timeToMins(b); });
 
-  var agendaHtml = '';
-  if (!franjas.length) {
-    agendaHtml = '<div class="empty-state"><i class="bi bi-clock"></i><p>No hay clases registradas para este día</p></div>';
+  // Ordenar secciones por grado → nombre
+  var seccionesOrdenadas = Object.keys(porSeccion).sort(function(a, b) {
+    var sa = secciones.find(function(s){ return String(s.id) === a; });
+    var sb = secciones.find(function(s){ return String(s.id) === b; });
+    var ga = sa ? grados.find(function(g){ return g.id == sa.grado_id; }) : null;
+    var gb = sb ? grados.find(function(g){ return g.id == sb.grado_id; }) : null;
+    var na = (ga ? ga.nombre : '') + '|' + (sa ? sa.nombre : '');
+    var nb = (gb ? gb.nombre : '') + '|' + (sb ? sb.nombre : '');
+    return na.localeCompare(nb);
+  });
+
+  var secGridHtml = '';
+  if (!seccionesOrdenadas.length) {
+    secGridHtml = '<div class="empty-state"><i class="bi bi-clock"></i><p>No hay clases registradas para este día</p></div>';
   } else {
-    franjas.forEach(function(franja) {
-      var bloques = porFranja[franja];
-      var horaFin = bloques[0].hora_fin || '';
-      var startM  = timeToMins(franja);
-      var endM    = timeToMins(horaFin);
-      var enCurso = _isHoy && nowMins >= startM && nowMins < endM;
-      var pasada  = _isHoy && nowMins >= endM;
+    seccionesOrdenadas.forEach(function(secId) {
+      var bloques  = porSeccion[secId];
+      var sec      = secciones.find(function(s){ return String(s.id) === secId; });
+      var grado    = sec ? grados.find(function(g){ return g.id == sec.grado_id; }) : null;
+      var director = sec && sec.director_id ? DB.get('docentes').find(function(d){ return d.id == sec.director_id; }) : null;
+      var secNom   = sec ? ((grado ? grado.nombre.replace(' Grado','°') : '') + ' ' + sec.nombre) : '—';
+      var dirNom   = director ? 'Dir. ' + director.p_apellido : '';
 
-      agendaHtml += '<div class="hor-franja' + (enCurso ? ' hor-franja-activa' : '') + (pasada ? ' hor-franja-pasada' : '') + '">'
-        + '<div class="hor-franja-hora">'
-        + '<span class="hor-hora-ini">' + franja + '</span>'
-        + '<span class="hor-hora-sep">↓</span>'
-        + '<span class="hor-hora-fin">' + horaFin + '</span>'
-        + (enCurso ? '<span class="hor-en-curso-dot"></span>' : '')
-        + '</div>'
-        + '<div class="hor-cards-row">';
+      // Contadores de estado
+      var nCancel  = bloques.filter(function(b){ return b._cancelada; }).length;
+      var nConfl   = bloques.filter(function(b){ return b._conflicto; }).length;
+      var nShift   = bloques.filter(function(b){ return b._shiftado; }).length;
 
+      var badge = '';
+      if (nConfl) {
+        badge = '<span class="hor-sec-badge hor-badge-conflict">' + nConfl + ' conflicto' + (nConfl>1?'s':'') + '</span>';
+      } else if (nCancel) {
+        badge = '<span class="hor-sec-badge hor-badge-cancel">' + nCancel + ' cancelada' + (nCancel>1?'s':'') + '</span>';
+      } else {
+        badge = '<span class="hor-sec-badge hor-badge-ok">Sin cambios</span>';
+      }
+
+      var bloquesHtml = '';
       bloques.forEach(function(b) {
-        var sec    = secciones.find(function(s){ return s.id == b.seccion_id; });
-        var grado  = sec ? grados.find(function(g){ return g.id == sec.grado_id; }) : null;
-        var docD   = DB.get('docentes').find(function(x){ return x.id == b.docente_id; });
-        var mat    = _ABREVS[b.materia] || b.materia || 'Sin materia';
-        var cls    = materiaBlockClass(b.materia || '');
-        var secLbl = sec ? (grado ? grado.nombre.replace(' Grado','°') : '') + ' ' + sec.nombre : '—';
-        var docNom = docD ? [docD.p_nombre, docD.p_apellido].filter(Boolean).join(' ') : '—';
-        var ausente  = _ausentesAct.has(String(b.docente_id));
-        var reempId  = ausente ? _reemplazosAct[String(b.docente_id)] : null;
-        var reempNom = reempId ? nombreDocente(reempId) : '';
-        var clickFn  = b._fromAsig
-          ? 'verClaseAsig(\'' + b.asignacion_id + '\',\'' + b.seccion_id + '\',\'' + b.dia + '\',\'' + (b.hora_inicio||'') + '\',\'' + (b.hora_fin||'') + '\',\'' + _fechaDiaAct + '\')'
-          : 'abrirHorario(' + b.id + ',\'' + _fechaDiaAct + '\')';
+        var docD    = DB.get('docentes').find(function(x){ return x.id == b.docente_id; });
+        var mat     = _ABREVS[b.materia] || b.materia || 'Sin materia';
+        var docNom  = docD ? docD.p_apellido : '—';
+        var ausente = _ausentesAct.has(String(b.docente_id));
+        var reempId = ausente ? _reemplazosAct[String(b.docente_id)] : null;
+        var reempNom= reempId ? nombreDocente(reempId) : '';
+        var ahora   = _isHoy && !b._cancelada && nowMins >= timeToMins(b.hora_inicio) && nowMins < timeToMins(b.hora_fin);
 
-        agendaHtml += '<div class="hor-card ' + cls + (ausente ? ' hor-card-ausente' : '') + '" onclick="' + clickFn + '">'
-          + '<div class="hor-card-top">'
-          + '<span class="hor-card-materia">' + (ausente ? '⚠ ' : '') + mat + '</span>'
-          + '<span class="hor-card-grupo">' + secLbl + '</span>'
+        var tipo = b._cancelada ? 'cancel'
+                 : b._conflicto ? 'conflict'
+                 : b._shiftado  ? 'shift'
+                 : ausente      ? 'ausente'
+                 : 'normal';
+
+        var dotClr = { cancel:'#EF4444', conflict:'#F59E0B', shift:'#10B981', ausente:'#F97316', normal:'#6366F1' };
+        var matClr = { cancel:'#991B1B', conflict:'#92400E', shift:'#065F46', ausente:'#C2410C', normal:'#3730A3' };
+
+        var chipTxt = { cancel:'Cancelada', conflict:'Sin cambio', shift:'Adelantada', ausente:'', normal:'' };
+
+        // Línea de sub-info (docente + notas de shift/conflicto/reemplazo)
+        var subInfo;
+        if (ausente && !b._cancelada) {
+          subInfo = reempNom
+            ? '<span style="text-decoration:line-through;opacity:.55">' + docNom + '</span> &rarr; <span style="color:#16A34A;font-weight:700">' + reempNom + '</span>'
+            : '<span style="text-decoration:line-through;opacity:.55">' + docNom + '</span> <span style="color:#EF4444;font-size:10px">Sin reemplazo</span>';
+        } else {
+          subInfo = docNom;
+        }
+        if (b._shiftado && b._hora_inicio_orig) {
+          subInfo += ' &nbsp;<span style="color:#059669;font-size:10px">&uarr; desde ' + b._hora_inicio_orig + '</span>';
+        }
+        if (b._conflicto) {
+          subInfo += ' &nbsp;<span style="color:#D97706;font-size:10px">&#9888; docente ocupado</span>';
+        }
+
+        var matDecor = (b._cancelada || (ausente && !b._cancelada)) ? 'text-decoration:line-through;' : '';
+
+        var clickFn = b._cancelada ? '' : (b._fromAsig
+          ? 'verClaseAsig(\'' + b.asignacion_id + '\',\'' + b.seccion_id + '\',\'' + b.dia + '\',\'' + (b.hora_inicio||'') + '\',\'' + (b.hora_fin||'') + '\',\'' + _fechaDiaAct + '\')'
+          : 'abrirHorario(' + b.id + ',\'' + _fechaDiaAct + '\')');
+
+        bloquesHtml += '<div class="hor-bloque hor-bloque-' + tipo + (ahora ? ' hor-bloque-ahora' : '') + '" onclick="' + clickFn + '">'
+          + '<div class="hor-bloque-dot" style="background:' + dotClr[tipo] + '"></div>'
+          + '<div class="hor-bloque-hora">' + b.hora_inicio + '</div>'
+          + '<div style="flex:1;min-width:0;">'
+          + '<div style="font-size:12px;font-weight:700;color:' + matClr[tipo] + ';' + matDecor + 'white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + mat + '</div>'
+          + '<div style="font-size:10px;color:#64748B;margin-top:1px">' + subInfo + '</div>'
           + '</div>'
-          + '<div class="hor-card-docente">'
-          + '<i class="bi bi-person-fill" style="font-size:11px;opacity:.6;flex-shrink:0"></i> '
-          + (ausente
-            ? '<span style="text-decoration:line-through;opacity:.5">' + docNom + '</span>'
-              + (reempNom ? ' <span style="color:#16A34A;font-weight:700">↔ ' + reempNom + '</span>' : ' <span style="color:#EF4444">Sin reemplazo</span>')
-            : docNom)
-          + '</div>'
+          + (chipTxt[tipo] ? '<span class="hor-bloque-chip chip-' + tipo + '">' + chipTxt[tipo] + '</span>' : '')
           + '</div>';
       });
 
-      agendaHtml += '</div></div>';
+      secGridHtml += '<div class="hor-sec-card">'
+        + '<div class="hor-sec-head">'
+        + '<div><div class="hor-sec-nombre">' + secNom + '</div>' + (dirNom ? '<div class="hor-sec-dir">' + dirNom + '</div>' : '') + '</div>'
+        + badge
+        + '</div>'
+        + '<div class="hor-sec-bloques">' + bloquesHtml + '</div>'
+        + '</div>';
     });
   }
 
   document.getElementById('horario-visual-container').innerHTML =
-    '<div class="hor-agenda">' + agendaHtml + '</div>';
+    '<div class="hor-sec-grid">' + secGridHtml + '</div>';
 
   // Available teachers panel
   renderDocentesDisponibles(filtroDia, horarios, _fechasPorDia);
