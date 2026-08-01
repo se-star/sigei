@@ -8263,20 +8263,30 @@ function accionAsignarCubriente() {
 }
 
 function computarReestructuracion(seccionId, ctx) {
-  var todos      = window._bloquesDia || [];
-  var cancelHiM  = timeToMins(ctx.horaInicio);
-  var cancelHfM  = timeToMins(ctx.horaFin);
-  var gapMin     = cancelHfM - cancelHiM;
+  var todos     = window._bloquesDia || [];
+  var cancelHiM = timeToMins(ctx.horaInicio);
+  var cancelHfM = timeToMins(ctx.horaFin);
+  var gapMin    = cancelHfM - cancelHiM;
 
-  // Bloques de ESTA sección, excepto el que se cancela
+  // Encontrar el bloque exacto a cancelar por referencia de objeto
+  // (evita cualquier problema de comparación de strings/tipos)
+  var bloqueACancelar = todos.find(function(b) {
+    return String(b.seccion_id) === String(seccionId)
+        && !b._cancelada
+        && b.hora_inicio === ctx.horaInicio
+        && b.hora_fin    === ctx.horaFin;
+  }) || todos.find(function(b) {
+    // Fallback: solo hora_inicio si hora_fin no coincide
+    return String(b.seccion_id) === String(seccionId)
+        && !b._cancelada
+        && b.hora_inicio === ctx.horaInicio;
+  });
+
+  // Bloques de ESTA sección, excepto el bloque a cancelar
   var bloquesSeccion = todos.filter(function(b) {
     if (String(b.seccion_id) !== String(seccionId)) return false;
     if (b._cancelada) return false;
-    if (b.hora_inicio === ctx.horaInicio && String(b.docente_id) === String(ctx.asigId ? (b.asignacion_id === ctx.asigId ? b.docente_id : null) : b.docente_id)) {
-      // Identificar por hora_inicio + docente para evitar falsos positivos
-    }
-    // Excluir el bloque exacto que se cancela
-    if (b.hora_inicio === ctx.horaInicio && String(b.seccion_id) === String(seccionId)) return false;
+    if (bloqueACancelar ? b === bloqueACancelar : b.hora_inicio === ctx.horaInicio) return false;
     return true;
   });
 
