@@ -3555,6 +3555,14 @@
           </div>
         </div>
 
+        <!-- Docentes disponibles para cubrir (se popula por JS) -->
+        <div id="oc-clase-disponibles" style="padding:14px 20px;border-bottom:1px solid #F1F5F9;display:none">
+          <div class="det-sec-title" style="color:#2563EB">
+            <i class="bi bi-people-fill me-1"></i>Disponibles para cubrir
+          </div>
+          <div id="oc-clase-disponibles-lista"></div>
+        </div>
+
         <!-- Novedad / Reemplazo (hidden by default) -->
         <!-- Footer acciones cancelación -->
         <div style="padding:12px 20px;border-top:1px solid #F1F5F9;display:flex;gap:8px;align-items:center">
@@ -7439,6 +7447,121 @@ async function restaurarCancelacion(id) {
   renderHorarios();
 }
 
+// ── Docentes disponibles para cubrir una clase cancelada ─────────────────────
+function poblarDocentesDisponibles(seccionId, horaInicio, horaFin, dia, fechaDia, docenteTitularId) {
+  var el    = document.getElementById('oc-clase-disponibles');
+  var lista = document.getElementById('oc-clase-disponibles-lista');
+  if (!el || !lista || !fechaDia || !horaInicio) { if (el) el.style.display = 'none'; return; }
+
+  var sec     = DB.get('secciones').find(function(s){ return String(s.id) === String(seccionId); });
+  var gradoId = sec ? sec.grado_id : null;
+  var hiMins  = timeToMins(horaInicio);
+  var hfMins  = timeToMins(horaFin);
+
+  // IDs de secciones del mismo grado
+  var secsMismoGrado = gradoId
+    ? DB.get('secciones').filter(function(s){ return s.grado_id == gradoId; }).map(function(s){ return s.id; })
+    : [];
+
+  // Horarios del día (asignaciones activas + manuales)
+  var horariosDelDia = [];
+  DB.get('asignaciones').filter(function(a){ return a.estado === 'Activo'; }).forEach(function(asig) {
+    (asig.cursos || []).forEach(function(curso) {
+      (curso.dias || []).forEach(function(d) {
+        if (d.dia === dia && d.hora_inicio && d.hora_fin) {
+          horariosDelDia.push({ docente_id: asig.docente_id, hora_inicio: d.hora_inicio, hora_fin: d.hora_fin });
+        }
+      });
+    });
+  });
+  DB.get('horarios').filter(function(h){ return h.dia === dia && !h.asignacion_id; }).forEach(function(h) {
+    horariosDelDia.push(h);
+  });
+
+  // Permisos aprobados para fechaDia
+  var enPermiso = new Set(DB.get('permisos').filter(function(p) {
+    if (p.estado !== 'Aprobado') return false;
+    var fb = p.fecha_novedad || p.fecha_inicio;
+    return fb === fechaDia;
+  }).map(function(p){ return String(p.docente_id); }));
+
+  // Docentes ocupados en el rango [horaInicio, horaFin)
+  var ocupados = new Set();
+  horariosDelDia.forEach(function(h) {
+    if (!h.docente_id) return;
+    if (timeToMins(h.hora_inicio) < hfMins && timeToMins(h.hora_fin) > hiMins) {
+      ocupados.add(String(h.docente_id));
+    }
+  });
+
+  // Docentes que enseñan en secciones del mismo grado
+  var docsMismoGrado = new Set();
+  DB.get('asignaciones').filter(function(a){ return a.estado === 'Activo'; }).forEach(function(asig) {
+    (asig.cursos || []).forEach(function(curso) {
+      if (secsMismoGrado.some(function(sid){ return String(sid) === String(curso.seccion_id); })) {
+        docsMismoGrado.add(String(asig.docente_id));
+      }
+    });
+  });
+
+  // Armar lista de disponibles
+  var disponibles = DB.get('docentes').filter(function(d) {
+    if (d.estado !== 'Activo' || d.nivel === 'Directivo') return false;
+    if (String(d.id) === String(docenteTitularId)) return false;
+    if (enPermiso.has(String(d.id))) return false;
+    if (ocupados.has(String(d.id))) return false;
+    return true;
+  });
+
+  // Ordenar: primero mismo grado, luego resto
+  disponibles.sort(function(a, b) {
+    var am = docsMismoGrado.has(String(a.id)) ? 0 : 1;
+    var bm = docsMismoGrado.has(String(b.id)) ? 0 : 1;
+    return am - bm;
+  });
+
+  var mostrar = disponibles.slice(0, 6);
+  if (!mostrar.length) { el.style.display = 'none'; return; }
+
+  el.style.display = '';
+  lista.innerHTML = mostrar.map(function(d) {
+    var ini          = ((d.p_nombre||'')[0]||'') + ((d.p_apellido||'')[0]||'');
+    var esMismoGrado = docsMismoGrado.has(String(d.id));
+
+    // Materias que enseña en el mismo grado
+    var materiasGrado = [];
+    DB.get('asignaciones').filter(function(a){ return a.estado === 'Activo' && String(a.docente_id) === String(d.id); }).forEach(function(asig) {
+      (asig.cursos || []).forEach(function(curso) {
+        if (secsMismoGrado.some(function(sid){ return String(sid) === String(curso.seccion_id); })) {
+          var m = curso.materia || asig.materia;
+          if (m && !materiasGrado.includes(m)) materiasGrado.push(m);
+        }
+      });
+    });
+
+    return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #F8FAFC">'
+      + '<div class="user-avatar" style="width:32px;height:32px;font-size:12px;flex-shrink:0;background:'
+      + (esMismoGrado ? 'linear-gradient(135deg,#2563EB,#1D4ED8)' : '#94A3B8') + '">'
+      + ini.toUpperCase() + '</div>'
+      + '<div style="flex:1;min-width:0">'
+      + '<div style="font-size:12px;font-weight:700;color:#0F172A;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'
+      + d.p_nombre + ' ' + d.p_apellido + '</div>'
+      + '<div style="font-size:10px;color:#64748B;margin-top:1px">'
+      + (materiasGrado.length ? materiasGrado.slice(0,2).join(' · ') : 'Otro grado')
+      + '</div></div>'
+      + (esMismoGrado
+        ? '<span style="font-size:9px;font-weight:700;background:#EFF6FF;color:#1D4ED8;padding:2px 7px;border-radius:20px;flex-shrink:0">mismo grado</span>'
+        : '')
+      + '</div>';
+  }).join('');
+
+  // Si hay más, mostrar contador
+  if (disponibles.length > 6) {
+    lista.innerHTML += '<div style="font-size:10px;color:#94A3B8;padding-top:6px;text-align:center">'
+      + '+ ' + (disponibles.length - 6) + ' docentes más disponibles</div>';
+  }
+}
+
 function actualizarFiltroSecciones() {
   const gradoId = document.getElementById('filtro-horario-grado').value;
   const fSec    = document.getElementById('filtro-horario-seccion');
@@ -7996,6 +8119,17 @@ function abrirHorario(id, fechaDia) {
     }
   }
 
+  // Docentes disponibles para cubrir
+  var yaCancelada = (DB.get('cancelaciones') || []).find(function(c) {
+    return c.fecha === fechaDia && String(c.seccion_id) === String(h.seccion_id) && c.hora_inicio === h.hora_inicio;
+  });
+  if (!yaCancelada) {
+    poblarDocentesDisponibles(h.seccion_id, h.hora_inicio, h.hora_fin, h.dia, fechaDia, h.docente_id);
+  } else {
+    var dispEl = document.getElementById('oc-clase-disponibles');
+    if (dispEl) dispEl.style.display = 'none';
+  }
+
   bootstrap.Modal.getOrCreateInstance(document.getElementById('modalClase')).show();
 }
 
@@ -8098,8 +8232,15 @@ function verClaseAsig(asigId, seccionId, dia, horaInicio, horaFin, fechaDia) {
       btnCan.onmouseover = function(){ this.style.background='#FEF2F2'; };
       btnCan.onmouseout  = function(){ this.style.background='#FFF'; };
     }
-    // Ocultar botón si no hay fecha (no se puede cancelar sin saber el día)
     btnCan.style.display = fechaDia ? '' : 'none';
+  }
+
+  // Docentes disponibles para cubrir (solo si la clase no está ya cancelada)
+  if (!yaCancelada) {
+    poblarDocentesDisponibles(seccionId, horaInicio, horaFin, dia, fechaDia, asig.docente_id);
+  } else {
+    var dispEl = document.getElementById('oc-clase-disponibles');
+    if (dispEl) dispEl.style.display = 'none';
   }
 
   bootstrap.Modal.getOrCreateInstance(document.getElementById('modalClase')).show();
