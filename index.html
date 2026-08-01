@@ -2735,6 +2735,7 @@
               </span>
               <button class="hv-semana-btn" onclick="_diaNav(1)"  title="Día siguiente"><i class="bi bi-chevron-right"></i></button>
               <button class="hv-semana-hoy" onclick="_diaHoy()">Hoy</button>
+              <span id="hor-canceladas-badge" style="display:none;margin-left:8px;background:#FEF2F2;color:#B91C1C;border:1px solid #FECACA;border-radius:20px;font-size:11px;font-weight:700;padding:3px 10px;cursor:pointer" onclick="verClasesCanceladas()" title="Ver clases canceladas hoy"><i class="bi bi-x-circle-fill me-1"></i><span id="hor-canceladas-txt"></span></span>
             </div>
             <div id="horario-visual-container" style="overflow-x:auto;padding:8px 4px"></div>
           </div>
@@ -3527,6 +3528,15 @@
         </div>
 
         <!-- Novedad / Reemplazo (hidden by default) -->
+        <!-- Footer acciones cancelación -->
+        <div style="padding:12px 20px;border-top:1px solid #F1F5F9;display:flex;gap:8px;align-items:center">
+          <button id="btn-cancelar-clase" onclick="cancelarClaseHoy()"
+            style="flex:1;padding:9px 14px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;border:1.5px solid #EF4444;background:#FFF;color:#EF4444;transition:all .15s"
+            onmouseover="this.style.background='#FEF2F2'" onmouseout="this.style.background='#FFF'">
+            <i class="bi bi-x-circle me-1"></i>Cancelar clase hoy
+          </button>
+        </div>
+
         <div id="oc-clase-novedad-section" style="padding:16px 20px;display:none">
           <div class="det-sec-title" style="color:#EF4444"><i class="bi bi-exclamation-triangle-fill me-1"></i>Novedad Activa</div>
           <div id="oc-clase-novedad-info" style="background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;padding:10px;margin-bottom:10px;font-size:12px;color:#B91C1C"></div>
@@ -4394,7 +4404,7 @@ const DB = {
 
   // Load all collections from Firestore into memory
   loadAll: async function() {
-    const COLS = ['docentes','secciones','horarios','sedes','permisos','asignaciones','cronograma','grados','seguimiento','actividad','usuarios','permisos_roles'];
+    const COLS = ['docentes','secciones','horarios','sedes','permisos','asignaciones','cronograma','grados','seguimiento','actividad','usuarios','permisos_roles','cancelaciones'];
     const snaps = await Promise.all(COLS.map(k => _fs.collection('sigei').doc(k).get()));
     snaps.forEach((snap, i) => {
       _cache[COLS[i]] = snap.exists ? (snap.data().items || []) : [];
@@ -7200,6 +7210,8 @@ var _horarioDiaOffset = (function(){
   return 0;
 })();
 
+var _claseContexto = null; // {asigId, seccionId, horaInicio, horaFin, fechaDia, dia, materia}
+
 function _getLunesSemana(offset) {
   var hoy = new Date(); hoy.setHours(0,0,0,0);
   var dow = hoy.getDay();
@@ -7231,6 +7243,136 @@ function timeToMins(t) {
   if (!t) return 0;
   const [h, m] = t.split(':').map(Number);
   return h * 60 + m;
+}
+
+function minsToTime(m) {
+  var h = Math.floor(m / 60), mn = m % 60;
+  return String(h).padStart(2,'0') + ':' + String(mn).padStart(2,'0');
+}
+
+// ── Cancelación de clases ──────────────────────────────────────────────────
+
+function aplicarCancelacionesYShift(horarios, cancelaciones, dia) {
+  // Mapa: "seccion_id_hora_inicio" → true
+  var cancelSet = {};
+  cancelaciones.forEach(function(c) {
+    cancelSet[String(c.seccion_id) + '_' + c.hora_inicio] = true;
+  });
+
+  var otrosDias = horarios.filter(function(h) { return h.dia !== dia; });
+  var esteDia   = horarios.filter(function(h) { return h.dia === dia; });
+
+  // Agrupar por sección
+  var porSeccion = {};
+  esteDia.forEach(function(h) {
+    var k = String(h.seccion_id);
+    if (!porSeccion[k]) porSeccion[k] = [];
+    porSeccion[k].push(h);
+  });
+
+  var resultado = otrosDias.slice();
+
+  Object.values(porSeccion).forEach(function(bloques) {
+    bloques.sort(function(a, b) { return timeToMins(a.hora_inicio) - timeToMins(b.hora_inicio); });
+
+    var activos = bloques.filter(function(b) {
+      return !cancelSet[String(b.seccion_id) + '_' + b.hora_inicio];
+    });
+    if (!activos.length) return;
+
+    // El cursor empieza en el hora_inicio del primer bloque ACTIVO
+    // (si el primer bloque fue cancelado, los siguientes NO avanzan al inicio — estudiantes llegan tarde)
+    var cursor = timeToMins(activos[0].hora_inicio);
+
+    activos.forEach(function(b) {
+      var dur = timeToMins(b.hora_fin) - timeToMins(b.hora_inicio);
+      if (dur <= 0) dur = 60;
+      resultado.push(Object.assign({}, b, {
+        hora_inicio: minsToTime(cursor),
+        hora_fin:    minsToTime(cursor + dur)
+      }));
+      cursor += dur;
+    });
+  });
+
+  return resultado;
+}
+
+async function cancelarClaseHoy() {
+  var ctx = _claseContexto;
+  if (!ctx || !ctx.fechaDia) { toast('No hay información de la clase.', false); return; }
+
+  var cancelaciones = (DB.get('cancelaciones') || []).slice();
+  var yaExiste = cancelaciones.find(function(c) {
+    return c.fecha === ctx.fechaDia && String(c.seccion_id) === String(ctx.seccionId) && c.hora_inicio === ctx.horaInicio;
+  });
+
+  if (yaExiste) {
+    // Restaurar
+    var nuevas = cancelaciones.filter(function(c) { return c.id !== yaExiste.id; });
+    await DB.set('cancelaciones', nuevas);
+    toast('Clase restaurada correctamente.', true);
+    bootstrap.Modal.getInstance(document.getElementById('modalClase'))?.hide();
+    renderHorarios();
+    return;
+  }
+
+  // Cancelar
+  var motivo = prompt('Motivo de cancelación (opcional — ej: docente ausente, paro, lluvia):') || '';
+  var sec = DB.get('secciones').find(function(s){ return String(s.id) === String(ctx.seccionId); });
+  cancelaciones.push({
+    id:            DB.nextId('cancelaciones'),
+    fecha:         ctx.fechaDia,
+    seccion_id:    ctx.seccionId,
+    asignacion_id: ctx.asigId,
+    hora_inicio:   ctx.horaInicio,
+    hora_fin:      ctx.horaFin,
+    materia:       ctx.materia || '',
+    seccion_label: sec ? sec.nombre : '',
+    motivo:        motivo
+  });
+  await DB.set('cancelaciones', cancelaciones);
+  toast('Clase cancelada para el ' + ctx.fechaDia + '. El horario se ha corrido.', true);
+  bootstrap.Modal.getInstance(document.getElementById('modalClase'))?.hide();
+  renderHorarios();
+}
+
+function verClasesCanceladas() {
+  var iso = new Date().toISOString().slice(0,10);
+  // Recalcular la fecha del día visible
+  var offset = _horarioDiaOffset || 0;
+  var d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate() + offset);
+  iso = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+
+  var lista = (DB.get('cancelaciones') || []).filter(function(c){ return c.fecha === iso; });
+  if (!lista.length) { toast('No hay clases canceladas para este día.', true); return; }
+
+  var html = lista.map(function(c, i) {
+    var sec = DB.get('secciones').find(function(s){ return String(s.id) === String(c.seccion_id); });
+    var secNom = sec ? sec.nombre : (c.seccion_label || '—');
+    return '<div style="padding:10px 0;border-bottom:1px solid #F1F5F9;display:flex;align-items:center;gap:10px">'
+      + '<div style="flex:1">'
+      + '<div style="font-size:13px;font-weight:700;color:#1E293B">' + (c.materia||'—') + ' · ' + secNom + '</div>'
+      + '<div style="font-size:11px;color:#64748B">' + c.hora_inicio + '–' + c.hora_fin + (c.motivo ? ' · ' + c.motivo : '') + '</div>'
+      + '</div>'
+      + '<button onclick="restaurarCancelacion(' + c.id + ')" style="font-size:11px;padding:4px 10px;border-radius:6px;border:1.5px solid #16A34A;background:#fff;color:#16A34A;cursor:pointer;font-weight:700">'
+      + '<i class="bi bi-arrow-counterclockwise me-1"></i>Restaurar</button>'
+      + '</div>';
+  }).join('');
+
+  if (typeof Swal !== 'undefined') {
+    Swal.fire({ title: 'Clases canceladas hoy', html: '<div style="text-align:left">' + html + '</div>', confirmButtonText:'Cerrar', showClass:{popup:''}, hideClass:{popup:''} });
+  } else {
+    alert('Clases canceladas:\n' + lista.map(function(c){ return (c.materia||'—') + ' ' + c.hora_inicio + (c.motivo?' ('+c.motivo+')':''); }).join('\n'));
+  }
+}
+
+async function restaurarCancelacion(id) {
+  var cancelaciones = (DB.get('cancelaciones') || []).filter(function(c){ return c.id !== id; });
+  await DB.set('cancelaciones', cancelaciones);
+  toast('Clase restaurada.', true);
+  if (typeof Swal !== 'undefined') Swal.close();
+  renderHorarios();
 }
 
 function actualizarFiltroSecciones() {
@@ -7318,6 +7460,19 @@ function renderHorarios() {
   // Entries with asignacion_id are already covered by the virtual derivation below — exclude them to avoid duplicates.
   let horarios = DB.get('horarios').filter(h => !h.asignacion_id);
 
+  // Actualizar badge de cancelaciones para el día visible
+  var cancelacionesDia = (DB.get('cancelaciones') || []).filter(function(c) { return c.fecha === _diaISO; });
+  var badgeEl = document.getElementById('hor-canceladas-badge');
+  var badgeTxt = document.getElementById('hor-canceladas-txt');
+  if (badgeEl && badgeTxt) {
+    if (cancelacionesDia.length) {
+      badgeTxt.textContent = cancelacionesDia.length + (cancelacionesDia.length === 1 ? ' cancelada' : ' canceladas');
+      badgeEl.style.display = '';
+    } else {
+      badgeEl.style.display = 'none';
+    }
+  }
+
   // Derive virtual horario entries from asignaciones activas
   DB.get('asignaciones').filter(function(a){ return a.estado === 'Activo'; }).forEach(function(asig) {
     (asig.cursos || []).forEach(function(curso) {
@@ -7338,6 +7493,11 @@ function renderHorarios() {
       });
     });
   });
+
+  // ── Aplicar cancelaciones y corrimiento de horario ────────────────────────
+  if (cancelacionesDia.length) {
+    horarios = aplicarCancelacionesYShift(horarios, cancelacionesDia, _diaNombreActual);
+  }
 
   // Apply filters
   if (filtroGrado) {
@@ -7809,6 +7969,28 @@ function verClaseAsig(asigId, seccionId, dia, horaInicio, horaFin, fechaDia) {
           '<br><span style="opacity:.75;font-style:italic">Sin docente de reemplazo asignado</span>';
       }
     }
+  }
+
+  // Guardar contexto para el botón de cancelación
+  _claseContexto = { asigId: asigId, seccionId: seccionId, horaInicio: horaInicio, horaFin: horaFin, fechaDia: fechaDia, dia: dia, materia: asig ? asig.materia : '' };
+  var yaCancelada = (DB.get('cancelaciones') || []).find(function(c) {
+    return c.fecha === fechaDia && String(c.seccion_id) === String(seccionId) && c.hora_inicio === horaInicio;
+  });
+  var btnCan = document.getElementById('btn-cancelar-clase');
+  if (btnCan) {
+    if (yaCancelada) {
+      btnCan.innerHTML = '<i class="bi bi-arrow-counterclockwise me-1"></i>Restaurar clase';
+      btnCan.style.borderColor = '#16A34A'; btnCan.style.color = '#16A34A';
+      btnCan.onmouseover = function(){ this.style.background='#F0FDF4'; };
+      btnCan.onmouseout  = function(){ this.style.background='#FFF'; };
+    } else {
+      btnCan.innerHTML = '<i class="bi bi-x-circle me-1"></i>Cancelar clase hoy';
+      btnCan.style.borderColor = '#EF4444'; btnCan.style.color = '#EF4444';
+      btnCan.onmouseover = function(){ this.style.background='#FEF2F2'; };
+      btnCan.onmouseout  = function(){ this.style.background='#FFF'; };
+    }
+    // Ocultar botón si no hay fecha (no se puede cancelar sin saber el día)
+    btnCan.style.display = fechaDia ? '' : 'none';
   }
 
   bootstrap.Modal.getOrCreateInstance(document.getElementById('modalClase')).show();
