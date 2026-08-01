@@ -1266,7 +1266,7 @@
   .hor-bloque { display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;cursor:pointer;transition:filter .15s }
   .hor-bloque:hover { filter:brightness(.95) }
   .hor-bloque-normal  { background:#EEF2FF }
-  .hor-bloque-cancel  { background:#FEF2F2;cursor:default }
+  .hor-bloque-cancel  { background:#FEF2F2 }
   .hor-bloque-shift   { background:#F0FDF4 }
   .hor-bloque-conflict{ background:#FFFBEB }
   .hor-bloque-ausente { background:#FFF7ED }
@@ -7814,9 +7814,9 @@ function renderHorarios() {
 
         var matDecor = (b._cancelada || (ausente && !b._cancelada)) ? 'text-decoration:line-through;' : '';
 
-        var clickFn = b._cancelada ? '' : (b._fromAsig
+        var clickFn = b._fromAsig
           ? 'verClaseAsig(\'' + b.asignacion_id + '\',\'' + b.seccion_id + '\',\'' + b.dia + '\',\'' + (b.hora_inicio||'') + '\',\'' + (b.hora_fin||'') + '\',\'' + _fechaDiaAct + '\')'
-          : 'abrirHorario(' + b.id + ',\'' + _fechaDiaAct + '\')');
+          : 'abrirHorario(' + b.id + ',\'' + _fechaDiaAct + '\')';
 
         bloquesHtml += '<div class="hor-bloque hor-bloque-' + tipo + (ahora ? ' hor-bloque-ahora' : '') + '" onclick="' + clickFn + '">'
           + '<div class="hor-bloque-dot" style="background:' + dotClr[tipo] + '"></div>'
