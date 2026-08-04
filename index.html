@@ -7511,8 +7511,14 @@ async function cancelarClaseHoy() {
     return;
   }
 
-  // Cancelar
-  var motivo = prompt('Motivo de cancelación (opcional — ej: docente ausente, paro, lluvia):') || '';
+  // Cancelar — primero mostrar la vista previa del horario resultante,
+  // la escritura real ocurre en ejecutarCancelacion() al confirmar.
+  bootstrap.Modal.getInstance(document.getElementById('modalClase'))?.hide();
+  mostrarPreviewCancelacion();
+}
+
+async function ejecutarCancelacion(ctx, motivo) {
+  var cancelaciones = (DB.get('cancelaciones') || []).slice();
   var sec = DB.get('secciones').find(function(s){ return String(s.id) === String(ctx.seccionId); });
   cancelaciones.push({
     id:            DB.nextId('cancelaciones'),
@@ -7523,11 +7529,10 @@ async function cancelarClaseHoy() {
     hora_fin:      ctx.horaFin,
     materia:       ctx.materia || '',
     seccion_label: sec ? sec.nombre : '',
-    motivo:        motivo
+    motivo:        motivo || ''
   });
   await DB.set('cancelaciones', cancelaciones);
   toast('Clase cancelada para el ' + ctx.fechaDia + '. El horario se ha corrido.', true);
-  bootstrap.Modal.getInstance(document.getElementById('modalClase'))?.hide();
   renderHorarios();
 }
 
@@ -7908,6 +7913,10 @@ function renderHorarios() {
     });
   });
 
+  // Guardar el horario crudo (antes de cancelaciones) — usado por la vista previa
+  // de reestructuración para que siempre coincida con lo que realmente se aplica.
+  window._horariosCrudoDia = horarios.slice();
+
   // ── Aplicar cancelaciones y corrimiento de horario ────────────────────────
   if (cancelacionesDia.length) {
     horarios = aplicarCancelacionesYShift(horarios, cancelacionesDia, _diaNombreActual);
@@ -7999,7 +8008,7 @@ function renderHorarios() {
         badge = '<span class="hor-sec-badge hor-badge-conflict">' + nConfl + ' conflicto' + (nConfl>1?'s':'') + '</span>';
       } else if (nCancel) {
         badge = '<span class="hor-sec-badge hor-badge-cancel" style="cursor:pointer" title="Ver clase cancelada"'
-          + ' onclick="verCanceladasSeccion(\'' + seccionId + '\',\'' + _fechaDiaAct + '\')">'
+          + ' onclick="verCanceladasSeccion(\'' + secId + '\',\'' + _fechaDiaAct + '\')">'
           + '<i class="bi bi-x-circle-fill me-1" style="font-size:9px"></i>'
           + nCancel + ' cancelada' + (nCancel>1?'s':'') + '</span>';
       } else {
@@ -8262,152 +8271,112 @@ function accionAsignarCubriente() {
   }
 }
 
-function computarReestructuracion(seccionId, ctx) {
-  var todos     = window._bloquesDia || [];
-  var cancelHiM = timeToMins(ctx.horaInicio);
-  var cancelHfM = timeToMins(ctx.horaFin);
-  var gapMin    = cancelHfM - cancelHiM;
-
-  // Encontrar el bloque exacto a cancelar por referencia de objeto
-  // (evita cualquier problema de comparación de strings/tipos)
-  var bloqueACancelar = todos.find(function(b) {
-    return String(b.seccion_id) === String(seccionId)
-        && !b._cancelada
-        && b.hora_inicio === ctx.horaInicio
-        && b.hora_fin    === ctx.horaFin;
-  }) || todos.find(function(b) {
-    // Fallback: solo hora_inicio si hora_fin no coincide
-    return String(b.seccion_id) === String(seccionId)
-        && !b._cancelada
-        && b.hora_inicio === ctx.horaInicio;
+// Docentes activos sin choque de horario en [hi, hf) del día `dia`, excluyendo
+// la propia sección (seccionIdExcl) y opcionalmente un docente (docenteIdExcl).
+// Usa el horario CRUDO del día (antes de cancelaciones) como fuente de verdad.
+function docentesLibresEnSlot(hi, hf, dia, seccionIdExcl, docenteIdExcl) {
+  var crudo = window._horariosCrudoDia || [];
+  var hiM = timeToMins(hi), hfM = timeToMins(hf);
+  var ocupados = {};
+  crudo.forEach(function(b) {
+    if (b.dia !== dia) return;
+    if (String(b.seccion_id) === String(seccionIdExcl)) return;
+    var bHi = timeToMins(b.hora_inicio), bHf = timeToMins(b.hora_fin);
+    if (hiM < bHf && hfM > bHi) ocupados[String(b.docente_id)] = true;
   });
-
-  // Bloques de ESTA sección, excepto el bloque a cancelar
-  var bloquesSeccion = todos.filter(function(b) {
-    if (String(b.seccion_id) !== String(seccionId)) return false;
-    if (b._cancelada) return false;
-    if (bloqueACancelar ? b === bloqueACancelar : b.hora_inicio === ctx.horaInicio) return false;
-    return true;
-  });
-
-  bloquesSeccion.sort(function(a, b) {
-    return timeToMins(a.hora_inicio) - timeToMins(b.hora_inicio);
-  });
-
-  // Bloques de OTRAS secciones (para chequear disponibilidad docente)
-  var bloquesOtros = todos.filter(function(b) {
-    return String(b.seccion_id) !== String(seccionId) && !b._cancelada;
-  });
-
-  var todosDocentes = DB.get('docentes').filter(function(d){ return d.estado === 'Activo'; });
-
-  return bloquesSeccion.map(function(b) {
-    var hiM = timeToMins(b.hora_inicio);
-    var hfM = timeToMins(b.hora_fin);
-    var dur = hfM - hiM;
-    var shifted = hiM >= cancelHiM;
-    var newHiM  = shifted ? hiM - gapMin : hiM;
-    var newHfM  = newHiM + dur;
-
-    var conflict = shifted && bloquesOtros.some(function(o) {
-      if (String(o.docente_id) !== String(b.docente_id)) return false;
-      var oHi = timeToMins(o.hora_inicio);
-      var oHf = timeToMins(o.hora_fin);
-      return newHiM < oHf && newHfM > oHi;
-    });
-
-    var disponibles = [];
-    if (conflict) {
-      disponibles = todosDocentes.filter(function(d) {
-        if (String(d.id) === String(b.docente_id)) return false;
-        return !todos.some(function(o) {
-          if (o._cancelada) return false;
-          if (String(o.docente_id) !== String(d.id)) return false;
-          var oHi = timeToMins(o.hora_inicio);
-          var oHf = timeToMins(o.hora_fin);
-          return newHiM < oHf && newHfM > oHi;
-        });
-      }).slice(0, 3);
-    }
-
-    return {
-      b: b, hiOrigM: hiM, newHiM: newHiM, newHfM: newHfM,
-      newHi: minsToTime(newHiM), newHf: minsToTime(newHfM),
-      shifted: shifted, conflict: conflict, disponibles: disponibles
-    };
-  });
+  return DB.get('docentes').filter(function(d) {
+    return d.estado === 'Activo' && String(d.id) !== String(docenteIdExcl) && !ocupados[String(d.id)];
+  }).slice(0, 3);
 }
 
-function accionReestructurar() {
-  bootstrap.Modal.getInstance(document.getElementById('modalAccionClase'))?.hide();
-  var d = _datosDragClase;
-  if (!d) return;
+// Calcula el horario resultante de cancelar el bloque descrito en `ctx` (seccionId +
+// horaInicio) reutilizando la MISMA función que aplica el corrimiento real
+// (aplicarCancelacionesYShift), para que la vista previa siempre coincida con lo
+// que efectivamente queda al confirmar.
+function computarReestructuracion(seccionId, ctx) {
+  var crudo = window._horariosCrudoDia || [];
+  var existentes = (DB.get('cancelaciones') || []).filter(function(c) { return c.fecha === ctx.fechaDia; });
+  var yaExiste = existentes.some(function(c) {
+    return String(c.seccion_id) === String(seccionId) && c.hora_inicio === ctx.horaInicio;
+  });
+  var todasCancel = yaExiste ? existentes : existentes.concat([{
+    seccion_id: seccionId, hora_inicio: ctx.horaInicio
+  }]);
+  var resultado = aplicarCancelacionesYShift(crudo, todasCancel, ctx.dia);
+  return resultado.filter(function(b) {
+    return String(b.seccion_id) === String(seccionId) && b.dia === ctx.dia;
+  }).sort(function(a, b) { return timeToMins(a.hora_inicio) - timeToMins(b.hora_inicio); });
+}
 
-  var reestr = computarReestructuracion(d.secId, _claseContexto);
-  var sec    = DB.get('secciones').find(function(s){ return String(s.id) === String(d.secId); });
+// Muestra la vista previa visual del horario del grupo resultante de cancelar la
+// clase guardada en _claseContexto. No escribe nada todavía — solo al confirmar
+// (confirmarReestructuracion) se persiste la cancelación.
+function mostrarPreviewCancelacion() {
+  var ctx = _claseContexto;
+  if (!ctx || !ctx.fechaDia) { toast('No hay información de la clase.', false); return; }
+
+  var reestr = computarReestructuracion(ctx.seccionId, ctx);
+  var sec    = DB.get('secciones').find(function(s) { return String(s.id) === String(ctx.seccionId); });
   var secNom = sec ? (nombreGrado(sec.grado_id) + ' — ' + sec.nombre) : '—';
 
   var subEl = document.getElementById('reestr-subtitulo');
-  if (subEl) subEl.textContent = secNom + ' · ' + d.materia + ' ' + d.hi + '–' + d.hf + ' cancelada';
+  if (subEl) subEl.textContent = secNom + ' · ' + (ctx.materia || '') + ' ' + ctx.horaInicio + '–' + ctx.horaFin + ' cancelada';
 
   var html = '';
 
-  // Card de la clase cancelada
-  html += '<div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:10px;padding:10px 12px;margin-bottom:12px;display:flex;align-items:center;gap:10px">'
-    + '<i class="bi bi-x-circle-fill" style="color:#DC2626;font-size:16px;flex-shrink:0"></i>'
-    + '<div style="min-width:0;flex:1">'
-    + '<div style="font-size:12px;font-weight:700;color:#991B1B">' + d.materia + '</div>'
-    + '<div style="font-size:10px;color:#64748B;margin-top:2px">'
-    + nombreDocente(d.docenteId) + ' · ' + d.hi + '–' + d.hf
-    + ' <span style="background:#FEE2E2;color:#991B1B;padding:1px 6px;border-radius:20px;font-size:9px;font-weight:700">CANCELADA</span></div>'
-    + '</div></div>';
-
   if (!reestr.length) {
-    html += '<p class="text-muted small text-center mt-3">No hay más clases en este grupo para reestructurar.</p>';
+    html = '<p class="text-muted small text-center mt-3">No se encontró la clase en el horario de hoy.</p>';
   } else {
-    html += '<div style="font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Clases restantes del grupo</div>';
+    var nConflictos = reestr.filter(function(b) { return b._conflicto; }).length;
+    var nShift      = reestr.filter(function(b) { return b._shiftado && !b._cancelada; }).length;
+    html += '<div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;padding:9px 12px;margin-bottom:12px;font-size:11px;color:#166534">'
+      + '<i class="bi bi-stars me-1"></i><strong>Horario del grupo ese día</strong>'
+      + (nShift      ? ' · ' + nShift + ' clase' + (nShift>1?'s':'') + ' adelantada' + (nShift>1?'s':'') : '')
+      + (nConflictos ? ' · ' + nConflictos + ' con docente ocupado' : '')
+      + '</div>';
 
-    reestr.forEach(function(r) {
-      var doc     = DB.get('docentes').find(function(x){ return x.id == r.b.docente_id; });
+    html += '<div style="font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Horario resultante</div>';
+
+    reestr.forEach(function(b, idx) {
+      var doc     = DB.get('docentes').find(function(x) { return x.id == b.docente_id; });
       var docFull = doc ? [doc.p_nombre, doc.s_nombre, doc.p_apellido, doc.s_apellido].filter(Boolean).join(' ') : '—';
-      var abrev   = (window._ABREVS || {})[r.b.materia] || r.b.materia;
+      var abrev   = (window._ABREVS || {})[b.materia] || b.materia;
 
-      var sBg   = r.conflict ? '#FFFBEB' : r.shifted ? '#F0FDF4' : '#EEF2FF';
-      var sClr  = r.conflict ? '#D97706' : r.shifted ? '#16A34A' : '#6366F1';
-      var sIcon = r.conflict ? 'bi-exclamation-triangle-fill' : r.shifted ? 'bi-arrow-up-circle-fill' : 'bi-check-circle-fill';
+      var sBg, sClr, tagTxt;
+      if (b._cancelada)      { sBg = '#FEF2F2'; sClr = '#DC2626'; tagTxt = 'CANCELADA'; }
+      else if (b._conflicto) { sBg = '#FFFBEB'; sClr = '#D97706'; tagTxt = 'Docente ocupado'; }
+      else if (b._shiftado)  { sBg = '#F0FDF4'; sClr = '#16A34A'; tagTxt = 'Adelantada'; }
+      else                   { sBg = '#EEF2FF'; sClr = '#6366F1'; tagTxt = ''; }
 
       html += '<div style="background:' + sBg + ';border-radius:10px;padding:10px 12px;margin-bottom:8px">'
         + '<div style="display:flex;align-items:flex-start;gap:10px">'
-        + '<i class="bi ' + sIcon + '" style="color:' + sClr + ';font-size:15px;flex-shrink:0;margin-top:1px"></i>'
+        + '<div style="width:22px;height:22px;border-radius:50%;background:' + sClr + '22;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:800;color:' + sClr + '">' + (idx+1) + '</div>'
         + '<div style="flex:1;min-width:0">'
-        + '<div style="font-size:12px;font-weight:700;color:#0F172A">' + abrev + '</div>'
-        + '<div style="font-size:10px;color:#64748B;margin-top:1px">' + docFull + '</div>'
-        + '<div style="display:flex;align-items:center;gap:6px;margin-top:5px;flex-wrap:wrap">';
+        + '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">'
+        + '<span style="font-size:12px;font-weight:800;color:#0F172A;' + (b._cancelada ? 'text-decoration:line-through;opacity:.6' : '') + '">' + abrev + '</span>'
+        + (tagTxt ? '<span style="font-size:9px;font-weight:700;background:' + sClr + '22;color:' + sClr + ';padding:2px 6px;border-radius:20px;border:1px solid ' + sClr + '44">' + tagTxt + '</span>' : '')
+        + '</div>'
+        + '<div style="font-size:10px;color:#64748B;margin-top:2px">' + docFull + '</div>'
+        + '<div style="display:flex;align-items:center;gap:5px;margin-top:4px">';
 
-      if (r.shifted) {
-        html += '<span style="font-size:10px;color:#94A3B8;text-decoration:line-through">' + r.b.hora_inicio + '–' + r.b.hora_fin + '</span>'
-          + '<i class="bi bi-arrow-right" style="color:' + sClr + ';font-size:11px"></i>'
-          + '<span style="font-size:12px;font-weight:800;color:' + sClr + '">' + r.newHi + '–' + r.newHf + '</span>';
-      } else {
-        html += '<span style="font-size:12px;font-weight:800;color:' + sClr + '">' + r.newHi + '–' + r.newHf + '</span>';
+      if (b._shiftado && b._hora_inicio_orig) {
+        html += '<span style="font-size:10px;color:#94A3B8;text-decoration:line-through">' + b._hora_inicio_orig + '</span>'
+          + '<i class="bi bi-arrow-right" style="color:' + sClr + ';font-size:10px"></i>';
       }
-
-      if (r.conflict) {
-        html += ' <span style="font-size:9px;font-weight:700;background:#FEF3C7;color:#92400E;padding:2px 6px;border-radius:20px">Docente ocupado</span>';
-      } else if (r.shifted) {
-        html += ' <span style="font-size:9px;font-weight:700;background:#D1FAE5;color:#065F46;padding:2px 6px;border-radius:20px">Adelantada</span>';
-      }
-
+      html += '<span style="font-size:12px;font-weight:800;color:' + sClr + '">' + b.hora_inicio + '–' + b.hora_fin + '</span>';
       html += '</div>';
 
-      if (r.conflict && r.disponibles.length) {
-        html += '<div style="margin-top:7px;padding-top:7px;border-top:1px dashed #FDE68A">'
-          + '<div style="font-size:9px;font-weight:700;color:#92400E;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">Pueden cubrir:</div>'
-          + r.disponibles.map(function(doc2) {
-              var n2 = [doc2.p_nombre, doc2.s_nombre, doc2.p_apellido, doc2.s_apellido].filter(Boolean).join(' ');
-              return '<span style="display:inline-block;font-size:10px;background:#fff;border:1px solid #E2E8F0;border-radius:6px;padding:2px 8px;margin-right:4px;margin-bottom:2px">' + n2 + '</span>';
-            }).join('')
-          + '</div>';
+      if (b._conflicto) {
+        var disp = docentesLibresEnSlot(b.hora_inicio, b.hora_fin, ctx.dia, b.seccion_id, b.docente_id);
+        if (disp.length) {
+          html += '<div style="margin-top:7px;padding-top:7px;border-top:1px dashed #FDE68A">'
+            + '<div style="font-size:9px;font-weight:700;color:#92400E;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px"><i class="bi bi-person-check me-1"></i>Pueden cubrir este slot:</div>'
+            + disp.map(function(d2) {
+                var n2 = [d2.p_nombre, d2.s_nombre, d2.p_apellido, d2.s_apellido].filter(Boolean).join(' ');
+                return '<span style="display:inline-block;font-size:10px;background:#fff;border:1px solid #FDE68A;border-radius:6px;padding:2px 8px;margin-right:4px;margin-bottom:2px">' + n2 + '</span>';
+              }).join('')
+            + '</div>';
+        }
       }
 
       html += '</div></div></div>';
@@ -8418,9 +8387,17 @@ function accionReestructurar() {
   bootstrap.Modal.getOrCreateInstance(document.getElementById('modalReestr')).show();
 }
 
+function accionReestructurar() {
+  bootstrap.Modal.getInstance(document.getElementById('modalAccionClase'))?.hide();
+  mostrarPreviewCancelacion();
+}
+
 async function confirmarReestructuracion() {
+  var ctx = _claseContexto;
+  if (!ctx || !ctx.fechaDia) { toast('No hay información de la clase.', false); return; }
+  var motivo = prompt('Motivo de cancelación (opcional — ej: docente ausente, paro, lluvia):') || '';
   bootstrap.Modal.getInstance(document.getElementById('modalReestr'))?.hide();
-  await cancelarClaseHoy(); // El shift visual es automático al re-renderizar
+  await ejecutarCancelacion(ctx, motivo);
 }
 
 function filtrarModalDocentes(q) {
