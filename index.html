@@ -1251,39 +1251,6 @@
     background:rgba(0,0,0,.08);color:var(--slate-700);white-space:nowrap;flex-shrink:0 }
   .hor-card-docente { font-size:12px;color:var(--slate-500);display:flex;align-items:center;gap:5px;flex-wrap:wrap }
 
-  /* ══ HORARIO CARDS POR SECCIÓN ════════════════════════════════ */
-  .hor-sec-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;padding:4px 2px 32px }
-  .hor-sec-card { background:#fff;border:0.5px solid #E2E8F0;border-radius:12px;overflow:hidden;display:flex;flex-direction:column }
-  .hor-sec-head { display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:#F8FAFC;border-bottom:1px solid #E2E8F0;gap:8px }
-  .hor-sec-nombre { font-size:13px;font-weight:700;color:#0F172A;line-height:1.2 }
-  .hor-sec-dir { font-size:10px;color:#64748B;margin-top:1px }
-  .hor-sec-badge { font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap;flex-shrink:0 }
-  .hor-badge-ok { background:#D1FAE5;color:#065F46 }
-  .hor-badge-cancel { background:#FEE2E2;color:#991B1B }
-  .hor-badge-conflict { background:#FEF3C7;color:#92400E }
-  .hor-badge-shift { background:#D1FAE5;color:#065F46 }
-  .hor-sec-bloques { padding:10px 12px;display:flex;flex-direction:column;gap:5px }
-  /* Swipe wrapper */
-  .hor-bloque-wrap { position:relative;border-radius:8px;overflow:hidden;user-select:none; }
-  .hor-bloque-drag-bg { position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-end;padding-right:16px;background:linear-gradient(to left,#DC2626,#EF4444);color:#fff;border-radius:8px;opacity:0;pointer-events:none; }
-  .hor-bloque-drag-bg .drag-icon { font-size:18px; }
-  .hor-bloque-drag-bg .drag-lbl { font-size:10px;font-weight:700;margin-left:6px;white-space:nowrap; }
-  .hor-bloque { display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;cursor:pointer;transition:filter .15s;position:relative;will-change:transform; }
-  .hor-bloque:hover { filter:brightness(.95) }
-  .hor-bloque-normal  { background:#EEF2FF }
-  .hor-bloque-cancel  { background:#FEF2F2 }
-  .hor-bloque-shift   { background:#F0FDF4 }
-  .hor-bloque-conflict{ background:#FFFBEB }
-  .hor-bloque-ausente { background:#FFF7ED }
-  .hor-bloque-ahora   { outline:2px solid var(--indigo-400);outline-offset:-2px }
-  .hor-bloque-dot { width:7px;height:7px;border-radius:50%;flex-shrink:0 }
-  .hor-bloque-hora { font-size:11px;font-weight:700;color:#64748B;min-width:34px;flex-shrink:0 }
-  .hor-bloque-chip { font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;flex-shrink:0 }
-  .chip-cancel  { background:#FEE2E2;color:#991B1B }
-  .chip-shift   { background:#D1FAE5;color:#065F46 }
-  .chip-conflict{ background:#FEF3C7;color:#92400E }
-  .chip-ausente { background:#FED7AA;color:#C2410C }
-
   /* Lista docentes seguimiento */
   .seg-doc-list { display:flex; flex-direction:column; }
   .seg-doc-row {
@@ -2094,37 +2061,57 @@
 
 <!-- ── LOGIN OVERLAY ─────────────────────────────────────────────── -->
 <style>
-.lf-input{width:100%;padding:13px 16px;background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.15);border-radius:12px;font-size:14px;color:#fff;outline:none;box-sizing:border-box;transition:border-color .2s,background .2s;font-family:inherit}
-.lf-input::placeholder{color:rgba(255,255,255,0.35)}
-.lf-input:focus{border-color:rgba(99,179,237,.7);background:rgba(255,255,255,.12)}
-.lf-label{font-size:12px;font-weight:600;color:rgba(255,255,255,.6);display:block;margin-bottom:8px;letter-spacing:.03em}
-@keyframes lp{0%,100%{opacity:.18;transform:scale(1)}50%{opacity:.28;transform:scale(1.06)}}
+.lf-input{width:100%;padding:12px 16px;background:#fff;border:1.5px solid #E2E8F0;border-radius:10px;font-size:14px;color:#0F172A;outline:none;box-sizing:border-box;transition:border-color .2s,box-shadow .2s;font-family:inherit}
+.lf-input::placeholder{color:#94A3B8}
+.lf-input:focus{border-color:#2563EB;box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.lf-label{font-size:12px;font-weight:600;color:#475569;display:block;margin-bottom:6px;letter-spacing:.03em}
+#login-overlay{display:grid!important;grid-template-columns:1fr 1fr}
+@media(max-width:700px){#login-overlay{grid-template-columns:1fr}#login-left{display:none!important}}
 </style>
 
-<div id="login-overlay" style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;font-family:'Plus Jakarta Sans','Segoe UI',system-ui,sans-serif;overflow:hidden;background:#060D1F">
+<div id="login-overlay" style="position:fixed;inset:0;z-index:9999;font-family:'Plus Jakarta Sans','Segoe UI',system-ui,sans-serif;overflow:hidden;background:#fff">
 
-  <div style="position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 20% 10%,rgba(37,99,235,.45) 0%,transparent 60%),radial-gradient(ellipse 60% 70% at 85% 80%,rgba(109,40,217,.35) 0%,transparent 60%);pointer-events:none"></div>
-  <div style="position:absolute;width:460px;height:460px;border-radius:50%;background:radial-gradient(circle,rgba(59,130,246,.2) 0%,transparent 65%);top:-120px;left:-120px;animation:lp 7s ease-in-out infinite;pointer-events:none"></div>
-  <div style="position:absolute;width:340px;height:340px;border-radius:50%;background:radial-gradient(circle,rgba(139,92,246,.18) 0%,transparent 65%);bottom:-80px;right:-80px;animation:lp 9s ease-in-out infinite .5s;pointer-events:none"></div>
-  <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.02) 1px,transparent 1px);background-size:48px 48px;pointer-events:none"></div>
-
-  <!-- GLASS CARD -->
-  <div style="position:relative;z-index:1;width:100%;max-width:420px;margin:20px;background:rgba(255,255,255,0.06);backdrop-filter:blur(32px);-webkit-backdrop-filter:blur(32px);border:1px solid rgba(255,255,255,0.13);border-radius:28px;padding:44px 40px;box-shadow:0 24px 80px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.12)">
-
-    <div style="position:absolute;inset:0;border-radius:28px;background:radial-gradient(ellipse 80% 40% at 50% 0%,rgba(99,179,237,.07) 0%,transparent 70%);pointer-events:none"></div>
-
-    <div style="text-align:center;margin-bottom:32px;position:relative">
-      <div style="width:120px;height:120px;margin:0 auto 18px;filter:drop-shadow(0 6px 24px rgba(99,179,237,.55))">
-        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB2aWV3Qm94PSIwIDAgNTAwIDUwMCI+PGRlZnM+PHN0eWxlPi5jbHMtMXtpc29sYXRpb246aXNvbGF0ZTt9LmNscy0ye29wYWNpdHk6MC40O21peC1ibGVuZC1tb2RlOm11bHRpcGx5O30uY2xzLTN7ZmlsbDp1cmwoI2xpbmVhci1ncmFkaWVudCk7fS5jbHMtNHtmaWxsOnVybCgjbGluZWFyLWdyYWRpZW50LTIpO30uY2xzLTV7ZmlsbDp1cmwoI2xpbmVhci1ncmFkaWVudC0zKTt9LmNscy02e2ZpbGw6dXJsKCNsaW5lYXItZ3JhZGllbnQtNCk7fS5jbHMtN3tmaWxsOnVybCgjbGluZWFyLWdyYWRpZW50LTUpO30uY2xzLTh7ZmlsbDp1cmwoI2xpbmVhci1ncmFkaWVudC02KTt9LmNscy05e2ZpbGw6dXJsKCNsaW5lYXItZ3JhZGllbnQtNyk7fS5jbHMtMTB7ZmlsbDp1cmwoI2xpbmVhci1ncmFkaWVudC04KTt9LmNscy0xMXtmaWxsOnVybCgjbGluZWFyLWdyYWRpZW50LTkpO30uY2xzLTEye2ZpbGw6dXJsKCNsaW5lYXItZ3JhZGllbnQtMTApO30uY2xzLTEze2ZpbGw6bm9uZTt9LmNscy0xNHtmaWxsOnVybCgjbGluZWFyLWdyYWRpZW50LTExKTt9LmNscy0xNXtmaWxsOnVybCgjbGluZWFyLWdyYWRpZW50LTEyKTt9LmNscy0xNntmaWxsOnVybCgjbGluZWFyLWdyYWRpZW50LTEzKTt9PC9zdHlsZT48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudCIgeDE9IjI5NC45NCIgeTE9IjQyNy4zNCIgeDI9IjI5NC45NCIgeTI9IjI2LjU4IiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjMmM0ZDhkIi8+PHN0b3Agb2Zmc2V0PSIwLjA2IiBzdG9wLWNvbG9yPSIjMzM1YTk5Ii8+PHN0b3Agb2Zmc2V0PSIwLjI4IiBzdG9wLWNvbG9yPSIjNGM4NmMyIi8+PHN0b3Agb2Zmc2V0PSIwLjQ4IiBzdG9wLWNvbG9yPSIjNWVhNmUwIi8+PHN0b3Agb2Zmc2V0PSIwLjY1IiBzdG9wLWNvbG9yPSIjNjliOWYyIi8+PHN0b3Agb2Zmc2V0PSIwLjc2IiBzdG9wLWNvbG9yPSIjNmRjMGY5Ii8+PHN0b3Agb2Zmc2V0PSIwLjc3IiBzdG9wLWNvbG9yPSIjNmVjMmY5Ii8+PHN0b3Agb2Zmc2V0PSIwLjg2IiBzdG9wLWNvbG9yPSIjN2NkY2ZiIi8+PHN0b3Agb2Zmc2V0PSIwLjk0IiBzdG9wLWNvbG9yPSIjODRlY2ZkIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjODdmMWZkIi8+PC9saW5lYXJHcmFkaWVudD48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudC0yIiB4MT0iMjAzLjk2IiB5MT0iNDI3LjM0IiB4Mj0iMjAzLjk2IiB5Mj0iMjYuNTgiIHhsaW5rOmhyZWY9IiNsaW5lYXItZ3JhZGllbnQiLz48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudC0zIiB4MT0iMTc1LjE3IiB5MT0iNDI3LjM0IiB4Mj0iMTc1LjE3IiB5Mj0iMjYuNTgiIHhsaW5rOmhyZWY9IiNsaW5lYXItZ3JhZGllbnQiLz48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudC00IiB4MT0iMjU1Ljg0IiB5MT0iNDI3LjM0IiB4Mj0iMjU1Ljg0IiB5Mj0iMjYuNTgiIHhsaW5rOmhyZWY9IiNsaW5lYXItZ3JhZGllbnQiLz48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudC01IiB4MT0iMjcyLjk3IiB5MT0iNDI3LjM0IiB4Mj0iMjcyLjk3IiB5Mj0iMjYuNTgiIHhsaW5rOmhyZWY9IiNsaW5lYXItZ3JhZGllbnQiLz48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudC02IiB4MT0iMjIxLjM0IiB5MT0iNDI3LjM0IiB4Mj0iMjIxLjM0IiB5Mj0iMjYuNTgiIHhsaW5rOmhyZWY9IiNsaW5lYXItZ3JhZGllbnQiLz48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudC03IiB4MT0iMTc3LjU2IiB5MT0iNDI3LjM0IiB4Mj0iMTc3LjU2IiB5Mj0iMjYuNTgiIHhsaW5rOmhyZWY9IiNsaW5lYXItZ3JhZGllbnQiLz48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudC04IiB4MT0iMzU1LjI1IiB5MT0iNDI3LjM0IiB4Mj0iMzU1LjI1IiB5Mj0iMjYuNTgiIHhsaW5rOmhyZWY9IiNsaW5lYXItZ3JhZGllbnQiLz48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudC05IiB4MT0iMTMzLjYiIHkxPSI0MjcuMzQiIHgyPSIxMzMuNiIgeTI9IjI2LjU4IiB4bGluazpocmVmPSIjbGluZWFyLWdyYWRpZW50Ii8+PGxpbmVhckdyYWRpZW50IGlkPSJsaW5lYXItZ3JhZGllbnQtMTAiIHgxPSIyNDkuNjUiIHkxPSI0MjcuMzQiIHgyPSIyNDkuNjUiIHkyPSIyNi41OCIgeGxpbms6aHJlZj0iI2xpbmVhci1ncmFkaWVudCIvPjxsaW5lYXJHcmFkaWVudCBpZD0ibGluZWFyLWdyYWRpZW50LTExIiB4MT0iMzAyLjY4IiB5MT0iNDI3LjM0IiB4Mj0iMzAyLjY4IiB5Mj0iMjYuNTgiIHhsaW5rOmhyZWY9IiNsaW5lYXItZ3JhZGllbnQiLz48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudC0xMiIgeDE9IjQxOC43MyIgeTE9IjQyNy4zNCIgeDI9IjQxOC43MyIgeTI9IjI2LjU4IiB4bGluazpocmVmPSIjbGluZWFyLWdyYWRpZW50Ii8+PGxpbmVhckdyYWRpZW50IGlkPSJsaW5lYXItZ3JhZGllbnQtMTMiIHgxPSIzOTMuMjYiIHkxPSI0MjcuMzQiIHgyPSIzOTMuMjYiIHkyPSIyNi41OCIgeGxpbms6aHJlZj0iI2xpbmVhci1ncmFkaWVudCIvPjwvZGVmcz48ZyBjbGFzcz0iY2xzLTEiPjxnIGlkPSJPQkpFQ1RTIj48cGF0aCBjbGFzcz0iY2xzLTMiIGQ9Ik0yOTQuOTQsMTU5YTguODYsOC44NiwwLDEsMC04Ljg2LTguODVBOC44Niw4Ljg2LDAsMCwwLDI5NC45NCwxNTlaIi8+PHBhdGggY2xhc3M9ImNscy00IiBkPSJNMjA0LDM1MS4zMmE4Ljg2LDguODYsMCwxLDAsOC44Niw4Ljg2QTguODgsOC44OCwwLDAsMCwyMDQsMzUxLjMyWiIvPjxwYXRoIGNsYXNzPSJjbHMtNSIgZD0iTTE3NS4xNywyMjguODNhOC44Niw4Ljg2LDAsMSwwLTguODYtOC44NkE4Ljg3LDguODcsMCwwLDAsMTc1LjE3LDIyOC44M1oiLz48cGF0aCBjbGFzcz0iY2xzLTYiIGQ9Ik0yNTUuODQsMzc2LjYyYTguODYsOC44NiwwLDEsMCw4Ljg2LDguODZBOC44OCw4Ljg4LDAsMCwwLDI1NS44NCwzNzYuNjJaIi8+PHBhdGggY2xhc3M9ImNscy03IiBkPSJNMjczLDMyNi4xMWE4Ljg2LDguODYsMCwxLDAtOC44NS04Ljg2QTguODYsOC44NiwwLDAsMCwyNzMsMzI2LjExWiIvPjxwYXRoIGNsYXNzPSJjbHMtOCIgZD0iTTIxMi40OCwyNjEuNTRhOC44Niw4Ljg2LDAsMSwwLDguODYtOC44NkE4Ljg4LDguODgsMCwwLDAsMjEyLjQ4LDI2MS41NFoiLz48cGF0aCBjbGFzcz0iY2xzLTkiIGQ9Ik0xODYuNDIsMjY1LjI5YTguODYsOC44NiwwLDEsMC04Ljg2LDguODZBOC44Nyw4Ljg3LDAsMCwwLDE4Ni40MiwyNjUuMjlaIi8+PHBhdGggY2xhc3M9ImNscy0xMCIgZD0iTTM1NS4yNSwyNzEuMDhhOC44Niw4Ljg2LDAsMSwwLDguODYsOC44NkE4Ljg3LDguODcsMCwwLDAsMzU1LjI1LDI3MS4wOFoiLz48cGF0aCBjbGFzcz0iY2xzLTExIiBkPSJNMTI0Ljc0LDMwNS44M0E4Ljg2LDguODYsMCwxLDAsMTMzLjYsMjk3LDguODYsOC44NiwwLDAsMCwxMjQuNzQsMzA1LjgzWiIvPjxwYXRoIGNsYXNzPSJjbHMtMTIiIGQ9Ik0xODAuNDYsMzM3LjU1YTUuMTEsNS4xMSwwLDAsMS03LjY3LTQuNDRsLjA4LTUxLjQ2YTE3LDE3LDAsMSwxLDEwLjIzLS4yN0wxODMsMzI0LjI2bDIwOS4zMi0xMjAuOFYxNzUuODdMMzY2LjYsMTYxbC0zNS4xOSwyMC4yNC0xMi42NSwzMmE1LjEsNS4xLDAsMCwxLTIuMzMsMi42MkwyMzgsMjU4LjE4YTE3LjExLDE3LjExLDAsMSwxLTQuOTQtOC45NGw3Ni44NC00MS40OCwxMi42Mi0zMS45NGE1LjEsNS4xLDAsMCwxLDIuMi0yLjU2bDMxLjYxLTE4LjE3LTcxLTQxTDEzOC43NiwxOTkuMjNsMCw5MC4zNWExNywxNywwLDEsMS0xMC4yMiwwbDAtOTMuM2E1LjEzLDUuMTMsMCwwLDEsMi41NC00LjQybDE0NC4xMS04My42NEwyNDkuNjUsOTMuNDdsLTE0Mi43MSw4Mi40VjM0MC42NUwyNDkuNjUsNDIzbDE0Mi43LTgyLjM5VjIxNS4yNlptLTUuMjktMTM0LjYyYTE3LDE3LDAsMCwxLDExLDQuMDdsOTIuMTgtNTIuOTVhMTcuMDksMTcuMDksMCwxLDEsNS4yNSw4Ljc3bC05Miw1Mi44NWExNywxNywwLDEsMS0xNi40Ny0xMi43NFpNMjA0LDM3Ny4yMmExNywxNywwLDEsMSwxMS4yMi0yOS44M2w0MS44Ny0yNC4xMWExNywxNywwLDEsMSw2LjQxLDguMWwtNDMsMjQuNzVBMTcsMTcsMCwwLDEsMjA0LDM3Ny4yMlpNMzU1LjI1LDI5N2ExNi45MywxNi45MywwLDAsMS0xMC4yOS0zLjVsLTMyLjIxLDE3LjRMMzAzLjMxLDM2MmE1LjEzLDUuMTMsMCwwLDEtMi42LDMuNTdsLTI4LjQ3LDE1LjQxYTE2Ljc4LDE2Ljc4LDAsMCwxLC42NCw0LjU1LDE3LDE3LDAsMSwxLTYuMTYtMTMuMSw0LjUyLDQuNTIsMCwwLDEsLjU4LS4zOWwyNi40LTE0LjMsOS40NS01MS4wN2E1LjEyLDUuMTIsMCwwLDEsMi41OS0zLjU3bDMzLjI3LTE4QTE3LDE3LDAsMSwxLDM1NS4yNSwyOTdaIi8+PHBhdGggY2xhc3M9ImNscy0xMyIgZD0iTTMxMy4xLDEwMC42MmE4Ljg2LDguODYsMCwxLDAtOC44Ni04Ljg2QTguODcsOC44NywwLDAsMCwzMTMuMSwxMDAuNjJaIi8+PHBhdGggY2xhc3M9ImNscy0xMyIgZD0iTTQwNi4xLDEzMi40M2E0LjYzLDQuNjMsMCwwLDEsLjQ3LDEuMTYsOC42NCw4LjY0LDAsMSwwLTEuNjYtMi41NEE0LjgxLDQuODEsMCwwLDEsNDA2LjEsMTMyLjQzWiIvPjxwYXRoIGNsYXNzPSJjbHMtMTQiIGQ9Ik0zMDEuOTEsMTA0LjU3YTE2Ljg4LDE2Ljg4LDAsMCwwLDExLjE5LDQuMjMsMTcsMTcsMCwxLDAtMTctMTcsMTYuNzMsMTYuNzMsMCwwLDAsLjUyLDQuMDlsLTIxLjM1LDEyLjM5LDEwLjIsNS45Wk0zMTMuMSw4Mi45YTguODYsOC44NiwwLDEsMS04Ljg2LDguODZBOC44OCw4Ljg4LDAsMCwxLDMxMy4xLDgyLjlaIi8+PHBhdGggY2xhc3M9ImNscy0xNSIgZD0iTTQ0NC40MywxNzkuMzVhNS4xMSw1LjExLDAsMCwwLTctMS44OGwtNDUuMSwyNnYxMS44bDUwLjIxLTI5QTUuMTEsNS4xMSwwLDAsMCw0NDQuNDMsMTc5LjM1WiIvPjxwYXRoIGNsYXNzPSJjbHMtMTYiIGQ9Ik00MDIuMSwxNDAuNjNhMTcuMTUsMTcuMTUsMCwxLDAtNS40Ny04LjY1bC00MC4yMiwyMy4xM0wzNjYuNjQsMTYxWm0xMS0yMS44NmE4Ljg2LDguODYsMCwxLDEtNi41MSwxNC44Miw0LjYzLDQuNjMsMCwwLDAtLjQ3LTEuMTYsNC44MSw0LjgxLDAsMCwwLTEuMTktMS4zOCw4Ljg1LDguODUsMCwwLDEsOC4xNy0xMi4yOFoiLz48L2c+PC9nPjwvc3ZnPg==" style="width:100%;height:100%;object-fit:contain" alt="Logo">
+  <!-- ══ PANEL IZQUIERDO — branding ══ -->
+  <div id="login-left" style="background:#0F172A;display:flex;flex-direction:column;justify-content:space-between;padding:48px 52px;position:relative;overflow:hidden">
+    <div style="position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.055) 1px,transparent 1px);background-size:28px 28px;pointer-events:none"></div>
+    <div style="position:absolute;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(37,99,235,.22) 0%,transparent 70%);top:-160px;right:-160px;pointer-events:none"></div>
+    <div style="position:absolute;width:360px;height:360px;border-radius:50%;background:radial-gradient(circle,rgba(99,102,241,.18) 0%,transparent 70%);bottom:-100px;left:-80px;pointer-events:none"></div>
+    <!-- Logo + nombre -->
+    <div style="position:relative;z-index:1">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:64px">
+        <div style="width:38px;height:38px;flex-shrink:0">
+          <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB2aWV3Qm94PSIwIDAgNTAwIDUwMCI+PGRlZnM+PHN0eWxlPi5jbHMtMXtpc29sYXRpb246aXNvbGF0ZTt9LmNscy0ye29wYWNpdHk6MC40O21peC1ibGVuZC1tb2RlOm11bHRpcGx5O30uY2xzLTN7ZmlsbDp1cmwoI2xpbmVhci1ncmFkaWVudCk7fS5jbHMtNHtmaWxsOnVybCgjbGluZWFyLWdyYWRpZW50LTIpO30uY2xzLTV7ZmlsbDp1cmwoI2xpbmVhci1ncmFkaWVudC0zKTt9LmNscy02e2ZpbGw6dXJsKCNsaW5lYXItZ3JhZGllbnQtNCk7fS5jbHMtN3tmaWxsOnVybCgjbGluZWFyLWdyYWRpZW50LTUpO30uY2xzLTh7ZmlsbDp1cmwoI2xpbmVhci1ncmFkaWVudC02KTt9LmNscy05e2ZpbGw6dXJsKCNsaW5lYXItZ3JhZGllbnQtNyk7fS5jbHMtMTB7ZmlsbDp1cmwoI2xpbmVhci1ncmFkaWVudC04KTt9LmNscy0xMXtmaWxsOnVybCgjbGluZWFyLWdyYWRpZW50LTkpO30uY2xzLTEye2ZpbGw6dXJsKCNsaW5lYXItZ3JhZGllbnQtMTApO30uY2xzLTEze2ZpbGw6bm9uZTt9LmNscy0xNHtmaWxsOnVybCgjbGluZWFyLWdyYWRpZW50LTExKTt9LmNscy0xNXtmaWxsOnVybCgjbGluZWFyLWdyYWRpZW50LTEyKTt9LmNscy0xNntmaWxsOnVybCgjbGluZWFyLWdyYWRpZW50LTEzKTt9PC9zdHlsZT48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudCIgeDE9IjI5NC45NCIgeTE9IjQyNy4zNCIgeDI9IjI5NC45NCIgeTI9IjI2LjU4IiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjMmM0ZDhkIi8+PHN0b3Agb2Zmc2V0PSIwLjA2IiBzdG9wLWNvbG9yPSIjMzM1YTk5Ii8+PHN0b3Agb2Zmc2V0PSIwLjI4IiBzdG9wLWNvbG9yPSIjNGM4NmMyIi8+PHN0b3Agb2Zmc2V0PSIwLjQ4IiBzdG9wLWNvbG9yPSIjNWVhNmUwIi8+PHN0b3Agb2Zmc2V0PSIwLjY1IiBzdG9wLWNvbG9yPSIjNjliOWYyIi8+PHN0b3Agb2Zmc2V0PSIwLjc2IiBzdG9wLWNvbG9yPSIjNmRjMGY5Ii8+PHN0b3Agb2Zmc2V0PSIwLjc3IiBzdG9wLWNvbG9yPSIjNmVjMmY5Ii8+PHN0b3Agb2Zmc2V0PSIwLjg2IiBzdG9wLWNvbG9yPSIjN2NkY2ZiIi8+PHN0b3Agb2Zmc2V0PSIwLjk0IiBzdG9wLWNvbG9yPSIjODRlY2ZkIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjODdmMWZkIi8+PC9saW5lYXJHcmFkaWVudD48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudC0yIiB4MT0iMjAzLjk2IiB5MT0iNDI3LjM0IiB4Mj0iMjAzLjk2IiB5Mj0iMjYuNTgiIHhsaW5rOmhyZWY9IiNsaW5lYXItZ3JhZGllbnQiLz48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudC0zIiB4MT0iMTc1LjE3IiB5MT0iNDI3LjM0IiB4Mj0iMTc1LjE3IiB5Mj0iMjYuNTgiIHhsaW5rOmhyZWY9IiNsaW5lYXItZ3JhZGllbnQiLz48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudC00IiB4MT0iMjU1Ljg0IiB5MT0iNDI3LjM0IiB4Mj0iMjU1Ljg0IiB5Mj0iMjYuNTgiIHhsaW5rOmhyZWY9IiNsaW5lYXItZ3JhZGllbnQiLz48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudC01IiB4MT0iMjcyLjk3IiB5MT0iNDI3LjM0IiB4Mj0iMjcyLjk3IiB5Mj0iMjYuNTgiIHhsaW5rOmhyZWY9IiNsaW5lYXItZ3JhZGllbnQiLz48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudC02IiB4MT0iMjIxLjM0IiB5MT0iNDI3LjM0IiB4Mj0iMjIxLjM0IiB5Mj0iMjYuNTgiIHhsaW5rOmhyZWY9IiNsaW5lYXItZ3JhZGllbnQiLz48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudC03IiB4MT0iMTc3LjU2IiB5MT0iNDI3LjM0IiB4Mj0iMTc3LjU2IiB5Mj0iMjYuNTgiIHhsaW5rOmhyZWY9IiNsaW5lYXItZ3JhZGllbnQiLz48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudC04IiB4MT0iMzU1LjI1IiB5MT0iNDI3LjM0IiB4Mj0iMzU1LjI1IiB5Mj0iMjYuNTgiIHhsaW5rOmhyZWY9IiNsaW5lYXItZ3JhZGllbnQiLz48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudC05IiB4MT0iMTMzLjYiIHkxPSI0MjcuMzQiIHgyPSIxMzMuNiIgeTI9IjI2LjU4IiB4bGluazpocmVmPSIjbGluZWFyLWdyYWRpZW50Ii8+PGxpbmVhckdyYWRpZW50IGlkPSJsaW5lYXItZ3JhZGllbnQtMTAiIHgxPSIyNDkuNjUiIHkxPSI0MjcuMzQiIHgyPSIyNDkuNjUiIHkyPSIyNi41OCIgeGxpbms6aHJlZj0iI2xpbmVhci1ncmFkaWVudCIvPjxsaW5lYXJHcmFkaWVudCBpZD0ibGluZWFyLWdyYWRpZW50LTExIiB4MT0iMzAyLjY4IiB5MT0iNDI3LjM0IiB4Mj0iMzAyLjY4IiB5Mj0iMjYuNTgiIHhsaW5rOmhyZWY9IiNsaW5lYXItZ3JhZGllbnQiLz48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudC0xMiIgeDE9IjQxOC43MyIgeTE9IjQyNy4zNCIgeDI9IjQxOC43MyIgeTI9IjI2LjU4IiB4bGluazpocmVmPSIjbGluZWFyLWdyYWRpZW50Ii8+PGxpbmVhckdyYWRpZW50IGlkPSJsaW5lYXItZ3JhZGllbnQtMTMiIHgxPSIzOTMuMjYiIHkxPSI0MjcuMzQiIHgyPSIzOTMuMjYiIHkyPSIyNi41OCIgeGxpbms6aHJlZj0iI2xpbmVhci1ncmFkaWVudCIvPjwvZGVmcz48ZyBjbGFzcz0iY2xzLTEiPjxnIGlkPSJPQkpFQ1RTIj48cGF0aCBjbGFzcz0iY2xzLTMiIGQ9Ik0yOTQuOTQsMTU5YTguODYsOC44NiwwLDEsMC04Ljg2LTguODVBOC44Niw4Ljg2LDAsMCwwLDI5NC45NCwxNTlaIi8+PHBhdGggY2xhc3M9ImNscy00IiBkPSJNMjA0LDM1MS4zMmE4Ljg2LDguODYsMCwxLDAsOC44Niw4Ljg2QTguODgsOC44OCwwLDAsMCwyMDQsMzUxLjMyWiIvPjxwYXRoIGNsYXNzPSJjbHMtNSIgZD0iTTE3NS4xNywyMjguODNhOC44Niw4Ljg2LDAsMSwwLTguODYtOC44NkE4Ljg3LDguODcsMCwwLDAsMTc1LjE3LDIyOC44M1oiLz48cGF0aCBjbGFzcz0iY2xzLTYiIGQ9Ik0yNTUuODQsMzc2LjYyYTguODYsOC44NiwwLDEsMCw4Ljg2LDguODZBOC44OCw4Ljg4LDAsMCwwLDI1NS44NCwzNzYuNjJaIi8+PHBhdGggY2xhc3M9ImNscy03IiBkPSJNMjczLDMyNi4xMWE4Ljg2LDguODYsMCwxLDAtOC44NS04Ljg2QTguODYsOC44NiwwLDAsMCwyNzMsMzI2LjExWiIvPjxwYXRoIGNsYXNzPSJjbHMtOCIgZD0iTTIxMi40OCwyNjEuNTRhOC44Niw4Ljg2LDAsMSwwLDguODYtOC44NkE4Ljg4LDguODgsMCwwLDAsMjEyLjQ4LDI2MS41NFoiLz48cGF0aCBjbGFzcz0iY2xzLTkiIGQ9Ik0xODYuNDIsMjY1LjI5YTguODYsOC44NiwwLDEsMC04Ljg2LDguODZBOC44Nyw4Ljg3LDAsMCwwLDE4Ni40MiwyNjUuMjlaIi8+PHBhdGggY2xhc3M9ImNscy0xMCIgZD0iTTM1NS4yNSwyNzEuMDhhOC44Niw4Ljg2LDAsMSwwLDguODYsOC44NkE4Ljg3LDguODcsMCwwLDAsMzU1LjI1LDI3MS4wOFoiLz48cGF0aCBjbGFzcz0iY2xzLTExIiBkPSJNMTI0Ljc0LDMwNS44M0E4Ljg2LDguODYsMCwxLDAsMTMzLjYsMjk3LDguODYsOC44NiwwLDAsMCwxMjQuNzQsMzA1LjgzWiIvPjxwYXRoIGNsYXNzPSJjbHMtMTIiIGQ9Ik0xODAuNDYsMzM3LjU1YTUuMTEsNS4xMSwwLDAsMS03LjY3LTQuNDRsLjA4LTUxLjQ2YTE3LDE3LDAsMSwxLDEwLjIzLS4yN0wxODMsMzI0LjI2bDIwOS4zMi0xMjAuOFYxNzUuODdMMzY2LjYsMTYxbC0zNS4xOSwyMC4yNC0xMi42NSwzMmE1LjEsNS4xLDAsMCwxLTIuMzMsMi42MkwyMzgsMjU4LjE4YTE3LjExLDE3LjExLDAsMSwxLTQuOTQtOC45NGw3Ni44NC00MS40OCwxMi42Mi0zMS45NGE1LjEsNS4xLDAsMCwxLDIuMi0yLjU2bDMxLjYxLTE4LjE3LTcxLTQxTDEzOC43NiwxOTkuMjNsMCw5MC4zNWExNywxNywwLDEsMS0xMC4yMiwwbDAtOTMuM2E1LjEzLDUuMTMsMCwwLDEsMi41NC00LjQybDE0NC4xMS04My42NEwyNDkuNjUsOTMuNDdsLTE0Mi43MSw4Mi40VjM0MC42NUwyNDkuNjUsNDIzbDE0Mi43LTgyLjM5VjIxNS4yNlptLTUuMjktMTM0LjYyYTE3LDE3LDAsMCwxLDExLDQuMDdsOTIuMTgtNTIuOTVhMTcuMDksMTcuMDksMCwxLDEsNS4yNSw4Ljc3bC05Miw1Mi44NWExNywxNywwLDEsMS0xNi40Ny0xMi43NFpNMjA0LDM3Ny4yMmExNywxNywwLDEsMSwxMS4yMi0yOS44M2w0MS44Ny0yNC4xMWExNywxNywwLDEsMSw2LjQxLDguMWwtNDMsMjQuNzVBMTcsMTcsMCwwLDEsMjA0LDM3Ny4yMlpNMzU1LjI1LDI5N2ExNi45MywxNi45MywwLDAsMS0xMC4yOS0zLjVsLTMyLjIxLDE3LjRMMzAzLjMxLDM2MmE1LjEzLDUuMTMsMCwwLDEtMi42LDMuNTdsLTI4LjQ3LDE1LjQxYTE2Ljc4LDE2Ljc4LDAsMCwxLC42NCw0LjU1LDE3LDE3LDAsMSwxLTYuMTYtMTMuMSw0LjUyLDQuNTIsMCwwLDEsLjU4LS4zOWwyNi40LTE0LjMsOS40NS01MS4wN2E1LjEyLDUuMTIsMCwwLDEsMi41OS0zLjU3bDMzLjI3LTE4QTE3LDE3LDAsMSwxLDM1NS4yNSwyOTdaIi8+PHBhdGggY2xhc3M9ImNscy0xMyIgZD0iTTMxMy4xLDEwMC42MmE4Ljg2LDguODYsMCwxLDAtOC44Ni04Ljg2QTguODcsOC44NywwLDAsMCwzMTMuMSwxMDAuNjJaIi8+PHBhdGggY2xhc3M9ImNscy0xMyIgZD0iTTQwNi4xLDEzMi40M2E0LjYzLDQuNjMsMCwwLDEsLjQ3LDEuMTYsOC42NCw4LjY0LDAsMSwwLTEuNjYtMi41NEE0LjgxLDQuODEsMCwwLDEsNDA2LjEsMTMyLjQzWiIvPjxwYXRoIGNsYXNzPSJjbHMtMTQiIGQ9Ik0zMDEuOTEsMTA0LjU3YTE2Ljg4LDE2Ljg4LDAsMCwwLDExLjE5LDQuMjMsMTcsMTcsMCwxLDAtMTctMTcsMTYuNzMsMTYuNzMsMCwwLDAsLjUyLDQuMDlsLTIxLjM1LDEyLjM5LDEwLjIsNS45Wk0zMTMuMSw4Mi45YTguODYsOC44NiwwLDEsMS04Ljg2LDguODZBOC44OCw4Ljg4LDAsMCwxLDMxMy4xLDgyLjlaIi8+PHBhdGggY2xhc3M9ImNscy0xNSIgZD0iTTQ0NC40MywxNzkuMzVhNS4xMSw1LjExLDAsMCwwLTctMS44OGwtNDUuMSwyNnYxMS44bDUwLjIxLTI5QTUuMTEsNS4xMSwwLDAsMCw0NDQuNDMsMTc5LjM1WiIvPjxwYXRoIGNsYXNzPSJjbHMtMTYiIGQ9Ik00MDIuMSwxNDAuNjNhMTcuMTUsMTcuMTUsMCwxLDAtNS40Ny04LjY1bC00MC4yMiwyMy4xM0wzNjYuNjQsMTYxWm0xMS0yMS44NmE4Ljg2LDguODYsMCwxLDEtNi41MSwxNC44Miw0LjYzLDQuNjMsMCwwLDAtLjQ3LTEuMTYsNC44MSw0LjgxLDAsMCwwLTEuMTktMS4zOCw4Ljg1LDguODUsMCwwLDEsOC4xNy0xMi4yOFoiLz48L2c+PC9nPjwvc3ZnPg==" style="width:100%;height:100%;object-fit:contain;filter:brightness(10)" alt="Logo">
+        </div>
+        <div>
+          <div style="font-size:16px;font-weight:800;color:#fff;letter-spacing:-.2px">SIGEI <span style="color:#60A5FA">TIC</span></div>
+          <div style="font-size:11px;color:rgba(255,255,255,.38);margin-top:1px">ALFATIC · 2026</div>
+        </div>
       </div>
-      <h1 style="font-size:26px;font-weight:900;color:#fff;margin:0 0 5px;letter-spacing:-.5px">SIGEI <span style="color:#60A5FA">TIC</span></h1>
-      <p style="font-size:13px;color:rgba(255,255,255,.45);margin:0">Sistema de Gestión Educativa Institucional</p>
+      <div>
+        <p style="font-size:11px;font-weight:700;color:#3B82F6;letter-spacing:.12em;text-transform:uppercase;margin:0 0 18px">IER Santandercito</p>
+        <h1 style="font-size:clamp(30px,3vw,44px);font-weight:900;color:#fff;line-height:1.12;margin:0 0 18px;letter-spacing:-.03em">Gestión educativa<br><span style="color:#60A5FA">inteligente</span> para<br>tu institución.</h1>
+        <p style="font-size:14px;color:rgba(255,255,255,.48);line-height:1.7;margin:0;max-width:340px">Administra docentes, horarios, asignaciones académicas y permisos desde un solo lugar.</p>
+      </div>
+    </div>
+    <div style="position:relative;z-index:1;display:flex;gap:28px;margin-top:48px">
+      <div><div style="font-size:24px;font-weight:900;color:#fff">12+</div><div style="font-size:11px;color:rgba(255,255,255,.38);margin-top:2px">Módulos</div></div>
+      <div style="width:1px;background:rgba(255,255,255,.1)"></div>
+      <div><div style="font-size:24px;font-weight:900;color:#fff">100%</div><div style="font-size:11px;color:rgba(255,255,255,.38);margin-top:2px">En la nube</div></div>
+      <div style="width:1px;background:rgba(255,255,255,.1)"></div>
+      <div><div style="font-size:24px;font-weight:900;color:#fff">2026</div><div style="font-size:11px;color:rgba(255,255,255,.38);margin-top:2px">ALFATIC</div></div>
+    </div>
+  </div>
+
+  <!-- ══ PANEL DERECHO — formulario ══ -->
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 40px;background:#fff;overflow-y:auto">
+  <div style="width:100%;max-width:380px">
+    <div style="margin-bottom:36px">
+      <h2 style="font-size:26px;font-weight:900;color:#0F172A;margin:0 0 8px;letter-spacing:-.03em">Iniciar sesión</h2>
+      <p style="font-size:14px;color:#64748B;margin:0">Ingresa tus credenciales para continuar.</p>
     </div>
 
-    <div style="height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent);margin-bottom:28px"></div>
-
-    <div id="login-error" style="display:none;background:rgba(239,68,68,.18);color:#fca5a5;padding:11px 15px;border-radius:10px;font-size:13px;margin-bottom:18px;border:1px solid rgba(239,68,68,.3);font-weight:500"></div>
-    <div id="login-loading" style="display:none;text-align:center;color:#93c5fd;font-size:13px;margin-bottom:16px;font-weight:500"><span>⏳ Cargando datos del sistema...</span></div>
+    <div id="login-error" style="display:none;background:#FEF2F2;color:#DC2626;padding:11px 15px;border-radius:10px;font-size:13px;margin-bottom:18px;border:1px solid #FECACA;font-weight:500"></div>
+    <div id="login-loading" style="display:none;text-align:center;color:#2563EB;font-size:13px;margin-bottom:16px;font-weight:500"><span>⏳ Cargando datos del sistema...</span></div>
 
     <div style="margin-bottom:16px">
       <label class="lf-label">Correo electrónico</label>
@@ -2137,47 +2124,59 @@
     </div>
 
     <button id="login-btn" onclick="loginSubmit()"
-      style="width:100%;padding:14px;background:linear-gradient(135deg,#2563EB,#1D4ED8);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;letter-spacing:.02em;box-shadow:0 4px 18px rgba(37,99,235,.45);transition:opacity .2s,transform .15s,box-shadow .2s"
-      onmouseover="this.style.opacity='.9';this.style.transform='translateY(-1px)';this.style.boxShadow='0 8px 28px rgba(37,99,235,.55)'"
-      onmouseout="this.style.opacity='1';this.style.transform='translateY(0)';this.style.boxShadow='0 4px 18px rgba(37,99,235,.45)'"
-      onmousedown="this.style.transform='translateY(1px)'">
-      Iniciar sesión
+      style="width:100%;padding:14px;background:#0F172A;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;letter-spacing:.01em;transition:background .2s"
+      onmouseover="this.style.background='#1E293B'"
+      onmouseout="this.style.background='#0F172A'">
+      Entrar al sistema
     </button>
 
+    <div style="display:flex;align-items:center;gap:12px;margin:22px 0">
+      <div style="flex:1;height:1px;background:#E2E8F0"></div>
+      <span style="font-size:10px;color:#94A3B8;font-weight:600;white-space:nowrap">SEGURO · PRIVADO · CIFRADO</span>
+      <div style="flex:1;height:1px;background:#E2E8F0"></div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:20px;margin-bottom:4px">
+      <div style="display:flex;align-items:center;gap:5px"><i class="bi bi-shield-fill-check" style="color:#16A34A;font-size:13px"></i><span style="font-size:11px;color:#64748B;font-weight:600">Firebase Auth</span></div>
+      <div style="display:flex;align-items:center;gap:5px"><i class="bi bi-lock-fill" style="color:#2563EB;font-size:13px"></i><span style="font-size:11px;color:#64748B;font-weight:600">2FA disponible</span></div>
+      <div style="display:flex;align-items:center;gap:5px"><i class="bi bi-cloud-fill" style="color:#7C3AED;font-size:13px"></i><span style="font-size:11px;color:#64748B;font-weight:600">Firestore</span></div>
+    </div>
+
     <div style="text-align:center;margin-top:24px">
-      <span style="font-size:9px;color:rgba(255,255,255,.28);letter-spacing:.03em;line-height:1.5">Todos los derechos reservados para el Centro de Ciencia y Tecnología de Antioquia &middot; Creado por el Proyecto ALFATIC financiado por Fundación Fraternidad Medellín &middot; &copy; 2026</span>
+      <div style="font-size:11px;color:rgba(255,255,255,.28);letter-spacing:.05em;margin-bottom:5px">CREADO POR ALFATIC &middot; &copy; 2026</div>
+      <span style="font-size:10px;color:#CBD5E1;line-height:1.6">ALFATIC · Centro de Ciencia y Tecnología de Antioquia · Fundación Fraternidad Medellín · &copy; 2026</span>
     </div>
 
     <!-- ── PANEL 2FA (oculto hasta que se necesite) ── -->
     <div id="totp-login-panel" style="display:none">
       <div style="text-align:center;margin-bottom:28px">
-        <div style="font-size:48px;margin-bottom:12px">🔐</div>
-        <h2 style="font-size:20px;font-weight:800;color:#fff;margin:0 0 8px">Verificación en dos pasos</h2>
-        <p style="font-size:13px;color:rgba(255,255,255,.5);margin:0;line-height:1.5">
-          Abre <strong style="color:rgba(255,255,255,.75)">Google Authenticator</strong> e ingresa<br>el código de 6 dígitos para <span id="totp-login-email" style="color:#93c5fd"></span>
+        <div style="width:56px;height:56px;background:#EFF6FF;border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:24px">🔐</div>
+        <h2 style="font-size:20px;font-weight:800;color:#0F172A;margin:0 0 8px">Verificación en dos pasos</h2>
+        <p style="font-size:13px;color:#64748B;margin:0;line-height:1.6">
+          Abre <strong style="color:#0F172A">Google Authenticator</strong> e ingresa el código para<br><span id="totp-login-email" style="color:#2563EB;font-weight:700"></span>
         </p>
       </div>
-      <div id="totp-login-error" style="display:none;background:rgba(239,68,68,.18);color:#fca5a5;padding:11px 15px;border-radius:10px;font-size:13px;margin-bottom:18px;border:1px solid rgba(239,68,68,.3);font-weight:500;text-align:center"></div>
+      <div id="totp-login-error" style="display:none;background:#FEF2F2;color:#DC2626;padding:11px 15px;border-radius:10px;font-size:13px;margin-bottom:18px;border:1px solid #FECACA;font-weight:500;text-align:center"></div>
       <input type="text" id="totp-login-input" class="lf-input"
         maxlength="6" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code"
         placeholder="000 000"
-        style="text-align:center;font-size:28px;font-weight:700;letter-spacing:10px;margin-bottom:20px"
+        style="text-align:center;font-size:28px;font-weight:700;letter-spacing:10px;margin-bottom:16px"
         onkeydown="if(event.key==='Enter')submitTOTPLogin()"
         oninput="this.value=this.value.replace(/[^0-9]/g,'')">
       <button onclick="submitTOTPLogin()" id="totp-login-btn"
-        style="width:100%;padding:14px;background:linear-gradient(135deg,#6366F1,#4F46E5);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:12px;box-shadow:0 4px 18px rgba(99,102,241,.45)">
+        style="width:100%;padding:14px;background:#0F172A;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:10px">
         <i class="bi bi-shield-lock-fill me-2"></i>Verificar código
       </button>
       <button onclick="cancelTOTPLogin()"
-        style="width:100%;padding:11px;background:rgba(255,255,255,.06);color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.1);border-radius:12px;font-size:13px;cursor:pointer;font-family:inherit">
+        style="width:100%;padding:11px;background:#fff;color:#64748B;border:1.5px solid #E2E8F0;border-radius:10px;font-size:13px;cursor:pointer;font-family:inherit">
         Cancelar y cerrar sesión
       </button>
-      <div style="text-align:center;margin-top:18px">
-        <span style="font-size:11px;color:rgba(255,255,255,.25)">El código se renueva cada 30 segundos</span>
+      <div style="text-align:center;margin-top:14px">
+        <span style="font-size:11px;color:#94A3B8">El código se renueva cada 30 segundos</span>
       </div>
     </div>
     <!-- /PANEL 2FA -->
 
+  </div>
   </div>
 </div>
 
@@ -2756,28 +2755,30 @@
         </div>
       </div>
 
-      <!-- Horario full-width -->
-      <div class="card-panel">
-        <div class="hv-semana-nav">
-          <button class="hv-semana-btn" onclick="_diaNav(-1)" title="Día anterior"><i class="bi bi-chevron-left"></i></button>
-          <span id="semana-label" class="hv-dia-lbl">
-            <span id="dia-nombre" style="font-size:15px;font-weight:700;color:#1E293B">—</span>
-            <span id="dia-fecha"  style="font-size:12px;color:#64748B;margin-left:8px">—</span>
-          </span>
-          <button class="hv-semana-btn" onclick="_diaNav(1)"  title="Día siguiente"><i class="bi bi-chevron-right"></i></button>
-          <button class="hv-semana-hoy" onclick="_diaHoy()">Hoy</button>
-          <button class="hv-semana-hoy" onclick="verDocentesDisponibles('clase')" style="background:#EFF6FF;border-color:#BFDBFE;color:#1D4ED8" title="Docentes en clase">
-            <i class="bi bi-person-video2 me-1"></i><span id="hor-doc-clase-txt">En clases</span>
-          </button>
-          <button class="hv-semana-hoy" onclick="verDocentesDisponibles('disponibles')" style="background:#F0FDF4;border-color:#BBF7D0;color:#16A34A" title="Docentes disponibles">
-            <i class="bi bi-person-check-fill me-1"></i><span id="hor-doc-disp-txt">Disponibles</span>
-          </button>
-          <button class="hv-semana-hoy" onclick="verDocentesDisponibles('cancelar')" style="background:#FEF2F2;border-color:#FECACA;color:#DC2626" title="Cancelar clase del día">
-            <i class="bi bi-x-circle-fill me-1"></i>Cancelar clase
-          </button>
-          <span id="hor-canceladas-badge" style="display:none;margin-left:8px;background:#FEF2F2;color:#B91C1C;border:1px solid #FECACA;border-radius:20px;font-size:11px;font-weight:700;padding:3px 10px;cursor:pointer" onclick="verClasesCanceladas()" title="Ver clases canceladas hoy"><i class="bi bi-x-circle-fill me-1"></i><span id="hor-canceladas-txt"></span></span>
+      <!-- Grid + Panel docentes disponibles -->
+      <div class="row g-3">
+        <div class="col-lg-9" style="min-width:0">
+          <div class="card-panel h-100">
+            <div class="hv-semana-nav">
+              <button class="hv-semana-btn" onclick="_diaNav(-1)" title="Día anterior"><i class="bi bi-chevron-left"></i></button>
+              <span id="semana-label" class="hv-dia-lbl">
+                <span id="dia-nombre" style="font-size:15px;font-weight:700;color:#1E293B">—</span>
+                <span id="dia-fecha"  style="font-size:12px;color:#64748B;margin-left:8px">—</span>
+              </span>
+              <button class="hv-semana-btn" onclick="_diaNav(1)"  title="Día siguiente"><i class="bi bi-chevron-right"></i></button>
+              <button class="hv-semana-hoy" onclick="_diaHoy()">Hoy</button>
+            </div>
+            <div id="horario-visual-container" style="overflow-x:auto;padding:8px 4px"></div>
+          </div>
         </div>
-        <div id="horario-visual-container" style="overflow-x:auto;padding:8px 4px"></div>
+        <div class="col-lg-3">
+          <div class="card-panel h-100">
+            <div class="panel-header" style="border-bottom:1px solid #e2e8f0;padding-bottom:8px;margin-bottom:8px">
+              <h6 style="font-size:13px"><i class="bi bi-people-fill me-2"></i>Docentes</h6>
+            </div>
+            <div id="docentes-disponibles" style="max-height:480px;overflow-y:auto;padding:4px"></div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -3188,25 +3189,6 @@
         </div>
       </div>
 
-      <!-- ── Migración de cifrado ─────────────────────────────────────── -->
-      <div class="card-panel mt-3">
-        <div class="panel-header">
-          <h6><i class="bi bi-key-fill me-2" style="color:#6366F1"></i>Migración de Cifrado de Datos</h6>
-        </div>
-        <div style="padding:16px 20px">
-          <p style="font-size:13px;color:var(--slate-600);margin-bottom:12px">
-            Si otros usuarios ven los datos de docentes cifrados (texto <code>ENC:...</code>), ejecuta esta migración
-            <strong>una sola vez</strong> con tu sesión de Superadmin. Re-cifra todos los datos con la clave institucional
-            compartida para que cualquier usuario pueda acceder.
-          </p>
-          <button class="btn btn-sm text-white" style="background:#6366F1;font-weight:600"
-            onclick="ejecutarMigracionCifrado()" id="btn-migrar-cifrado">
-            <i class="bi bi-arrow-repeat me-1"></i>Migrar cifrado de docentes
-          </button>
-          <span id="migrar-cifrado-status" style="margin-left:12px;font-size:12px;color:var(--slate-500)"></span>
-        </div>
-      </div>
-
     </div><!-- /page-superadmin -->
 
   </div><!-- /content -->
@@ -3340,6 +3322,7 @@
         </div>
       </div>
     </div>
+  </div>
       </div>
       <div class="modal-footer border-top" style="padding:12px 20px">
         <button class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -3557,24 +3540,7 @@
           </div>
         </div>
 
-        <!-- Docentes disponibles para cubrir (se popula por JS) -->
-        <div id="oc-clase-disponibles" style="padding:14px 20px;border-bottom:1px solid #F1F5F9;display:none">
-          <div class="det-sec-title" style="color:#2563EB">
-            <i class="bi bi-people-fill me-1"></i>Disponibles para cubrir
-          </div>
-          <div id="oc-clase-disponibles-lista"></div>
-        </div>
-
         <!-- Novedad / Reemplazo (hidden by default) -->
-        <!-- Footer acciones cancelación -->
-        <div style="padding:12px 20px;border-top:1px solid #F1F5F9;display:flex;gap:8px;align-items:center">
-          <button id="btn-cancelar-clase" onclick="cancelarClaseHoy()"
-            style="flex:1;padding:9px 14px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;border:1.5px solid #EF4444;background:#FFF;color:#EF4444;transition:all .15s"
-            onmouseover="this.style.background='#FEF2F2'" onmouseout="this.style.background='#FFF'">
-            <i class="bi bi-x-circle me-1"></i>Cancelar clase hoy
-          </button>
-        </div>
-
         <div id="oc-clase-novedad-section" style="padding:16px 20px;display:none">
           <div class="det-sec-title" style="color:#EF4444"><i class="bi bi-exclamation-triangle-fill me-1"></i>Novedad Activa</div>
           <div id="oc-clase-novedad-info" style="background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;padding:10px;margin-bottom:10px;font-size:12px;color:#B91C1C"></div>
@@ -3588,126 +3554,6 @@
           </div>
         </div>
 
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ══ MODAL CLASES CANCELADAS POR SECCIÓN ════════════════════════════ -->
-<div class="modal fade" tabindex="-1" id="modalCanceladasSeccion">
-  <div class="modal-dialog modal-dialog-scrollable" style="max-width:min(420px,96vw)">
-    <div class="modal-content" style="border-radius:18px;overflow:hidden;border:none;box-shadow:0 20px 60px rgba(0,0,0,.2)">
-      <div class="modal-header" style="background:#DC2626;padding:16px 20px;border:none">
-        <div>
-          <h5 class="modal-title text-white mb-0" style="font-size:14px;font-weight:800">
-            <i class="bi bi-x-circle-fill me-2"></i><span id="cansec-titulo">—</span>
-          </h5>
-          <div id="cansec-sub" style="color:rgba(255,255,255,.7);font-size:11px;margin-top:2px"></div>
-        </div>
-        <button class="btn-close btn-close-white ms-3" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body" style="padding:14px 16px;max-height:60vh;overflow-y:auto">
-        <div id="cansec-content"></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ══ MODAL ACCIÓN CLASE (swipe-to-action) ═══════════════════════════ -->
-<div class="modal fade" tabindex="-1" id="modalAccionClase">
-  <div class="modal-dialog" style="max-width:min(400px,96vw)">
-    <div class="modal-content" style="border-radius:18px;overflow:hidden;border:none;box-shadow:0 20px 60px rgba(0,0,0,.2)">
-      <div class="modal-header" style="background:#0F172A;padding:16px 20px;border:none">
-        <div>
-          <h5 class="modal-title text-white mb-0" style="font-size:14px;font-weight:800">
-            <i class="bi bi-three-dots-vertical me-2"></i>¿Qué deseas hacer?
-          </h5>
-          <div id="accion-clase-info" style="color:rgba(255,255,255,.55);font-size:11px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
-        </div>
-        <button class="btn-close btn-close-white ms-3" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body" style="padding:14px;display:flex;flex-direction:column;gap:10px">
-        <div onclick="accionCancelarClase()" style="display:flex;align-items:center;gap:12px;padding:14px;border-radius:12px;background:#FEF2F2;border:1.5px solid #FECACA;cursor:pointer;transition:filter .15s" onmouseover="this.style.filter='brightness(.97)'" onmouseout="this.style.filter=''">
-          <div style="width:40px;height:40px;border-radius:10px;background:#EF444422;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-            <i class="bi bi-x-circle-fill" style="color:#DC2626;font-size:18px"></i>
-          </div>
-          <div>
-            <div style="font-size:13px;font-weight:700;color:#DC2626">Cancelar clase</div>
-            <div style="font-size:11px;color:#64748B;margin-top:2px">El horario del grupo se ajusta automáticamente</div>
-          </div>
-        </div>
-        <div onclick="accionAsignarCubriente()" style="display:flex;align-items:center;gap:12px;padding:14px;border-radius:12px;background:#EFF6FF;border:1.5px solid #BFDBFE;cursor:pointer;transition:filter .15s" onmouseover="this.style.filter='brightness(.97)'" onmouseout="this.style.filter=''">
-          <div style="width:40px;height:40px;border-radius:10px;background:#3B82F622;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-            <i class="bi bi-person-plus-fill" style="color:#2563EB;font-size:18px"></i>
-          </div>
-          <div>
-            <div style="font-size:13px;font-weight:700;color:#2563EB">Asignar docente cubriente</div>
-            <div style="font-size:11px;color:#64748B;margin-top:2px">Selecciona un docente disponible para cuidar el grupo</div>
-          </div>
-        </div>
-        <div onclick="accionReestructurar()" style="display:flex;align-items:center;gap:12px;padding:14px;border-radius:12px;background:#F0FDF4;border:1.5px solid #BBF7D0;cursor:pointer;transition:filter .15s" onmouseover="this.style.filter='brightness(.97)'" onmouseout="this.style.filter=''">
-          <div style="width:40px;height:40px;border-radius:10px;background:#16A34A22;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-            <i class="bi bi-calendar2-plus-fill" style="color:#16A34A;font-size:18px"></i>
-          </div>
-          <div>
-            <div style="font-size:13px;font-weight:700;color:#16A34A">Generar nuevo horario</div>
-            <div style="font-size:11px;color:#64748B;margin-top:2px">Reorganiza las clases restantes según disponibilidad docente</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ══ MODAL REESTRUCTURACIÓN ══════════════════════════════════════════ -->
-<div class="modal fade" tabindex="-1" id="modalReestr">
-  <div class="modal-dialog modal-dialog-scrollable" style="max-width:min(500px,96vw)">
-    <div class="modal-content" style="border-radius:18px;overflow:hidden;border:none;box-shadow:0 20px 60px rgba(0,0,0,.2)">
-      <div class="modal-header" style="background:#16A34A;padding:16px 20px;border:none">
-        <div>
-          <h5 class="modal-title text-white mb-0" style="font-size:14px;font-weight:800">
-            <i class="bi bi-calendar2-plus-fill me-2"></i>Nuevo horario propuesto
-          </h5>
-          <div id="reestr-subtitulo" style="color:rgba(255,255,255,.7);font-size:11px;margin-top:2px"></div>
-        </div>
-        <button class="btn-close btn-close-white ms-3" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body p-0" style="max-height:60vh;overflow-y:auto">
-        <div id="reestr-content" style="padding:14px 16px"></div>
-      </div>
-      <div class="modal-footer" style="border-top:1px solid #E2E8F0;padding:12px 16px;gap:8px;justify-content:flex-end">
-        <button class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Revisar después</button>
-        <button class="btn btn-success btn-sm fw-bold" onclick="confirmarReestructuracion()">
-          <i class="bi bi-check-circle-fill me-1"></i>Confirmar y cancelar clase
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="modal fade" tabindex="-1" id="modalDocentesEstado">
-  <div class="modal-dialog modal-dialog-scrollable" style="max-width:min(460px,96vw)">
-    <div class="modal-content" style="border-radius:18px;overflow:hidden;border:none;box-shadow:0 24px 64px rgba(0,0,0,.18)">
-      <div class="modal-header" id="doc-modal-header" style="background:#1D4ED8;padding:18px 22px;border:none">
-        <div>
-          <h5 class="modal-title text-white mb-0" style="font-weight:800;font-size:15px">
-            <i id="doc-modal-icon" class="bi bi-person-video2 me-2"></i><span id="doc-modal-titulo">En clases</span>
-          </h5>
-          <div id="doc-estado-subtitulo" style="color:rgba(255,255,255,.7);font-size:12px;margin-top:2px"></div>
-        </div>
-        <button class="btn-close btn-close-white ms-3" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body p-0" style="overflow-y:auto;max-height:70vh">
-        <div style="padding:10px 14px;border-bottom:1px solid #E2E8F0;position:sticky;top:0;background:#fff;z-index:2">
-          <div style="position:relative">
-            <i class="bi bi-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#94A3B8;font-size:13px;pointer-events:none"></i>
-            <input type="text" id="doc-modal-search" placeholder="Buscar docente..." oninput="filtrarModalDocentes(this.value)"
-              style="width:100%;padding:7px 10px 7px 32px;border:1.5px solid #E2E8F0;border-radius:8px;font-size:13px;color:#334155;outline:none;transition:border-color .15s"
-              onfocus="this.style.borderColor='#93C5FD'" onblur="this.style.borderColor='#E2E8F0'">
-          </div>
-        </div>
-        <div id="doc-modal-content" style="padding:12px 16px"></div>
-        <div id="docentes-disponibles" style="display:none"></div>
       </div>
     </div>
   </div>
@@ -4507,12 +4353,13 @@ function _motionInit() {
 // ══════════════════════════════════════════════
 // ── Firebase config ────────────────────────────────────────────────────
 const firebaseConfig = {
-  apiKey:            "AIzaSyCcg0K-54fE1RX4KT4od2oioUfYEWPYXPw",
-  authDomain:        "sigei-alfatic.firebaseapp.com",
-  projectId:         "sigei-alfatic",
-  storageBucket:     "sigei-alfatic.firebasestorage.app",
-  messagingSenderId: "776243600178",
-  appId:             "1:776243600178:web:3ae1f01325e2ccc925952b"
+  apiKey:            "AIzaSyBKDHySN0O_ruPbCQ6syycrQfkWSLjmcHs",
+  authDomain:        "sigei-tic-prueba.firebaseapp.com",
+  projectId:         "sigei-tic-prueba",
+  storageBucket:     "sigei-tic-prueba.firebasestorage.app",
+  messagingSenderId: "417996490802",
+  appId:             "1:417996490802:web:99c71d4030044e2b93942b",
+  measurementId:     "G-045VCLXR38"
 };
 firebase.initializeApp(firebaseConfig);
 const _auth = firebase.auth();
@@ -4538,11 +4385,8 @@ const DB = {
         console.error('Firestore write error [' + key + ']:', err);
         if (err.code === 'permission-denied') {
           // No revertir el caché — los cambios quedan en memoria para la sesión.
+          // Solución permanente: actualizar reglas de Firestore en la consola.
           console.warn('Firestore permission-denied en [' + key + ']. Cambio solo en memoria.');
-          // Mostrar error visible si la colección afectada es crítica
-          if (key === 'usuarios' || key === 'docentes' || key === 'asignaciones') {
-            toast('⚠️ Error de permisos: el cambio no se guardó en la base de datos. Actualiza las reglas de Firestore.', false, 8000);
-          }
         } else {
           toast('Error al guardar: ' + (err.message || err.code), false);
           // Solo revertir caché en errores que no sean de permisos
@@ -4562,7 +4406,7 @@ const DB = {
 
   // Load all collections from Firestore into memory
   loadAll: async function() {
-    const COLS = ['docentes','secciones','horarios','sedes','permisos','asignaciones','cronograma','grados','seguimiento','actividad','usuarios','permisos_roles','cancelaciones'];
+    const COLS = ['docentes','secciones','horarios','sedes','permisos','asignaciones','cronograma','grados','seguimiento','actividad','usuarios','permisos_roles'];
     const snaps = await Promise.all(COLS.map(k => _fs.collection('sigei').doc(k).get()));
     snaps.forEach((snap, i) => {
       _cache[COLS[i]] = snap.exists ? (snap.data().items || []) : [];
@@ -4814,11 +4658,7 @@ function emptyGrid(msg, opts) {
 function toast(msg, ok=true, ms=3500) {
   const el = document.createElement('div');
   el.className = `toast-msg ${ok?'ok':'err'}`;
-  const ico = document.createElement('i');
-  ico.className = `bi bi-${ok?'check-circle-fill text-success':'x-circle-fill text-danger'}`;
-  const txt = document.createTextNode(msg);
-  el.appendChild(ico);
-  el.appendChild(txt);
+  el.innerHTML = `<i class="bi bi-${ok?'check-circle-fill text-success':'x-circle-fill text-danger'}"></i>${msg}`;
   document.getElementById('toast-container').appendChild(el);
   setTimeout(() => el.remove(), ms);
 }
@@ -4832,35 +4672,28 @@ let _chartEstado = null;
 
 // ══════════════════════════════════════════════════════════════════════
 //  CIFRADO DE DATOS PERSONALES — AES-GCM 256-bit (Web Crypto API)
-//  Clave compartida institucional (igual para todos los usuarios).
-//  Clave legacy por UID para descifrar datos antiguos.
+//  Clave derivada del UID de Firebase vía PBKDF2 (100 000 iteraciones)
+//  Los campos sensibles se almacenan cifrados en Firestore y en caché.
 //  Prefijo "ENC:" identifica valores cifrados para migración gradual.
 // ══════════════════════════════════════════════════════════════════════
-let _encKey       = null;   // Clave compartida institucional (nueva)
-let _encKeyLegacy = null;   // Clave por UID (solo para descifrar datos antiguos)
+let _encKey = null;   // CryptoKey en memoria, nunca serializada
 const _ENC_SALT = new TextEncoder().encode('SIGEI-IER-SANTANDERCITO-ALFATIC-2026');
-// Secreto institucional compartido — igual para todos los usuarios del sistema
-const _SHARED_SECRET = 'SIGEI-ALFATIC-IER-SANTANDERCITO-KEY-2026';
 const _CAMPOS_PRIVADOS = ['cedula','fecha_nac','genero','telefono','celular','correo','municipio','direccion'];
-
-async function _deriveKey(secret) {
-  const base = await crypto.subtle.importKey(
-    'raw', new TextEncoder().encode(secret), 'PBKDF2', false, ['deriveKey']
-  );
-  return crypto.subtle.deriveKey(
-    { name: 'PBKDF2', salt: _ENC_SALT, iterations: 100000, hash: 'SHA-256' },
-    base,
-    { name: 'AES-GCM', length: 256 },
-    false, ['encrypt', 'decrypt']
-  );
-}
 
 async function initEncKey(uid) {
   try {
-    // Clave compartida institucional (nueva — igual para todos los usuarios)
-    _encKey = await _deriveKey(_SHARED_SECRET);
-    // Clave legacy por UID (para descifrar datos cifrados por versiones anteriores)
-    if (uid) _encKeyLegacy = await _deriveKey(uid);
+    // Clave institucional compartida — todos los usuarios del sistema usan la misma clave
+    // para que Admins y Coordinadores puedan leer los datos cifrados por cualquier usuario.
+    const sharedSecret = 'SIGEI-ALFATIC-IER-SANTANDERCITO-2026-INSTITUCIONAL';
+    const base = await crypto.subtle.importKey(
+      'raw', new TextEncoder().encode(sharedSecret), 'PBKDF2', false, ['deriveKey']
+    );
+    _encKey = await crypto.subtle.deriveKey(
+      { name: 'PBKDF2', salt: _ENC_SALT, iterations: 100000, hash: 'SHA-256' },
+      base,
+      { name: 'AES-GCM', length: 256 },
+      false, ['encrypt', 'decrypt']
+    );
   } catch(e) { console.warn('initEncKey error:', e); }
 }
 
@@ -4878,65 +4711,15 @@ async function encryptField(v) {
   } catch(e) { return v; }
 }
 
-async function _decryptWithKey(v, key) {
-  if (!key) return null;
+async function decryptField(v) {
+  if (!v || typeof v !== 'string' || !v.startsWith('ENC:') || !_encKey) return v;
   try {
     const buf = Uint8Array.from(atob(v.slice(4)), c => c.charCodeAt(0));
     const dec = await crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv: buf.slice(0, 12) }, key, buf.slice(12)
+      { name: 'AES-GCM', iv: buf.slice(0, 12) }, _encKey, buf.slice(12)
     );
     return new TextDecoder().decode(dec);
-  } catch(e) { return null; }
-}
-
-async function decryptField(v) {
-  if (!v || typeof v !== 'string' || !v.startsWith('ENC:')) return v;
-  // Intenta con clave compartida (nueva)
-  const r1 = await _decryptWithKey(v, _encKey);
-  if (r1 !== null) return r1;
-  // Fallback: clave legacy por UID (datos cifrados por versiones anteriores)
-  const r2 = await _decryptWithKey(v, _encKeyLegacy);
-  if (r2 !== null) return r2;
-  return v;  // no se pudo descifrar — devuelve tal cual
-}
-
-// ── Migración: re-cifra todos los docentes con la clave compartida ─────
-// Llamar una vez desde Superadmin después de actualizar el sistema.
-async function migrarCifradoDocentes() {
-  const docentes = DB.get('docentes');
-  let migrados = 0;
-  const actualizados = [];
-  for (const doc of docentes) {
-    const descifrado = await decryptDocente(doc);  // usa ambas claves
-    const recifrado  = await encryptDocente(descifrado); // re-cifra con clave compartida
-    actualizados.push(recifrado);
-    // Verifica si hubo cambio real
-    const cambio = _CAMPOS_PRIVADOS.some(f => doc[f] !== recifrado[f]);
-    if (cambio) migrados++;
-  }
-  await DB.set('docentes', actualizados);
-  return migrados;
-}
-
-async function ejecutarMigracionCifrado() {
-  const btn    = document.getElementById('btn-migrar-cifrado');
-  const status = document.getElementById('migrar-cifrado-status');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Migrando...';
-  status.textContent = '';
-  try {
-    const n = await migrarCifradoDocentes();
-    status.style.color = 'var(--green-600,#16a34a)';
-    status.textContent = n > 0
-      ? `✓ ${n} docente(s) migrado(s) exitosamente. Todos los usuarios ya pueden ver los datos.`
-      : '✓ No había datos pendientes de migrar.';
-    btn.innerHTML = '<i class="bi bi-check-circle me-1"></i>Migración completada';
-  } catch(e) {
-    status.style.color = '#dc2626';
-    status.textContent = 'Error: ' + (e.message || e);
-    btn.disabled = false;
-    btn.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i>Reintentar migración';
-  }
+  } catch(e) { return v; }   // retorna cifrado si falla (clave incorrecta / dato legacy)
 }
 
 async function encryptDocente(doc) {
@@ -5293,7 +5076,7 @@ async function guardarNuevoDocente() {
   const encDoc = await encryptDocente({ id: DB.nextId('docentes'), ...plainData });
   docs.push(encDoc);
   DB.set('docentes', docs);
-  bootstrap.Modal.getInstance(document.getElementById('modalNuevoDocente'))?.hide();
+  bootstrap.Modal.getInstance(document.getElementById('modalNuevoDocente')).hide();
   toast('Docente guardado exitosamente.');
   renderDocentes();
 }
@@ -5482,7 +5265,7 @@ async function verDocente(id) {
     abrirDocente(id);
   };
   document.getElementById('det-btn-eliminar').onclick = function() {
-    bootstrap.Modal.getInstance(document.getElementById('modalDocenteDetalle'))?.hide();
+    bootstrap.Modal.getInstance(document.getElementById('modalDocenteDetalle')).hide();
     setTimeout(function(){ eliminarDocente(id); }, 300);
   };
 
@@ -5898,7 +5681,6 @@ function confirmarImportGrupos() {
       });
       added++;
     } else if (r.estado === 'EXISTE' && r.directorId) {
-      // Actualizar docente guía del grupo existente
       var idx = secciones.findIndex(function(s){
         return s.grado_id == r.grado_id && s.nombre.toLowerCase() === r.grupoNom.toLowerCase();
       });
@@ -6113,7 +5895,7 @@ function abrirSeccion(id=null) {
 
   const dSel = document.getElementById('sec-docente');
   dSel.innerHTML = '<option value="">Sin asignar</option>' +
-    DB.get('docentes').filter(d=>d.estado==='Activo' && d.nivel!=='Directivo').map(d=>`<option value="${d.id}">${[d.p_nombre,d.s_nombre,d.p_apellido,d.s_apellido].filter(Boolean).join(' ')}</option>`).join('');
+    DB.get('docentes').filter(d=>d.estado==='Activo' && d.nivel!=='Directivo').map(d=>`<option value="${d.id}">${d.p_nombre} ${d.p_apellido}</option>`).join('');
 
 
   if (id) {
@@ -6153,7 +5935,7 @@ function guardarSeccion() {
     toast('Grupo actualizado.');
   }
   DB.set('secciones', secciones);
-  bootstrap.Modal.getInstance(document.getElementById('modalSeccionForm'))?.hide();
+  bootstrap.Modal.getInstance(document.getElementById('modalSeccionForm')).hide();
   renderGrados();
 }
 
@@ -6185,11 +5967,9 @@ const DIAS_CORTO  = { 'Lunes':'L','Martes':'Ma','Miércoles':'Mi','Jueves':'J','
 const CARGA_CONFIG = { baja: 18, alta: 28 };
 
 // ── Migración v6→v7: dias:string[] → dias:[{dia,hora_inicio,hora_fin}] ──
-let _asigMigDone = false;
 function migrarAsignaciones() {
-  if (_asigMigDone) return;
   const asigs = DB.get('asignaciones');
-  if (!asigs.length) { _asigMigDone = true; return; }
+  if (!asigs.length) return;
   let changed = false;
   const migradas = asigs.map(a => {
     // v5→v6: flat → cursos[]
@@ -6219,7 +5999,6 @@ function migrarAsignaciones() {
     return { ...a, cursos: cursosMig };
   });
   if (changed) DB.set('asignaciones', migradas);
-  _asigMigDone = true;
 }
 
 // ── Cálculo de horas ────────────────────────────────────────────────────
@@ -6254,13 +6033,14 @@ function toggleOtraMateria() {
 
 function actualizarResumenHoras() {
   const docId  = document.getElementById('asig-docente').value;
+  const asigId = document.getElementById('asig-id').value;
   const div    = document.getElementById('asig-total-horas');
   if (!docId) { div.textContent = ''; return; }
   const horasActuales = DB.get('asignaciones')
-    .filter(a => String(a.docente_id) === String(docId) && a.estado === 'Activo')
+    .filter(a => a.docente_id == docId && a.estado === 'Activo' && (!asigId || a.id != asigId))
     .reduce((s, a) => s + calcHorasAsig(a), 0);
   const carga = nivelCarga(horasActuales);
-  div.innerHTML = 'Carga total: <strong>' + horasActuales.toFixed(1) + 'h/sem</strong>&nbsp;'
+  div.innerHTML = 'Carga actual: <strong>' + horasActuales.toFixed(1) + 'h/sem</strong>&nbsp;'
     + '<span class="carga-badge ' + carga.cls + '">' + carga.nivel + '</span>';
 }
 
@@ -6608,18 +6388,7 @@ function abrirAsignacion(id) {
     const a = DB.get('asignaciones').find(x => x.id == id);
     if (!a) return;
     document.getElementById('asig-id').value      = a.id;
-    dSel.value = a.docente_id;
-    // Si el docente no está en la lista filtrada (sede distinta, etc.), añadirlo
-    if (String(dSel.value) !== String(a.docente_id)) {
-      const _d = DB.get('docentes').find(x => String(x.id) === String(a.docente_id));
-      if (_d) {
-        const _opt = document.createElement('option');
-        _opt.value = _d.id;
-        _opt.textContent = [_d.p_nombre, _d.s_nombre, _d.p_apellido, _d.s_apellido].filter(Boolean).join(' ');
-        dSel.appendChild(_opt);
-        dSel.value = _d.id;
-      }
-    }
+    document.getElementById('asig-docente').value = a.docente_id;
     document.getElementById('asig-estado').value  = a.estado || 'Activo';
 
     const enLista = MATERIAS.includes(a.materia);
@@ -6727,7 +6496,7 @@ function guardarAsignacion() {
     DB.set('asignaciones', asigs);
     sincronizarHorarios(asigId, data);
     _reactivarBtn();
-    bootstrap.Modal.getInstance(document.getElementById('modalAsignacion'))?.hide();
+    bootstrap.Modal.getInstance(document.getElementById('modalAsignacion')).hide();
     renderAsignaciones();
     if (document.getElementById('tablero-doc-sel').value == data.docente_id) renderTableroDocente();
   } catch(e) {
@@ -7340,7 +7109,7 @@ function guardarEvento() {
     toast('Evento actualizado.');
   }
   DB.set('cronograma', lista);
-  bootstrap.Modal.getInstance(document.getElementById('modalEvento'))?.hide();
+  bootstrap.Modal.getInstance(document.getElementById('modalEvento')).hide();
   renderCronograma();
   renderDashboard(); // refresh próximo evento
 }
@@ -7367,8 +7136,6 @@ var _horarioDiaOffset = (function(){
   if (d === 0) return  1;      // domingo → lunes
   return 0;
 })();
-
-var _claseContexto = null; // {asigId, seccionId, horaInicio, horaFin, fechaDia, dia, materia}
 
 function _getLunesSemana(offset) {
   var hoy = new Date(); hoy.setHours(0,0,0,0);
@@ -7401,397 +7168,6 @@ function timeToMins(t) {
   if (!t) return 0;
   const [h, m] = t.split(':').map(Number);
   return h * 60 + m;
-}
-
-function minsToTime(m) {
-  var h = Math.floor(m / 60), mn = m % 60;
-  return String(h).padStart(2,'0') + ':' + String(mn).padStart(2,'0');
-}
-
-// ── Cancelación de clases ──────────────────────────────────────────────────
-
-function aplicarCancelacionesYShift(horarios, cancelaciones, dia) {
-  // Mapa: "seccion_id_hora_inicio" → true  (bloques cancelados)
-  var cancelSet = {};
-  cancelaciones.forEach(function(c) {
-    cancelSet[String(c.seccion_id) + '_' + c.hora_inicio] = true;
-  });
-
-  var otrosDias = horarios.filter(function(h) { return h.dia !== dia; });
-  var esteDia   = horarios.filter(function(h) { return h.dia === dia; });
-
-  // Mapa: docente_id → [{hi, hf, seccion_id}] con los horarios ORIGINALES del día
-  // Usado para detectar conflictos al desplazar un bloque
-  var docenteOcupacion = {};
-  esteDia.forEach(function(h) {
-    if (!h.docente_id) return;
-    var key = String(h.docente_id);
-    if (!docenteOcupacion[key]) docenteOcupacion[key] = [];
-    docenteOcupacion[key].push({ hi: timeToMins(h.hora_inicio), hf: timeToMins(h.hora_fin), seccion_id: String(h.seccion_id) });
-  });
-
-  // Agrupar por sección
-  var porSeccion = {};
-  esteDia.forEach(function(h) {
-    var k = String(h.seccion_id);
-    if (!porSeccion[k]) porSeccion[k] = [];
-    porSeccion[k].push(h);
-  });
-
-  var resultado = otrosDias.slice();
-
-  Object.values(porSeccion).forEach(function(bloques) {
-    bloques.sort(function(a, b) { return timeToMins(a.hora_inicio) - timeToMins(b.hora_inicio); });
-
-    // Incluir bloques cancelados en el resultado (para mostrarlos en la vista)
-    bloques.forEach(function(b) {
-      if (cancelSet[String(b.seccion_id) + '_' + b.hora_inicio]) {
-        resultado.push(Object.assign({}, b, { _cancelada: true }));
-      }
-    });
-
-    var activos = bloques.filter(function(b) {
-      return !cancelSet[String(b.seccion_id) + '_' + b.hora_inicio];
-    });
-    if (!activos.length) return;
-
-    // El cursor empieza en el hora_inicio del primer bloque ACTIVO
-    var cursor = timeToMins(activos[0].hora_inicio);
-
-    activos.forEach(function(b) {
-      var dur = timeToMins(b.hora_fin) - timeToMins(b.hora_inicio);
-      if (dur <= 0) dur = 60;
-
-      var docKey    = String(b.docente_id);
-      var ocupacion = docenteOcupacion[docKey] || [];
-      var nuevoHi   = cursor;
-      var nuevoHf   = cursor + dur;
-
-      // Conflicto: el docente tiene otro bloque (en sección diferente) que se superpone con el nuevo horario
-      var hayConflicto = !!b.docente_id && ocupacion.some(function(occ) {
-        return occ.seccion_id !== String(b.seccion_id) && nuevoHi < occ.hf && nuevoHf > occ.hi;
-      });
-
-      if (hayConflicto) {
-        // Mantener en horario original, marcar conflicto — NO avanzar cursor
-        resultado.push(Object.assign({}, b, { _conflicto: true }));
-      } else {
-        var origHi  = b.hora_inicio;
-        var movido  = cursor !== timeToMins(b.hora_inicio);
-        resultado.push(Object.assign({}, b, {
-          hora_inicio:       minsToTime(nuevoHi),
-          hora_fin:          minsToTime(nuevoHf),
-          _shiftado:         movido,
-          _hora_inicio_orig: movido ? origHi : null
-        }));
-        cursor += dur;
-      }
-    });
-  });
-
-  return resultado;
-}
-
-async function cancelarClaseHoy() {
-  var ctx = _claseContexto;
-  if (!ctx || !ctx.fechaDia) { toast('No hay información de la clase.', false); return; }
-
-  var cancelaciones = (DB.get('cancelaciones') || []).slice();
-  var yaExiste = cancelaciones.find(function(c) {
-    return c.fecha === ctx.fechaDia && String(c.seccion_id) === String(ctx.seccionId) && c.hora_inicio === ctx.horaInicio;
-  });
-
-  if (yaExiste) {
-    // Restaurar
-    var nuevas = cancelaciones.filter(function(c) { return c.id !== yaExiste.id; });
-    await DB.set('cancelaciones', nuevas);
-    toast('Clase restaurada correctamente.', true);
-    bootstrap.Modal.getInstance(document.getElementById('modalClase'))?.hide();
-    renderHorarios();
-    return;
-  }
-
-  // Cancelar — primero mostrar la vista previa del horario resultante,
-  // la escritura real ocurre en ejecutarCancelacion() al confirmar.
-  bootstrap.Modal.getInstance(document.getElementById('modalClase'))?.hide();
-  mostrarPreviewCancelacion();
-}
-
-async function ejecutarCancelacion(ctx, motivo) {
-  var cancelaciones = (DB.get('cancelaciones') || []).slice();
-  var sec = DB.get('secciones').find(function(s){ return String(s.id) === String(ctx.seccionId); });
-  cancelaciones.push({
-    id:            DB.nextId('cancelaciones'),
-    fecha:         ctx.fechaDia,
-    seccion_id:    ctx.seccionId,
-    asignacion_id: ctx.asigId,
-    hora_inicio:   ctx.horaInicio,
-    hora_fin:      ctx.horaFin,
-    materia:       ctx.materia || '',
-    seccion_label: sec ? sec.nombre : '',
-    motivo:        motivo || ''
-  });
-  await DB.set('cancelaciones', cancelaciones);
-  toast('Clase cancelada para el ' + ctx.fechaDia + '. El horario se ha corrido.', true);
-  renderHorarios();
-}
-
-function verCanceladasSeccion(seccionId, fechaDia) {
-  var cancelaciones = DB.get('cancelaciones') || [];
-  var lista = cancelaciones.filter(function(c) {
-    return c.fecha === fechaDia && String(c.seccion_id) === String(seccionId);
-  });
-
-  var sec    = DB.get('secciones').find(function(s){ return String(s.id) === String(seccionId); });
-  var grados = DB.get('grados') || [];
-  var grado  = sec ? grados.find(function(g){ return g.id == sec.grado_id; }) : null;
-  var secNom = sec ? ((grado ? grado.nombre.replace(' Grado','°') : '') + ' ' + sec.nombre) : '—';
-  var meses  = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-  var dF     = new Date(fechaDia + 'T12:00:00');
-  var fechaLabel = dF.getDate() + ' ' + meses[dF.getMonth()] + ' ' + dF.getFullYear();
-
-  // Header del modal
-  var tEl = document.getElementById('cansec-titulo');
-  var sEl = document.getElementById('cansec-sub');
-  if (tEl) tEl.textContent = secNom;
-  if (sEl) sEl.textContent = fechaLabel + (lista.length ? ' · ' + lista.length + ' clase' + (lista.length>1?'s':'') + ' cancelada' + (lista.length>1?'s':'') : '');
-
-  var html = '';
-  if (!lista.length) {
-    html = '<p class="text-muted small text-center p-4">No hay clases canceladas para este grupo en esta fecha.</p>';
-  } else {
-    lista.forEach(function(c) {
-      // Buscar asignación para obtener datos del docente
-      var asig = (DB.get('asignaciones') || []).find(function(a){ return String(a.id) === String(c.asignacion_id); });
-      var docenteId = asig ? asig.docente_id : null;
-      var docNom = docenteId ? nombreDocente(docenteId) : '—';
-      var doc    = docenteId ? DB.get('docentes').find(function(d){ return d.id == docenteId; }) : null;
-      var docFull= doc ? [doc.p_nombre, doc.s_nombre, doc.p_apellido, doc.s_apellido].filter(Boolean).join(' ') : docNom;
-
-      html += '<div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:12px;padding:14px 16px;margin-bottom:10px">'
-        // Materia + horario
-        + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px">'
-        + '<div>'
-        + '<div style="font-size:14px;font-weight:800;color:#991B1B">' + (c.materia || '—') + '</div>'
-        + '<div style="font-size:12px;color:#64748B;margin-top:2px">'
-        + '<i class="bi bi-clock me-1"></i>' + c.hora_inicio + '–' + c.hora_fin
-        + '</div>'
-        + '</div>'
-        + '<span style="background:#FEE2E2;color:#991B1B;font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;flex-shrink:0;border:1px solid #FECACA">CANCELADA</span>'
-        + '</div>'
-        // Docente
-        + '<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#fff;border-radius:8px;margin-bottom:8px">'
-        + '<div style="width:32px;height:32px;border-radius:50%;background:#EFF6FF;display:flex;align-items:center;justify-content:center;flex-shrink:0">'
-        + '<i class="bi bi-person-fill" style="color:#2563EB;font-size:14px"></i></div>'
-        + '<div>'
-        + '<div style="font-size:12px;font-weight:700;color:#0F172A">' + docFull + '</div>'
-        + '<div style="font-size:10px;color:#64748B">Docente asignado</div>'
-        + '</div>'
-        + '</div>'
-        // Motivo
-        + (c.motivo ? '<div style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;background:#fff;border-radius:8px;margin-bottom:10px">'
-          + '<i class="bi bi-chat-left-text-fill" style="color:#64748B;font-size:13px;margin-top:1px;flex-shrink:0"></i>'
-          + '<div style="font-size:11px;color:#475569">' + c.motivo + '</div>'
-          + '</div>' : '')
-        // Botón restaurar
-        + '<button class="btn btn-sm w-100" onclick="restaurarClaseDesdeModal(\'' + c.id + '\')" '
-        + 'style="background:#fff;border:1.5px solid #FECACA;color:#DC2626;font-weight:700;font-size:12px;border-radius:8px">'
-        + '<i class="bi bi-arrow-counterclockwise me-1"></i>Restaurar clase</button>'
-        + '</div>';
-    });
-  }
-
-  document.getElementById('cansec-content').innerHTML = html;
-  bootstrap.Modal.getOrCreateInstance(document.getElementById('modalCanceladasSeccion')).show();
-}
-
-async function restaurarClaseDesdeModal(cancelacionId) {
-  var cancelaciones = (DB.get('cancelaciones') || []).slice();
-  var idx = cancelaciones.findIndex(function(c){ return String(c.id) === String(cancelacionId); });
-  if (idx === -1) { toast('No se encontró la cancelación.', false); return; }
-  cancelaciones.splice(idx, 1);
-  await DB.set('cancelaciones', cancelaciones);
-  bootstrap.Modal.getInstance(document.getElementById('modalCanceladasSeccion'))?.hide();
-  toast('Clase restaurada correctamente.', true);
-  renderHorarios();
-}
-
-function verClasesCanceladas() {
-  var offset = _horarioDiaOffset || 0;
-  var d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate() + offset);
-  var iso = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
-
-  var lista = (DB.get('cancelaciones') || []).filter(function(c){ return c.fecha === iso; });
-  if (!lista.length) { toast('No hay clases canceladas para este día.', true); return; }
-
-  var meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-  var fechaLabel = d.getDate() + ' ' + meses[d.getMonth()] + ' ' + d.getFullYear();
-
-  var tEl = document.getElementById('cansec-titulo');
-  var sEl = document.getElementById('cansec-sub');
-  if (tEl) tEl.textContent = 'Clases canceladas';
-  if (sEl) sEl.textContent = fechaLabel + ' · ' + lista.length + ' clase' + (lista.length>1?'s':'') + ' cancelada' + (lista.length>1?'s':'');
-
-  var grados = DB.get('grados') || [];
-  var html = lista.map(function(c) {
-    var sec  = DB.get('secciones').find(function(s){ return String(s.id) === String(c.seccion_id); });
-    var grado= sec ? grados.find(function(g){ return g.id == sec.grado_id; }) : null;
-    var secNom = sec ? ((grado ? grado.nombre.replace(' Grado','°') : '') + ' ' + sec.nombre) : (c.seccion_label || '—');
-    var asig = (DB.get('asignaciones') || []).find(function(a){ return String(a.id) === String(c.asignacion_id); });
-    var doc  = asig ? DB.get('docentes').find(function(d){ return d.id == asig.docente_id; }) : null;
-    var docFull = doc ? [doc.p_nombre, doc.s_nombre, doc.p_apellido, doc.s_apellido].filter(Boolean).join(' ') : '—';
-
-    return '<div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:12px;padding:14px 16px;margin-bottom:10px">'
-      + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:10px">'
-      + '<div>'
-      + '<div style="font-size:13px;font-weight:800;color:#991B1B">' + (c.materia||'—') + '</div>'
-      + '<div style="font-size:11px;color:#64748B;margin-top:2px">'
-      + '<i class="bi bi-mortarboard-fill me-1"></i>' + secNom
-      + ' &nbsp;·&nbsp; <i class="bi bi-clock me-1"></i>' + c.hora_inicio + '–' + c.hora_fin
-      + '</div>'
-      + '</div>'
-      + '<span style="background:#FEE2E2;color:#991B1B;font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;flex-shrink:0;border:1px solid #FECACA">CANCELADA</span>'
-      + '</div>'
-      + '<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#fff;border-radius:8px;margin-bottom:8px">'
-      + '<div style="width:30px;height:30px;border-radius:50%;background:#EFF6FF;display:flex;align-items:center;justify-content:center;flex-shrink:0">'
-      + '<i class="bi bi-person-fill" style="color:#2563EB;font-size:13px"></i></div>'
-      + '<div><div style="font-size:12px;font-weight:700;color:#0F172A">' + docFull + '</div>'
-      + '<div style="font-size:10px;color:#64748B">Docente asignado</div></div>'
-      + '</div>'
-      + (c.motivo ? '<div style="display:flex;align-items:flex-start;gap:8px;padding:7px 10px;background:#fff;border-radius:8px;margin-bottom:8px">'
-        + '<i class="bi bi-chat-left-text-fill" style="color:#94A3B8;font-size:12px;margin-top:1px;flex-shrink:0"></i>'
-        + '<div style="font-size:11px;color:#475569">' + c.motivo + '</div></div>' : '')
-      + '<button class="btn btn-sm w-100" onclick="restaurarClaseDesdeModal(\'' + c.id + '\')"'
-      + ' style="background:#fff;border:1.5px solid #FECACA;color:#DC2626;font-weight:700;font-size:12px;border-radius:8px">'
-      + '<i class="bi bi-arrow-counterclockwise me-1"></i>Restaurar clase</button>'
-      + '</div>';
-  }).join('');
-
-  document.getElementById('cansec-content').innerHTML = html;
-  bootstrap.Modal.getOrCreateInstance(document.getElementById('modalCanceladasSeccion')).show();
-}
-
-async function restaurarCancelacion(id) {
-  var cancelaciones = (DB.get('cancelaciones') || []).filter(function(c){ return c.id !== id; });
-  await DB.set('cancelaciones', cancelaciones);
-  toast('Clase restaurada.', true);
-  if (typeof Swal !== 'undefined') Swal.close();
-  renderHorarios();
-}
-
-// ── Docentes disponibles para cubrir una clase cancelada ─────────────────────
-function poblarDocentesDisponibles(seccionId, horaInicio, horaFin, dia, fechaDia, docenteTitularId) {
-  var el    = document.getElementById('oc-clase-disponibles');
-  var lista = document.getElementById('oc-clase-disponibles-lista');
-  if (!el || !lista || !fechaDia || !horaInicio) { if (el) el.style.display = 'none'; return; }
-
-  var sec     = DB.get('secciones').find(function(s){ return String(s.id) === String(seccionId); });
-  var gradoId = sec ? sec.grado_id : null;
-  var hiMins  = timeToMins(horaInicio);
-  var hfMins  = timeToMins(horaFin);
-
-  // IDs de secciones del mismo grado
-  var secsMismoGrado = gradoId
-    ? DB.get('secciones').filter(function(s){ return s.grado_id == gradoId; }).map(function(s){ return s.id; })
-    : [];
-
-  // Horarios del día (asignaciones activas + manuales)
-  var horariosDelDia = [];
-  DB.get('asignaciones').filter(function(a){ return a.estado === 'Activo'; }).forEach(function(asig) {
-    (asig.cursos || []).forEach(function(curso) {
-      (curso.dias || []).forEach(function(d) {
-        if (d.dia === dia && d.hora_inicio && d.hora_fin) {
-          horariosDelDia.push({ docente_id: asig.docente_id, hora_inicio: d.hora_inicio, hora_fin: d.hora_fin });
-        }
-      });
-    });
-  });
-  DB.get('horarios').filter(function(h){ return h.dia === dia && !h.asignacion_id; }).forEach(function(h) {
-    horariosDelDia.push(h);
-  });
-
-  // Permisos aprobados para fechaDia
-  var enPermiso = new Set(DB.get('permisos').filter(function(p) {
-    if (p.estado !== 'Aprobado') return false;
-    var fb = p.fecha_novedad || p.fecha_inicio;
-    return fb === fechaDia;
-  }).map(function(p){ return String(p.docente_id); }));
-
-  // Docentes ocupados en el rango [horaInicio, horaFin)
-  var ocupados = new Set();
-  horariosDelDia.forEach(function(h) {
-    if (!h.docente_id) return;
-    if (timeToMins(h.hora_inicio) < hfMins && timeToMins(h.hora_fin) > hiMins) {
-      ocupados.add(String(h.docente_id));
-    }
-  });
-
-  // Docentes que enseñan en secciones del mismo grado
-  var docsMismoGrado = new Set();
-  DB.get('asignaciones').filter(function(a){ return a.estado === 'Activo'; }).forEach(function(asig) {
-    (asig.cursos || []).forEach(function(curso) {
-      if (secsMismoGrado.some(function(sid){ return String(sid) === String(curso.seccion_id); })) {
-        docsMismoGrado.add(String(asig.docente_id));
-      }
-    });
-  });
-
-  // Armar lista de disponibles
-  var disponibles = DB.get('docentes').filter(function(d) {
-    if (d.estado !== 'Activo' || d.nivel === 'Directivo') return false;
-    if (String(d.id) === String(docenteTitularId)) return false;
-    if (enPermiso.has(String(d.id))) return false;
-    if (ocupados.has(String(d.id))) return false;
-    return true;
-  });
-
-  // Ordenar: primero mismo grado, luego resto
-  disponibles.sort(function(a, b) {
-    var am = docsMismoGrado.has(String(a.id)) ? 0 : 1;
-    var bm = docsMismoGrado.has(String(b.id)) ? 0 : 1;
-    return am - bm;
-  });
-
-  var mostrar = disponibles.slice(0, 6);
-  if (!mostrar.length) { el.style.display = 'none'; return; }
-
-  el.style.display = '';
-  lista.innerHTML = mostrar.map(function(d) {
-    var ini          = ((d.p_nombre||'')[0]||'') + ((d.p_apellido||'')[0]||'');
-    var esMismoGrado = docsMismoGrado.has(String(d.id));
-
-    // Materias que enseña en el mismo grado
-    var materiasGrado = [];
-    DB.get('asignaciones').filter(function(a){ return a.estado === 'Activo' && String(a.docente_id) === String(d.id); }).forEach(function(asig) {
-      (asig.cursos || []).forEach(function(curso) {
-        if (secsMismoGrado.some(function(sid){ return String(sid) === String(curso.seccion_id); })) {
-          var m = curso.materia || asig.materia;
-          if (m && !materiasGrado.includes(m)) materiasGrado.push(m);
-        }
-      });
-    });
-
-    return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #F8FAFC">'
-      + '<div class="user-avatar" style="width:32px;height:32px;font-size:12px;flex-shrink:0;background:'
-      + (esMismoGrado ? 'linear-gradient(135deg,#2563EB,#1D4ED8)' : '#94A3B8') + '">'
-      + ini.toUpperCase() + '</div>'
-      + '<div style="flex:1;min-width:0">'
-      + '<div style="font-size:12px;font-weight:700;color:#0F172A;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'
-      + d.p_nombre + ' ' + d.p_apellido + '</div>'
-      + '<div style="font-size:10px;color:#64748B;margin-top:1px">'
-      + (materiasGrado.length ? materiasGrado.slice(0,2).join(' · ') : 'Otro grado')
-      + '</div></div>'
-      + (esMismoGrado
-        ? '<span style="font-size:9px;font-weight:700;background:#EFF6FF;color:#1D4ED8;padding:2px 7px;border-radius:20px;flex-shrink:0">mismo grado</span>'
-        : '')
-      + '</div>';
-  }).join('');
-
-  // Si hay más, mostrar contador
-  if (disponibles.length > 6) {
-    lista.innerHTML += '<div style="font-size:10px;color:#94A3B8;padding-top:6px;text-align:center">'
-      + '+ ' + (disponibles.length - 6) + ' docentes más disponibles</div>';
-  }
 }
 
 function actualizarFiltroSecciones() {
@@ -7879,19 +7255,6 @@ function renderHorarios() {
   // Entries with asignacion_id are already covered by the virtual derivation below — exclude them to avoid duplicates.
   let horarios = DB.get('horarios').filter(h => !h.asignacion_id);
 
-  // Actualizar badge de cancelaciones para el día visible
-  var cancelacionesDia = (DB.get('cancelaciones') || []).filter(function(c) { return c.fecha === _diaISO; });
-  var badgeEl = document.getElementById('hor-canceladas-badge');
-  var badgeTxt = document.getElementById('hor-canceladas-txt');
-  if (badgeEl && badgeTxt) {
-    if (cancelacionesDia.length) {
-      badgeTxt.textContent = cancelacionesDia.length + (cancelacionesDia.length === 1 ? ' cancelada' : ' canceladas');
-      badgeEl.style.display = '';
-    } else {
-      badgeEl.style.display = 'none';
-    }
-  }
-
   // Derive virtual horario entries from asignaciones activas
   DB.get('asignaciones').filter(function(a){ return a.estado === 'Activo'; }).forEach(function(asig) {
     (asig.cursos || []).forEach(function(curso) {
@@ -7912,15 +7275,6 @@ function renderHorarios() {
       });
     });
   });
-
-  // Guardar el horario crudo (antes de cancelaciones) — usado por la vista previa
-  // de reestructuración para que siempre coincida con lo que realmente se aplica.
-  window._horariosCrudoDia = horarios.slice();
-
-  // ── Aplicar cancelaciones y corrimiento de horario ────────────────────────
-  if (cancelacionesDia.length) {
-    horarios = aplicarCancelacionesYShift(horarios, cancelacionesDia, _diaNombreActual);
-  }
 
   // Apply filters
   if (filtroGrado) {
@@ -7950,7 +7304,7 @@ function renderHorarios() {
     }
   });
 
-  // ── CARDS POR SECCIÓN ─────────────────────────────────────────
+  // ── AGENDA LIST VIEW ──────────────────────────────────────────────
   var _fechaDiaAct   = _fechasPorDia[_diaNombreActual] || '';
   var _ausentesAct   = _ausenciasPorFecha[_fechaDiaAct]  || new Set();
   var _reemplazosAct = _reemplazosPorFecha[_fechaDiaAct] || {};
@@ -7961,148 +7315,77 @@ function renderHorarios() {
     'Ciencias Sociales':'C. Sociales','Educación Física':'Ed. Física',
     'Lengua Castellana':'Lengua Cast.','Lectura Crítica':'L. Crítica',
     'Constitución y Democracia':'C. y Demo.'};
-  window._ABREVS = _ABREVS; // exponer para computarReestructuracion y otros
 
-  // Bloques del día activo (incluye _cancelada, _shiftado, _conflicto según corresponda)
+  // Sort blocks for the active day by start time
   var bloquesDia = horarios.filter(function(h){ return h.dia === _diaNombreActual; })
     .slice().sort(function(a,b){ return timeToMins(a.hora_inicio) - timeToMins(b.hora_inicio); });
 
-  // Agrupar por sección
-  var porSeccion = {};
+  // Group by hora_inicio
+  var porFranja = {};
   bloquesDia.forEach(function(b) {
-    var k = String(b.seccion_id);
-    if (!porSeccion[k]) porSeccion[k] = [];
-    porSeccion[k].push(b);
+    var k = b.hora_inicio;
+    if (!porFranja[k]) porFranja[k] = [];
+    porFranja[k].push(b);
   });
+  var franjas = Object.keys(porFranja).sort(function(a,b){ return timeToMins(a)-timeToMins(b); });
 
-  // Ordenar secciones por grado → nombre
-  var seccionesOrdenadas = Object.keys(porSeccion).sort(function(a, b) {
-    var sa = secciones.find(function(s){ return String(s.id) === a; });
-    var sb = secciones.find(function(s){ return String(s.id) === b; });
-    var ga = sa ? grados.find(function(g){ return g.id == sa.grado_id; }) : null;
-    var gb = sb ? grados.find(function(g){ return g.id == sb.grado_id; }) : null;
-    var na = (ga ? ga.nombre : '') + '|' + (sa ? sa.nombre : '');
-    var nb = (gb ? gb.nombre : '') + '|' + (sb ? sb.nombre : '');
-    return na.localeCompare(nb);
-  });
-
-  var secGridHtml = '';
-  if (!seccionesOrdenadas.length) {
-    secGridHtml = '<div class="empty-state"><i class="bi bi-clock"></i><p>No hay clases registradas para este día</p></div>';
+  var agendaHtml = '';
+  if (!franjas.length) {
+    agendaHtml = '<div class="empty-state"><i class="bi bi-clock"></i><p>No hay clases registradas para este día</p></div>';
   } else {
-    seccionesOrdenadas.forEach(function(secId) {
-      var bloques  = porSeccion[secId];
-      var sec      = secciones.find(function(s){ return String(s.id) === secId; });
-      var grado    = sec ? grados.find(function(g){ return g.id == sec.grado_id; }) : null;
-      var director = sec && sec.director_id ? DB.get('docentes').find(function(d){ return d.id == sec.director_id; }) : null;
-      var secNom   = sec ? ((grado ? grado.nombre.replace(' Grado','°') : '') + ' ' + sec.nombre) : '—';
-      var dirNom   = director ? 'Dir. ' + director.p_apellido : '';
+    franjas.forEach(function(franja) {
+      var bloques = porFranja[franja];
+      var horaFin = bloques[0].hora_fin || '';
+      var startM  = timeToMins(franja);
+      var endM    = timeToMins(horaFin);
+      var enCurso = _isHoy && nowMins >= startM && nowMins < endM;
+      var pasada  = _isHoy && nowMins >= endM;
 
-      // Contadores de estado
-      var nCancel  = bloques.filter(function(b){ return b._cancelada; }).length;
-      var nConfl   = bloques.filter(function(b){ return b._conflicto; }).length;
-      var nShift   = bloques.filter(function(b){ return b._shiftado; }).length;
+      agendaHtml += '<div class="hor-franja' + (enCurso ? ' hor-franja-activa' : '') + (pasada ? ' hor-franja-pasada' : '') + '">'
+        + '<div class="hor-franja-hora">'
+        + '<span class="hor-hora-ini">' + franja + '</span>'
+        + '<span class="hor-hora-sep">↓</span>'
+        + '<span class="hor-hora-fin">' + horaFin + '</span>'
+        + (enCurso ? '<span class="hor-en-curso-dot"></span>' : '')
+        + '</div>'
+        + '<div class="hor-cards-row">';
 
-      var badge = '';
-      if (nConfl) {
-        badge = '<span class="hor-sec-badge hor-badge-conflict">' + nConfl + ' conflicto' + (nConfl>1?'s':'') + '</span>';
-      } else if (nCancel) {
-        badge = '<span class="hor-sec-badge hor-badge-cancel" style="cursor:pointer" title="Ver clase cancelada"'
-          + ' onclick="verCanceladasSeccion(\'' + secId + '\',\'' + _fechaDiaAct + '\')">'
-          + '<i class="bi bi-x-circle-fill me-1" style="font-size:9px"></i>'
-          + nCancel + ' cancelada' + (nCancel>1?'s':'') + '</span>';
-      } else {
-        badge = '<span class="hor-sec-badge hor-badge-ok">Sin cambios</span>';
-      }
-
-      var bloquesHtml = '';
       bloques.forEach(function(b) {
-        var docD    = DB.get('docentes').find(function(x){ return x.id == b.docente_id; });
-        var mat     = _ABREVS[b.materia] || b.materia || 'Sin materia';
-        var docNom  = docD ? docD.p_apellido : '—';
-        var ausente = _ausentesAct.has(String(b.docente_id));
-        var reempId = ausente ? _reemplazosAct[String(b.docente_id)] : null;
-        var reempNom= reempId ? nombreDocente(reempId) : '';
-        var ahora   = _isHoy && !b._cancelada && nowMins >= timeToMins(b.hora_inicio) && nowMins < timeToMins(b.hora_fin);
-
-        var tipo = b._cancelada ? 'cancel'
-                 : b._conflicto ? 'conflict'
-                 : b._shiftado  ? 'shift'
-                 : ausente      ? 'ausente'
-                 : 'normal';
-
-        var dotClr = { cancel:'#EF4444', conflict:'#F59E0B', shift:'#10B981', ausente:'#F97316', normal:'#6366F1' };
-        var matClr = { cancel:'#991B1B', conflict:'#92400E', shift:'#065F46', ausente:'#C2410C', normal:'#3730A3' };
-
-        var chipTxt = { cancel:'Cancelada', conflict:'Sin cambio', shift:'Adelantada', ausente:'', normal:'' };
-
-        // Línea de sub-info (docente + notas de shift/conflicto/reemplazo)
-        var subInfo;
-        if (ausente && !b._cancelada) {
-          subInfo = reempNom
-            ? '<span style="text-decoration:line-through;opacity:.55">' + docNom + '</span> &rarr; <span style="color:#16A34A;font-weight:700">' + reempNom + '</span>'
-            : '<span style="text-decoration:line-through;opacity:.55">' + docNom + '</span> <span style="color:#EF4444;font-size:10px">Sin reemplazo</span>';
-        } else {
-          subInfo = docNom;
-        }
-        if (b._shiftado && b._hora_inicio_orig) {
-          subInfo += ' &nbsp;<span style="color:#059669;font-size:10px">&uarr; desde ' + b._hora_inicio_orig + '</span>';
-        }
-        if (b._conflicto) {
-          subInfo += ' &nbsp;<span style="color:#D97706;font-size:10px">&#9888; docente ocupado</span>';
-        }
-
-        var matDecor = (b._cancelada || (ausente && !b._cancelada)) ? 'text-decoration:line-through;' : '';
-
-        var clickFn = b._fromAsig
+        var sec    = secciones.find(function(s){ return s.id == b.seccion_id; });
+        var grado  = sec ? grados.find(function(g){ return g.id == sec.grado_id; }) : null;
+        var docD   = DB.get('docentes').find(function(x){ return x.id == b.docente_id; });
+        var mat    = _ABREVS[b.materia] || b.materia || 'Sin materia';
+        var cls    = materiaBlockClass(b.materia || '');
+        var secLbl = sec ? (grado ? grado.nombre.replace(' Grado','°') : '') + ' ' + sec.nombre : '—';
+        var docNom = docD ? [docD.p_nombre, docD.p_apellido].filter(Boolean).join(' ') : '—';
+        var ausente  = _ausentesAct.has(String(b.docente_id));
+        var reempId  = ausente ? _reemplazosAct[String(b.docente_id)] : null;
+        var reempNom = reempId ? nombreDocente(reempId) : '';
+        var clickFn  = b._fromAsig
           ? 'verClaseAsig(\'' + b.asignacion_id + '\',\'' + b.seccion_id + '\',\'' + b.dia + '\',\'' + (b.hora_inicio||'') + '\',\'' + (b.hora_fin||'') + '\',\'' + _fechaDiaAct + '\')'
           : 'abrirHorario(' + b.id + ',\'' + _fechaDiaAct + '\')';
 
-        var draggable = tipo !== 'cancel';
-        var dataAttrs = ' data-asig-id="' + (b.asignacion_id||'') + '"'
-          + ' data-hor-id="' + (b.id||'') + '"'
-          + ' data-from-asig="' + (b._fromAsig ? 1 : 0) + '"'
-          + ' data-sec-id="' + (b.seccion_id||'') + '"'
-          + ' data-dia="' + (b.dia||'') + '"'
-          + ' data-hi="' + (b.hora_inicio||'') + '"'
-          + ' data-hf="' + (b.hora_fin||'') + '"'
-          + ' data-docente-id="' + (b.docente_id||'') + '"'
-          + ' data-materia="' + (b.materia||'').replace(/"/g,'&quot;') + '"'
-          + ' data-cancelada="' + (b._cancelada ? 1 : 0) + '"'
-          + ' data-fecha="' + _fechaDiaAct + '"';
-
-        bloquesHtml += '<div class="hor-bloque-wrap">'
-          + (draggable ? '<div class="hor-bloque-drag-bg"><i class="bi bi-x-circle-fill drag-icon"></i><span class="drag-lbl">Acción</span></div>' : '')
-          + '<div class="hor-bloque hor-bloque-' + tipo + (ahora ? ' hor-bloque-ahora' : '') + '" onclick="' + clickFn + '"' + dataAttrs + '>'
-          + '<div class="hor-bloque-dot" style="background:' + dotClr[tipo] + '"></div>'
-          + '<div class="hor-bloque-hora">' + b.hora_inicio + '</div>'
-          + '<div style="flex:1;min-width:0;">'
-          + '<div style="font-size:12px;font-weight:700;color:' + matClr[tipo] + ';' + matDecor + 'white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + mat + '</div>'
-          + '<div style="font-size:10px;color:#64748B;margin-top:1px">' + subInfo + '</div>'
+        agendaHtml += '<div class="hor-card ' + cls + (ausente ? ' hor-card-ausente' : '') + '" onclick="' + clickFn + '">'
+          + '<div class="hor-card-top">'
+          + '<span class="hor-card-materia">' + (ausente ? '⚠ ' : '') + mat + '</span>'
+          + '<span class="hor-card-grupo">' + secLbl + '</span>'
           + '</div>'
-          + (chipTxt[tipo] ? '<span class="hor-bloque-chip chip-' + tipo + '">' + chipTxt[tipo] + '</span>' : '')
+          + '<div class="hor-card-docente">'
+          + '<i class="bi bi-person-fill" style="font-size:11px;opacity:.6;flex-shrink:0"></i> '
+          + (ausente
+            ? '<span style="text-decoration:line-through;opacity:.5">' + docNom + '</span>'
+              + (reempNom ? ' <span style="color:#16A34A;font-weight:700">↔ ' + reempNom + '</span>' : ' <span style="color:#EF4444">Sin reemplazo</span>')
+            : docNom)
           + '</div>'
           + '</div>';
       });
 
-      secGridHtml += '<div class="hor-sec-card">'
-        + '<div class="hor-sec-head">'
-        + '<div><div class="hor-sec-nombre">' + secNom + '</div>' + (dirNom ? '<div class="hor-sec-dir">' + dirNom + '</div>' : '') + '</div>'
-        + badge
-        + '</div>'
-        + '<div class="hor-sec-bloques">' + bloquesHtml + '</div>'
-        + '</div>';
+      agendaHtml += '</div></div>';
     });
   }
 
   document.getElementById('horario-visual-container').innerHTML =
-    '<div class="hor-sec-grid">' + secGridHtml + '</div>';
-
-  // Guardar bloques del día para la reestructuración
-  window._bloquesDia = bloquesDia;
-
-  // Activar swipe-to-action en cada card
-  attachSwipeHandlers();
+    '<div class="hor-agenda">' + agendaHtml + '</div>';
 
   // Available teachers panel
   renderDocentesDisponibles(filtroDia, horarios, _fechasPorDia);
@@ -8124,347 +7407,6 @@ function renderHorarios() {
       + '<button class="btn btn-sm btn-outline-danger" onclick="eliminarHorario(' + h.id + ')"><i class="bi bi-trash-fill"></i></button>'
       + '</td></tr>';
   }).join('') : emptyRow(7, 'No hay horarios registrados');
-}
-
-// ══════════════════════════════════════════════════════════════════
-//  SWIPE-TO-ACTION — Horario cards
-// ══════════════════════════════════════════════════════════════════
-
-var _datosDragClase = null;
-
-function attachSwipeHandlers() {
-  document.querySelectorAll('.hor-bloque-wrap').forEach(function(wrap) {
-    var inner = wrap.querySelector('.hor-bloque');
-    var bg    = wrap.querySelector('.hor-bloque-drag-bg');
-    if (!inner) return;
-    if (inner.getAttribute('data-cancelada') === '1') return;
-
-    var startX, startY, isDragging = false, triggered = false;
-    var THRESHOLD = 80;
-
-    function getCtx() {
-      return {
-        asigId:    inner.getAttribute('data-asig-id')    || '',
-        horId:     inner.getAttribute('data-hor-id')     || '',
-        fromAsig:  inner.getAttribute('data-from-asig')  === '1',
-        secId:     inner.getAttribute('data-sec-id')     || '',
-        dia:       inner.getAttribute('data-dia')        || '',
-        hi:        inner.getAttribute('data-hi')         || '',
-        hf:        inner.getAttribute('data-hf')         || '',
-        docenteId: inner.getAttribute('data-docente-id') || '',
-        materia:   inner.getAttribute('data-materia')    || '',
-        fecha:     inner.getAttribute('data-fecha')      || ''
-      };
-    }
-
-    function onStart(x, y) {
-      startX = x; startY = y; isDragging = false; triggered = false;
-      inner.style.transition = 'none';
-      if (bg) bg.style.transition = 'none';
-    }
-
-    function onMove(x, y) {
-      var dx = startX - x;
-      var dy = Math.abs(startY - y);
-      if (!isDragging) {
-        if (Math.abs(dx) < 8) return;
-        if (dy > Math.abs(dx)) return; // scroll vertical → ignorar
-        isDragging = true;
-      }
-      dx = Math.max(0, Math.min(dx, 120));
-      inner.style.transform = 'translateX(-' + dx + 'px)';
-      if (bg) bg.style.opacity = Math.min(dx / THRESHOLD, 1);
-    }
-
-    function onEnd(x) {
-      if (!isDragging) return;
-      var dx = startX - x;
-      inner.style.transition = 'transform .22s cubic-bezier(.4,0,.2,1)';
-      if (bg) bg.style.transition = 'opacity .22s';
-      if (dx > THRESHOLD && !triggered) {
-        triggered = true;
-        inner.style.transform = 'translateX(-110%)';
-        if (bg) bg.style.opacity = '1';
-        var ctx = getCtx();
-        setTimeout(function() {
-          inner.style.transition = 'none';
-          inner.style.transform  = '';
-          if (bg) { bg.style.transition = 'none'; bg.style.opacity = '0'; }
-          abrirAccionClase(ctx);
-        }, 230);
-      } else {
-        inner.style.transform = '';
-        if (bg) bg.style.opacity = '0';
-      }
-      isDragging = false;
-    }
-
-    // Touch
-    wrap.addEventListener('touchstart', function(e) {
-      onStart(e.touches[0].clientX, e.touches[0].clientY);
-    }, { passive: true });
-    wrap.addEventListener('touchmove', function(e) {
-      onMove(e.touches[0].clientX, e.touches[0].clientY);
-    }, { passive: true });
-    wrap.addEventListener('touchend', function(e) {
-      onEnd(e.changedTouches[0].clientX);
-    });
-
-    // Mouse
-    wrap.addEventListener('mousedown', function(e) {
-      if (e.button !== 0) return;
-      onStart(e.clientX, e.clientY);
-      var mmv = function(e) { onMove(e.clientX, e.clientY); };
-      var mup = function(e) {
-        onEnd(e.clientX);
-        document.removeEventListener('mousemove', mmv);
-        document.removeEventListener('mouseup', mup);
-      };
-      document.addEventListener('mousemove', mmv);
-      document.addEventListener('mouseup', mup);
-    });
-
-    // Suprimir click si fue un drag
-    inner.addEventListener('click', function(e) {
-      if (triggered || isDragging) { e.stopImmediatePropagation(); e.preventDefault(); }
-    }, true);
-  });
-}
-
-function abrirAccionClase(datos) {
-  _datosDragClase = datos;
-
-  // Preparar _claseContexto para que cancelarClaseHoy() funcione
-  _claseContexto = {
-    asigId:    datos.asigId,
-    seccionId: datos.secId,
-    horaInicio:datos.hi,
-    horaFin:   datos.hf,
-    fechaDia:  datos.fecha,
-    dia:       datos.dia,
-    materia:   datos.materia
-  };
-
-  var sec    = DB.get('secciones').find(function(s){ return String(s.id) === String(datos.secId); });
-  var secNom = sec ? (nombreGrado(sec.grado_id) + ' — ' + sec.nombre) : '—';
-  var docNom = nombreDocente(datos.docenteId);
-
-  var el = document.getElementById('accion-clase-info');
-  if (el) el.textContent = datos.materia + ' · ' + secNom + ' · ' + datos.hi + '–' + datos.hf + ' · ' + docNom;
-
-  bootstrap.Modal.getOrCreateInstance(document.getElementById('modalAccionClase')).show();
-}
-
-function accionCancelarClase() {
-  bootstrap.Modal.getInstance(document.getElementById('modalAccionClase'))?.hide();
-  cancelarClaseHoy();
-}
-
-function accionAsignarCubriente() {
-  bootstrap.Modal.getInstance(document.getElementById('modalAccionClase'))?.hide();
-  var d = _datosDragClase;
-  if (!d) return;
-  if (d.fromAsig) {
-    verClaseAsig(d.asigId, d.secId, d.dia, d.hi, d.hf, d.fecha);
-  } else {
-    abrirHorario(d.horId, d.fecha);
-  }
-}
-
-// Docentes activos sin choque de horario en [hi, hf) del día `dia`, excluyendo
-// la propia sección (seccionIdExcl) y opcionalmente un docente (docenteIdExcl).
-// Usa el horario CRUDO del día (antes de cancelaciones) como fuente de verdad.
-function docentesLibresEnSlot(hi, hf, dia, seccionIdExcl, docenteIdExcl) {
-  var crudo = window._horariosCrudoDia || [];
-  var hiM = timeToMins(hi), hfM = timeToMins(hf);
-  var ocupados = {};
-  crudo.forEach(function(b) {
-    if (b.dia !== dia) return;
-    if (String(b.seccion_id) === String(seccionIdExcl)) return;
-    var bHi = timeToMins(b.hora_inicio), bHf = timeToMins(b.hora_fin);
-    if (hiM < bHf && hfM > bHi) ocupados[String(b.docente_id)] = true;
-  });
-  return DB.get('docentes').filter(function(d) {
-    return d.estado === 'Activo' && String(d.id) !== String(docenteIdExcl) && !ocupados[String(d.id)];
-  }).slice(0, 3);
-}
-
-// Calcula el horario resultante de cancelar el bloque descrito en `ctx` (seccionId +
-// horaInicio) reutilizando la MISMA función que aplica el corrimiento real
-// (aplicarCancelacionesYShift), para que la vista previa siempre coincida con lo
-// que efectivamente queda al confirmar.
-function computarReestructuracion(seccionId, ctx) {
-  var crudo = window._horariosCrudoDia || [];
-  var existentes = (DB.get('cancelaciones') || []).filter(function(c) { return c.fecha === ctx.fechaDia; });
-  var yaExiste = existentes.some(function(c) {
-    return String(c.seccion_id) === String(seccionId) && c.hora_inicio === ctx.horaInicio;
-  });
-  var todasCancel = yaExiste ? existentes : existentes.concat([{
-    seccion_id: seccionId, hora_inicio: ctx.horaInicio
-  }]);
-  var resultado = aplicarCancelacionesYShift(crudo, todasCancel, ctx.dia);
-  return resultado.filter(function(b) {
-    return String(b.seccion_id) === String(seccionId) && b.dia === ctx.dia;
-  }).sort(function(a, b) { return timeToMins(a.hora_inicio) - timeToMins(b.hora_inicio); });
-}
-
-// Muestra la vista previa visual del horario del grupo resultante de cancelar la
-// clase guardada en _claseContexto. No escribe nada todavía — solo al confirmar
-// (confirmarReestructuracion) se persiste la cancelación.
-function mostrarPreviewCancelacion() {
-  var ctx = _claseContexto;
-  if (!ctx || !ctx.fechaDia) { toast('No hay información de la clase.', false); return; }
-
-  var reestr = computarReestructuracion(ctx.seccionId, ctx);
-  var sec    = DB.get('secciones').find(function(s) { return String(s.id) === String(ctx.seccionId); });
-  var secNom = sec ? (nombreGrado(sec.grado_id) + ' — ' + sec.nombre) : '—';
-
-  var subEl = document.getElementById('reestr-subtitulo');
-  if (subEl) subEl.textContent = secNom + ' · ' + (ctx.materia || '') + ' ' + ctx.horaInicio + '–' + ctx.horaFin + ' cancelada';
-
-  var html = '';
-
-  if (!reestr.length) {
-    html = '<p class="text-muted small text-center mt-3">No se encontró la clase en el horario de hoy.</p>';
-  } else {
-    var nConflictos = reestr.filter(function(b) { return b._conflicto; }).length;
-    var nShift      = reestr.filter(function(b) { return b._shiftado && !b._cancelada; }).length;
-    html += '<div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;padding:9px 12px;margin-bottom:12px;font-size:11px;color:#166534">'
-      + '<i class="bi bi-stars me-1"></i><strong>Horario del grupo ese día</strong>'
-      + (nShift      ? ' · ' + nShift + ' clase' + (nShift>1?'s':'') + ' adelantada' + (nShift>1?'s':'') : '')
-      + (nConflictos ? ' · ' + nConflictos + ' con docente ocupado' : '')
-      + '</div>';
-
-    html += '<div style="font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Horario resultante</div>';
-
-    reestr.forEach(function(b, idx) {
-      var doc     = DB.get('docentes').find(function(x) { return x.id == b.docente_id; });
-      var docFull = doc ? [doc.p_nombre, doc.s_nombre, doc.p_apellido, doc.s_apellido].filter(Boolean).join(' ') : '—';
-      var abrev   = (window._ABREVS || {})[b.materia] || b.materia;
-
-      var sBg, sClr, tagTxt;
-      if (b._cancelada)      { sBg = '#FEF2F2'; sClr = '#DC2626'; tagTxt = 'CANCELADA'; }
-      else if (b._conflicto) { sBg = '#FFFBEB'; sClr = '#D97706'; tagTxt = 'Docente ocupado'; }
-      else if (b._shiftado)  { sBg = '#F0FDF4'; sClr = '#16A34A'; tagTxt = 'Adelantada'; }
-      else                   { sBg = '#EEF2FF'; sClr = '#6366F1'; tagTxt = ''; }
-
-      html += '<div style="background:' + sBg + ';border-radius:10px;padding:10px 12px;margin-bottom:8px">'
-        + '<div style="display:flex;align-items:flex-start;gap:10px">'
-        + '<div style="width:22px;height:22px;border-radius:50%;background:' + sClr + '22;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:800;color:' + sClr + '">' + (idx+1) + '</div>'
-        + '<div style="flex:1;min-width:0">'
-        + '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">'
-        + '<span style="font-size:12px;font-weight:800;color:#0F172A;' + (b._cancelada ? 'text-decoration:line-through;opacity:.6' : '') + '">' + abrev + '</span>'
-        + (tagTxt ? '<span style="font-size:9px;font-weight:700;background:' + sClr + '22;color:' + sClr + ';padding:2px 6px;border-radius:20px;border:1px solid ' + sClr + '44">' + tagTxt + '</span>' : '')
-        + '</div>'
-        + '<div style="font-size:10px;color:#64748B;margin-top:2px">' + docFull + '</div>'
-        + '<div style="display:flex;align-items:center;gap:5px;margin-top:4px">';
-
-      if (b._shiftado && b._hora_inicio_orig) {
-        html += '<span style="font-size:10px;color:#94A3B8;text-decoration:line-through">' + b._hora_inicio_orig + '</span>'
-          + '<i class="bi bi-arrow-right" style="color:' + sClr + ';font-size:10px"></i>';
-      }
-      html += '<span style="font-size:12px;font-weight:800;color:' + sClr + '">' + b.hora_inicio + '–' + b.hora_fin + '</span>';
-      html += '</div>';
-
-      if (b._conflicto) {
-        var disp = docentesLibresEnSlot(b.hora_inicio, b.hora_fin, ctx.dia, b.seccion_id, b.docente_id);
-        if (disp.length) {
-          html += '<div style="margin-top:7px;padding-top:7px;border-top:1px dashed #FDE68A">'
-            + '<div style="font-size:9px;font-weight:700;color:#92400E;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px"><i class="bi bi-person-check me-1"></i>Pueden cubrir este slot:</div>'
-            + disp.map(function(d2) {
-                var n2 = [d2.p_nombre, d2.s_nombre, d2.p_apellido, d2.s_apellido].filter(Boolean).join(' ');
-                return '<span style="display:inline-block;font-size:10px;background:#fff;border:1px solid #FDE68A;border-radius:6px;padding:2px 8px;margin-right:4px;margin-bottom:2px">' + n2 + '</span>';
-              }).join('')
-            + '</div>';
-        }
-      }
-
-      html += '</div></div></div>';
-    });
-  }
-
-  document.getElementById('reestr-content').innerHTML = html;
-  bootstrap.Modal.getOrCreateInstance(document.getElementById('modalReestr')).show();
-}
-
-function accionReestructurar() {
-  bootstrap.Modal.getInstance(document.getElementById('modalAccionClase'))?.hide();
-  mostrarPreviewCancelacion();
-}
-
-async function confirmarReestructuracion() {
-  var ctx = _claseContexto;
-  if (!ctx || !ctx.fechaDia) { toast('No hay información de la clase.', false); return; }
-  var motivo = prompt('Motivo de cancelación (opcional — ej: docente ausente, paro, lluvia):') || '';
-  bootstrap.Modal.getInstance(document.getElementById('modalReestr'))?.hide();
-  await ejecutarCancelacion(ctx, motivo);
-}
-
-function filtrarModalDocentes(q) {
-  q = (q || '').toLowerCase().trim();
-  var noResult = true;
-  document.querySelectorAll('#doc-modal-content .disp-card').forEach(function(el) {
-    var nombre = (el.getAttribute('data-nombre') || '').toLowerCase();
-    var visible = !q || nombre.includes(q);
-    el.style.display = visible ? '' : 'none';
-    if (visible) noResult = false;
-  });
-  var noEl = document.getElementById('doc-modal-no-result');
-  if (!noEl) {
-    noEl = document.createElement('p');
-    noEl.id = 'doc-modal-no-result';
-    noEl.className = 'text-muted small text-center mt-3';
-    noEl.textContent = 'No se encontraron docentes.';
-    var cont = document.getElementById('doc-modal-content');
-    if (cont) cont.appendChild(noEl);
-  }
-  noEl.style.display = (q && noResult) ? '' : 'none';
-}
-
-function verDocentesDisponibles(tipo) {
-  tipo = tipo || 'clase';
-
-  // Subtítulo con día y fecha actual
-  var sub = document.getElementById('doc-estado-subtitulo');
-  if (sub) {
-    var nombreEl = document.getElementById('dia-nombre');
-    var fechaEl  = document.getElementById('dia-fecha');
-    sub.textContent = (nombreEl ? nombreEl.textContent : '') + (fechaEl ? ' · ' + fechaEl.textContent : '');
-  }
-
-  // Título e ícono según tipo
-  var tituloEl = document.getElementById('doc-modal-titulo');
-  var iconoEl  = document.getElementById('doc-modal-icon');
-  var headerEl = document.getElementById('doc-modal-header');
-  var contentEl= document.getElementById('doc-modal-content');
-
-  if (tipo === 'disponibles') {
-    if (tituloEl) tituloEl.textContent = 'Docentes Disponibles';
-    if (iconoEl)  { iconoEl.className = 'bi bi-person-check-fill me-2'; }
-    if (headerEl) headerEl.style.background = '#16A34A';
-    if (contentEl) contentEl.innerHTML = window._docHtmlDisponibles || '<p class="text-muted small text-center mt-3 p-3">Aún no hay datos. Espera a que el horario cargue.</p>';
-  } else if (tipo === 'cancelar') {
-    if (tituloEl) tituloEl.textContent = 'Cancelar Clase';
-    if (iconoEl)  { iconoEl.className = 'bi bi-x-circle-fill me-2'; }
-    if (headerEl) headerEl.style.background = '#DC2626';
-    var htmlCancel = window._docHtmlClase
-      ? '<div style="background:#FEF2F2;border-radius:8px;padding:8px 10px;margin-bottom:10px;font-size:11px;color:#991B1B;display:flex;align-items:center;gap:6px">'
-        + '<i class="bi bi-info-circle-fill"></i>Selecciona un docente para ver y cancelar su clase del día.</div>'
-        + window._docHtmlClase
-      : '<p class="text-muted small text-center mt-3 p-3">Aún no hay datos. Espera a que el horario cargue.</p>';
-    if (contentEl) contentEl.innerHTML = htmlCancel;
-  } else {
-    if (tituloEl) tituloEl.textContent = 'Docentes en Clase';
-    if (iconoEl)  { iconoEl.className = 'bi bi-person-video2 me-2'; }
-    if (headerEl) headerEl.style.background = '#1D4ED8';
-    if (contentEl) contentEl.innerHTML = window._docHtmlClase || '<p class="text-muted small text-center mt-3 p-3">Aún no hay datos. Espera a que el horario cargue.</p>';
-  }
-
-  // Limpiar buscador al abrir
-  var searchEl = document.getElementById('doc-modal-search');
-  if (searchEl) { searchEl.value = ''; filtrarModalDocentes(''); }
-
-  bootstrap.Modal.getOrCreateInstance(document.getElementById('modalDocentesEstado')).show();
 }
 
 function renderDocentesDisponibles(dia, horariosTodos, fechasPorDia) {
@@ -8528,14 +7470,13 @@ function renderDocentesDisponibles(dia, horariosTodos, fechasPorDia) {
     var bgClr   = { disponible:'#F0FDF4', clase:'#EFF6FF', ahora:'#F5F3FF', permiso:'#FFFBEB' };
     var c = colors[cat], ic = icons[cat], bg = bgClr[cat];
     var clickable = cat !== 'permiso';
-    var fullName = [d.p_nombre, d.s_nombre, d.p_apellido, d.s_apellido].filter(Boolean).join(' ');
-    return '<div class="disp-card" data-nombre="'+fullName.toLowerCase()+'" onclick="' + (clickable ? 'filtrarPorDocente('+d.id+')' : '') + '"'
+    return '<div class="disp-card" onclick="' + (clickable ? 'filtrarPorDocente('+d.id+')' : '') + '"'
       + ' style="background:'+bg+';border-radius:8px;margin-bottom:4px;padding:7px 9px;cursor:'+(clickable?'pointer':'default')+';display:flex;align-items:center;gap:8px">'
-      + '<div style="width:32px;height:32px;border-radius:50%;background:'+c+'22;display:flex;align-items:center;justify-content:center;flex-shrink:0">'
+      + '<div style="width:30px;height:30px;border-radius:50%;background:'+c+'22;display:flex;align-items:center;justify-content:center;flex-shrink:0">'
       + '<i class="bi '+ic+'" style="color:'+c+';font-size:13px"></i></div>'
       + '<div style="min-width:0;flex:1">'
-      + '<div style="font-size:12px;font-weight:700;color:#0F172A;overflow:hidden;text-overflow:ellipsis">'
-      + fullName + '</div>'
+      + '<div style="font-size:12px;font-weight:700;color:#0F172A;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'
+      + d.p_nombre + ' ' + d.p_apellido + '</div>'
       + (extra ? '<div style="font-size:10px;color:#64748B;margin-top:1px">'+extra+'</div>' : '')
       + '</div>'
       + (badge ? '<span style="font-size:9px;font-weight:700;background:'+c+';color:#fff;padding:2px 6px;border-radius:20px;flex-shrink:0">'+badge+'</span>' : '')
@@ -8559,70 +7500,56 @@ function renderDocentesDisponibles(dia, horariosTodos, fechasPorDia) {
         + '<span' + (esHoy ? ' style="color:#7C3AED;font-weight:700"' : '') + '><i class="bi bi-clock me-1"></i>' + horaLabel + (esHoy ? ' · AHORA' : '') + '</span>'
         + '</div>';
 
-  // ── HTML BLOQUE "EN CLASES" ──────────────────────────────────────────
-  var htmlClase = '';
-  htmlClase += '<div style="background:#F8FAFC;border-radius:8px;padding:7px 10px;margin-bottom:10px;font-size:11px;color:#475569;display:flex;align-items:center;justify-content:space-between">'
-    + '<span><i class="bi bi-calendar3 me-1"></i>' + (dia||'Hoy') + ' ' + (function(){ var meses=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic']; var dF=new Date(fechaDia+'T12:00:00'); return dF.getDate()+' '+meses[dF.getMonth()]; })() + '</span>'
-    + '<span' + (esHoy ? ' style="color:#7C3AED;font-weight:700"' : '') + '><i class="bi bi-clock me-1"></i>' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0') + (esHoy ? ' · AHORA' : '') + '</span>'
-    + '</div>';
-
+  // ── EN CLASE AHORA (solo si es hoy) ─────────────────────────────────
   if (esHoy && enClaseAhora.size > 0) {
-    htmlClase += '<p style="font-size:10px;font-weight:700;margin:0 0 4px;text-transform:uppercase;letter-spacing:.5px;color:#7C3AED">'
-      + '🟣 En clase ahora (' + enClaseAhora.size + ')</p>';
+    html += '<p style="font-size:10px;font-weight:700;margin:0 0 4px;text-transform:uppercase;letter-spacing:.5px;color:#7C3AED">'
+          + '🟣 En clase ahora (' + enClaseAhora.size + ')</p>';
     conClase.filter(function(d){ return enClaseAhora.has(String(d.id)); }).forEach(function(d) {
       var claseAhora = docenteHorarios[String(d.id)].find(function(h){
         return ahoraMin >= timeToMins(h.hora_inicio) && ahoraMin < timeToMins(h.hora_fin);
       });
-      htmlClase += card('ahora', d, claseAhora ? claseAhora.materia + ' · ' + fmtHora(claseAhora) : '', 'AHORA');
+      html += card('ahora', d, claseAhora ? claseAhora.materia + ' · ' + fmtHora(claseAhora) : '', 'AHORA');
     });
   }
 
+  // ── CON CLASE (no en este momento) ──────────────────────────────────
   var conClaseNoAhora = conClase.filter(function(d){ return !enClaseAhora.has(String(d.id)); });
   if (conClaseNoAhora.length) {
-    htmlClase += '<p style="font-size:10px;font-weight:700;margin:8px 0 4px;text-transform:uppercase;letter-spacing:.5px;color:#2563EB">'
-      + '📚 Con clase ' + (dia ? 'el ' + dia : '') + ' (' + conClaseNoAhora.length + ')</p>';
+    var claseLabel = dia ? 'Con clase ' + secLabel(dia) : 'Con clase asignada';
+    html += '<p style="font-size:10px;font-weight:700;margin:8px 0 4px;text-transform:uppercase;letter-spacing:.5px;color:#2563EB">'
+          + '📚 ' + claseLabel + ' (' + conClaseNoAhora.length + ')</p>';
     conClaseNoAhora.forEach(function(d) {
       var clases = docenteHorarios[String(d.id)] || [];
       var _mats = [...new Set(clases.map(function(h){ return h.materia||''; }).filter(Boolean))].slice(0,3).join(' · ');
-      htmlClase += card('clase', d, _mats || clases.map(fmtHora).join(' · '), '');
+      var extra = _mats || clases.map(fmtHora).join(' · ');
+      html += card('clase', d, extra, '');
     });
   }
-  if (!htmlClase.includes('disp-card')) {
-    htmlClase += '<p class="text-muted small text-center mt-3">No hay docentes en clase este día.</p>';
-  }
 
-  // ── HTML BLOQUE "DISPONIBLES" ────────────────────────────────────────
-  var htmlDisp = '';
-  if (disponibles.length) {
-    htmlDisp += '<p style="font-size:10px;font-weight:700;margin:0 0 4px;text-transform:uppercase;letter-spacing:.5px;color:#16a34a">'
-      + '✅ Disponibles (' + disponibles.length + ')</p>';
-    disponibles.forEach(function(d) { htmlDisp += card('disponible', d, '', ''); });
-  }
+  // ── CON PERMISO / NOVEDAD ────────────────────────────────────────────
   if (conPermiso.length) {
-    htmlDisp += '<p style="font-size:10px;font-weight:700;margin:8px 0 4px;text-transform:uppercase;letter-spacing:.5px;color:#D97706">'
-      + '⚠️ Con novedad (' + conPermiso.length + ')</p>';
+    html += '<p style="font-size:10px;font-weight:700;margin:8px 0 4px;text-transform:uppercase;letter-spacing:.5px;color:#D97706">'
+          + '⚠️ Con novedad (' + conPermiso.length + ')</p>';
     conPermiso.forEach(function(d) {
       var p = permisos.find(function(pp){ return String(pp.docente_id) === String(d.id); });
-      htmlDisp += card('permiso', d, p ? p.tipo : 'Permiso aprobado', 'PERMISO');
+      var extra = p ? p.tipo : 'Permiso aprobado';
+      html += card('permiso', d, extra, 'PERMISO');
     });
   }
-  if (!htmlDisp.includes('disp-card')) {
-    htmlDisp += '<p class="text-muted small text-center mt-3">No hay información de disponibilidad.</p>';
+
+  // ── DISPONIBLES ──────────────────────────────────────────────────────
+  if (disponibles.length) {
+    html += '<p style="font-size:10px;font-weight:700;margin:8px 0 4px;text-transform:uppercase;letter-spacing:.5px;color:#16a34a">'
+          + '✅ Disponibles (' + disponibles.length + ')</p>';
+    disponibles.forEach(function(d) {
+      html += card('disponible', d, '', '');
+    });
   }
 
-  // Guardar en variables globales para el modal
-  window._docHtmlClase       = htmlClase;
-  window._docHtmlDisponibles = htmlDisp;
-  window._docCountClase      = conClase.length;
-  window._docCountDisponibles= disponibles.length;
+  if (!html || html.indexOf('disp-card') === -1) {
+    html += '<p class="text-muted small text-center mt-3">No hay docentes activos registrados.</p>';
+  }
 
-  // Actualizar etiquetas de los botones con contadores
-  var btnClaseTxt = document.getElementById('hor-doc-clase-txt');
-  var btnDispTxt  = document.getElementById('hor-doc-disp-txt');
-  if (btnClaseTxt) btnClaseTxt.textContent = 'En clases' + (conClase.length ? ' (' + conClase.length + ')' : '');
-  if (btnDispTxt)  btnDispTxt.textContent  = 'Disponibles' + (disponibles.length ? ' (' + disponibles.length + ')' : '');
-
-  html = htmlClase + htmlDisp; // fallback (el div está oculto)
   document.getElementById('docentes-disponibles').innerHTML = html;
 }
 
@@ -8737,17 +7664,6 @@ function abrirHorario(id, fechaDia) {
     }
   }
 
-  // Docentes disponibles para cubrir
-  var yaCancelada = (DB.get('cancelaciones') || []).find(function(c) {
-    return c.fecha === fechaDia && String(c.seccion_id) === String(h.seccion_id) && c.hora_inicio === h.hora_inicio;
-  });
-  if (!yaCancelada) {
-    poblarDocentesDisponibles(h.seccion_id, h.hora_inicio, h.hora_fin, h.dia, fechaDia, h.docente_id);
-  } else {
-    var dispEl = document.getElementById('oc-clase-disponibles');
-    if (dispEl) dispEl.style.display = 'none';
-  }
-
   bootstrap.Modal.getOrCreateInstance(document.getElementById('modalClase')).show();
 }
 
@@ -8832,35 +7748,6 @@ function verClaseAsig(asigId, seccionId, dia, horaInicio, horaFin, fechaDia) {
     }
   }
 
-  // Guardar contexto para el botón de cancelación
-  _claseContexto = { asigId: asigId, seccionId: seccionId, horaInicio: horaInicio, horaFin: horaFin, fechaDia: fechaDia, dia: dia, materia: asig ? asig.materia : '' };
-  var yaCancelada = (DB.get('cancelaciones') || []).find(function(c) {
-    return c.fecha === fechaDia && String(c.seccion_id) === String(seccionId) && c.hora_inicio === horaInicio;
-  });
-  var btnCan = document.getElementById('btn-cancelar-clase');
-  if (btnCan) {
-    if (yaCancelada) {
-      btnCan.innerHTML = '<i class="bi bi-arrow-counterclockwise me-1"></i>Restaurar clase';
-      btnCan.style.borderColor = '#16A34A'; btnCan.style.color = '#16A34A';
-      btnCan.onmouseover = function(){ this.style.background='#F0FDF4'; };
-      btnCan.onmouseout  = function(){ this.style.background='#FFF'; };
-    } else {
-      btnCan.innerHTML = '<i class="bi bi-x-circle me-1"></i>Cancelar clase hoy';
-      btnCan.style.borderColor = '#EF4444'; btnCan.style.color = '#EF4444';
-      btnCan.onmouseover = function(){ this.style.background='#FEF2F2'; };
-      btnCan.onmouseout  = function(){ this.style.background='#FFF'; };
-    }
-    btnCan.style.display = fechaDia ? '' : 'none';
-  }
-
-  // Docentes disponibles para cubrir (solo si la clase no está ya cancelada)
-  if (!yaCancelada) {
-    poblarDocentesDisponibles(seccionId, horaInicio, horaFin, dia, fechaDia, asig.docente_id);
-  } else {
-    var dispEl = document.getElementById('oc-clase-disponibles');
-    if (dispEl) dispEl.style.display = 'none';
-  }
-
   bootstrap.Modal.getOrCreateInstance(document.getElementById('modalClase')).show();
 }
 
@@ -8871,7 +7758,7 @@ function editarHorario(id) {
 
   const dSel = document.getElementById('hor-docente');
   dSel.innerHTML = '<option value="">Sin asignar</option>' +
-    DB.get('docentes').filter(d=>d.estado==='Activo' && d.nivel!=='Directivo').map(d=>`<option value="${d.id}">${[d.p_nombre,d.s_nombre,d.p_apellido,d.s_apellido].filter(Boolean).join(' ')}</option>`).join('');
+    DB.get('docentes').filter(d=>d.estado==='Activo' && d.nivel!=='Directivo').map(d=>`<option value="${d.id}">${d.p_nombre} ${d.p_apellido}</option>`).join('');
 
 
   ['hor-id','hor-materia','hor-inicio','hor-fin'].forEach(x => {
@@ -9325,7 +8212,7 @@ function confirmarImportAsig() {
     sincronizarHorarios(asig.id, { docente_id: asig.docente_id, materia: asig.materia, cursos: asig.cursos });
   });
 
-  bootstrap.Modal.getInstance(document.getElementById('modalImportAsig'))?.hide();
+  bootstrap.Modal.getInstance(document.getElementById('modalImportAsig')).hide();
   toast('✅ ' + nuevas + ' asignaciones nuevas, ' + actualizadas + ' actualizadas'
     + (secCreadas ? ', ' + secCreadas + ' grupo(s) creados automáticamente.' : '.'));
   renderAsignaciones();
@@ -9417,7 +8304,7 @@ function guardarSede() {
   if (!idEdit) { sedes.push({ id: DB.nextId('sedes'), ...data }); toast('Sede creada.'); }
   else { const idx=sedes.findIndex(s=>s.id==idEdit); Object.assign(sedes[idx],data); toast('Sede actualizada.'); }
   DB.set('sedes', sedes);
-  bootstrap.Modal.getInstance(document.getElementById('modalSede'))?.hide();
+  bootstrap.Modal.getInstance(document.getElementById('modalSede')).hide();
   renderSedes();
 }
 
@@ -9903,7 +8790,7 @@ function guardarPermiso() {
   if (!idEdit) { perms.push({ id: DB.nextId('permisos'), ...data }); toast('Novedad registrada.'); }
   else { const idx = perms.findIndex(p => p.id == idEdit); Object.assign(perms[idx], data); toast('Novedad actualizada.'); }
   DB.set('permisos', perms);
-  bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasPermiso'))?.hide();
+  bootstrap.Modal.getInstance(document.getElementById('offcanvasPermiso')).hide();
   renderPermisos();
   if (document.getElementById('page-horarios') && !document.getElementById('page-horarios').classList.contains('d-none')) renderHorarios();
   else { /* cache-bust so next open of horarios reflects change */ }
@@ -10433,21 +9320,8 @@ function guardarUsuario() {
     try {
       secondaryApp = firebase.app('secondary');
     } catch(e) {
-      try {
-        secondaryApp = firebase.initializeApp(firebase.app().options, 'secondary');
-      } catch(e2) {
-        showUsrError('Error al inicializar Firebase secundario: ' + (e2.message || e2));
-        resetUsrBtn();
-        return;
-      }
+      secondaryApp = firebase.initializeApp(firebase.app().options, 'secondary');
     }
-    // Helper: cierra sesión en la app secundaria y la elimina para evitar leak de memoria
-    function _cleanupSecondary(app) {
-      app.auth().signOut().catch(function(){}).finally(function(){
-        app.delete().catch(function(){});
-      });
-    }
-
     secondaryApp.auth().createUserWithEmailAndPassword(email, pass)
       .then(function(cred) {
         var newUser = {
@@ -10463,8 +9337,8 @@ function guardarUsuario() {
         usuarios.push(newUser);
         DB.set('usuarios', usuarios);
         syncRoleDoc(newUser);
-        _cleanupSecondary(secondaryApp);
-        bootstrap.Modal.getInstance(document.getElementById('modalUsuario'))?.hide();
+        secondaryApp.auth().signOut();
+        bootstrap.Modal.getInstance(document.getElementById('modalUsuario')).hide();
         renderUsuarios();
         toast('Usuario creado exitosamente.');
         resetUsrBtn();
@@ -10489,8 +9363,8 @@ function guardarUsuario() {
             }
             DB.set('usuarios', usuarios2);
             if (idxEl !== -1) syncRoleDoc(usuarios2[idxEl]);
-            _cleanupSecondary(secondaryApp);
-            bootstrap.Modal.getInstance(document.getElementById('modalUsuario'))?.hide();
+            secondaryApp.auth().signOut();
+            bootstrap.Modal.getInstance(document.getElementById('modalUsuario')).hide();
             renderUsuarios();
             toast('Usuario reactivado exitosamente.');
             resetUsrBtn();
@@ -10509,8 +9383,8 @@ function guardarUsuario() {
                 usuarios3.push(newUser);
                 DB.set('usuarios', usuarios3);
                 syncRoleDoc(newUser);
-                _cleanupSecondary(secondaryApp);
-                bootstrap.Modal.getInstance(document.getElementById('modalUsuario'))?.hide();
+                secondaryApp.auth().signOut();
+                bootstrap.Modal.getInstance(document.getElementById('modalUsuario')).hide();
                 renderUsuarios();
                 toast('Usuario registrado exitosamente.');
                 resetUsrBtn();
@@ -10521,13 +9395,9 @@ function guardarUsuario() {
               });
           }
         } else {
-          console.error('[guardarUsuario] Firebase Auth error:', err.code, err.message);
-          var msg = err.code === 'auth/invalid-email'       ? 'Correo electrónico inválido.'
-                  : err.code === 'auth/weak-password'       ? 'Contraseña demasiado débil.'
-                  : err.code === 'auth/operation-not-allowed' ? 'El inicio de sesión por email/contraseña no está habilitado en Firebase.'
-                  : err.code === 'auth/too-many-requests'   ? 'Demasiados intentos. Espera unos minutos e intenta de nuevo.'
-                  : err.code === 'auth/network-request-failed' ? 'Error de red. Verifica tu conexión a internet.'
-                  : (err.code + ': ' + err.message);
+          var msg = err.code === 'auth/invalid-email'  ? 'Correo electrónico inválido.'
+                  : err.code === 'auth/weak-password'  ? 'Contraseña demasiado débil.'
+                  : err.message;
           showUsrError(msg);
           resetUsrBtn();
         }
@@ -10550,7 +9420,7 @@ function guardarUsuario() {
       if (roleEl) roleEl.textContent = rol;
       if (idx !== -1) { window._SIGEI_USER = usuarios[idx]; applyRoleRestrictions(); }
     }
-    bootstrap.Modal.getInstance(document.getElementById('modalUsuario'))?.hide();
+    bootstrap.Modal.getInstance(document.getElementById('modalUsuario')).hide();
     renderUsuarios();
     toast('Usuario actualizado.');
     resetUsrBtn();
@@ -10634,6 +9504,7 @@ function migrarRoles() {
   if (changed) DB.set('usuarios', usuarios);
   usuarios.forEach(function(u){ if (u.uid) syncRoleDoc(u); });
   var conUid = usuarios.filter(function(u){ return u.uid; }).length;
+  console.log('Migración de roles: ' + conUid + ' de ' + usuarios.length + ' usuarios sincronizados.');
   return conUid + '/' + usuarios.length;
 }
 
@@ -10849,6 +9720,7 @@ function guardarPermisosRoles() {
   try { localStorage.setItem('sigei_permisos_roles', JSON.stringify(config)); } catch(e) {}
   // Guardar en sigei/permisos_roles (misma colección que todo el sistema — legible por todos)
   _fs.collection('sigei').doc('permisos_roles').set({ items: config })
+    .then(function(){ console.log('permisos_roles guardado en sigei/permisos_roles OK'); })
     .catch(function(e){ console.warn('sigei/permisos_roles write falló:', e.message); });
   // También en roles/_config (compatibilidad hacia atrás)
   _fs.collection('roles').doc('_config').set({ permisos_roles: config })
@@ -11271,7 +10143,7 @@ function guardarSeguimientoDocente() {
     };
   });
   DB.set('seguimiento', all);
-  bootstrap.Modal.getInstance(document.getElementById('modalSeguimientoDocente'))?.hide();
+  bootstrap.Modal.getInstance(document.getElementById('modalSeguimientoDocente')).hide();
   renderSeguimiento();
   toast('Seguimiento guardado correctamente.');
 }
@@ -11317,6 +10189,7 @@ async function _driveFindFolder(parentId, name, apiKey) {
   try {
     var resp = await fetch(url);
     var data = await resp.json();
+    console.log('[Drive] Buscar "' + name + '" en ' + parentId + ':', JSON.stringify(data));
     if (data.error) throw new Error(data.error.message + ' (código ' + data.error.code + ')');
     if (data.files && data.files.length) {
       _driveFolderCache[cacheKey] = data.files[0].id;
@@ -12040,7 +10913,7 @@ function confirmarImportExcel() {
     } else { skipped++; }
   });
   DB.set('docentes', docs);
-  bootstrap.Modal.getInstance(document.getElementById('modalImportExcel'))?.hide();
+  bootstrap.Modal.getInstance(document.getElementById('modalImportExcel')).hide();
   renderDocentes();
   toast('Importacion: ' + added + ' nuevos, ' + updated + ' actualizados, ' + skipped + ' omitidos.');
 }
@@ -12087,7 +10960,7 @@ function abrirPerfilUsuario() {
   // Initials: first 2 letters of email or real name
   var usuarios = DB.get('usuarios') || [];
   var uRecord  = usuarios.find(function(u){ return u.email === email; });
-  var nombre   = uRecord ? (uRecord.nombre || ((uRecord.p_nombre||'') + ' ' + (uRecord.p_apellido||'')).trim()) : '';
+  var nombre   = uRecord ? ((uRecord.p_nombre||'') + ' ' + (uRecord.p_apellido||'')).trim() : '';
   var initials = nombre
     ? nombre.split(' ').slice(0, 2).map(function(w){ return w[0]; }).join('').toUpperCase()
     : email.substring(0, 2).toUpperCase();
@@ -12355,7 +11228,7 @@ function abrirSoporte() {
             </div>
             <div style="display:flex;justify-content:space-between;font-size:13px">
               <span style="color:var(--slate-500)">Institución</span>
-              <span style="font-weight:600;color:var(--slate-700)">IER Santa Maria</span>
+              <span style="font-weight:600;color:var(--slate-700)">IER Santandercito</span>
             </div>
             <div style="display:flex;justify-content:space-between;font-size:13px">
               <span style="color:var(--slate-500)">Usuario</span>
